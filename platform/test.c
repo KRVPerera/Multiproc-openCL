@@ -60,4 +60,6 @@ int main(int argc, char* const argv[]) {
         free(devices);
     }
     free(platforms);
+
+    return 0;
 }
