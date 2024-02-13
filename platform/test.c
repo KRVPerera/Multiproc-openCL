@@ -9,7 +9,7 @@ int main(int argc, char* const argv[]) {
 
     err = clGetPlatformIDs(1, NULL, &num_platforms);
     if (err < 0) {
-        printf("Error: clGetPlatformIDs");
+        perror("Error: clGetPlatformIDs");
         exit(1);
     }
 
@@ -23,12 +23,12 @@ int main(int argc, char* const argv[]) {
         char p_vendor[40];
         err = clGetPlatformInfo(platforms[j], CL_PLATFORM_NAME, 40, p_name, NULL);
         if (err < 0) {
-            printf("Error: clGetPlatformInfo CL_PLATFORM_NAME");
+            perror("Error: clGetPlatformInfo CL_PLATFORM_NAME");
             exit(1);
         }
         err = clGetPlatformInfo(platforms[j], CL_PLATFORM_VENDOR, 40, p_vendor, NULL);
         if (err < 0) {
-            printf("Error: clGetPlatformInfo CL_PLATFORM_VENDOR");
+            perror("Error: clGetPlatformInfo CL_PLATFORM_VENDOR");
             exit(1);
         }
 
@@ -36,7 +36,7 @@ int main(int argc, char* const argv[]) {
 
         err = clGetDeviceIDs(platforms[j], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
         if (err < 0) {
-            printf("Error: clGetDeviceIDs");
+            perror("Error: clGetDeviceIDs");
             exit(1);
         }
 
