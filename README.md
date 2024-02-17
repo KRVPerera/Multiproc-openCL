@@ -9,3 +9,4 @@ This repository is for the learning purpose of GPGPU with OpenCL
 - kernel: Create kernels and search for a specific kernel by name
 - command-queue: Create the command queue and enque kernel execution commands
 - buffer: Create buffer and sub-buffer, get info
+- mapNcopy: Mapping and copying buffer objects
