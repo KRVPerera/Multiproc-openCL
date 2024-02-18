@@ -44,6 +44,7 @@ int main(int argc, char* const argv[]) {
         clGetDeviceIDs(platforms[j], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
 
         char buf[128];
+        cl_uint work_item_dim, compute_units;
 
         if (num_devices == 0) {
             printf("no device found!");
@@ -55,6 +56,12 @@ int main(int argc, char* const argv[]) {
 
             clGetDeviceInfo(devices[i], CL_DEVICE_VERSION, 128, buf, NULL);
             fprintf(stdout, "%s\n", buf);
+
+            clGetDeviceInfo(devices[i], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(cl_uint), &work_item_dim, NULL);
+            fprintf(stdout, "CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS: %u\n", work_item_dim);
+
+            clGetDeviceInfo(devices[i], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &compute_units, NULL);
+            fprintf(stdout, "CL_DEVICE_MAX_COMPUTE_UNITS: %u\n", compute_units);
         }
 
         free(devices);
