@@ -44,7 +44,7 @@ int main(int argc, char* const argv[]) {
         clGetDeviceIDs(platforms[j], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
 
         char buf[128];
-        cl_uint work_item_dim, compute_units, char_vector_width;
+        cl_uint work_item_dim, compute_units, char_vector_width, global_mem_size, global_mem_cache, buffer_size, local_mem_size;
 
         if (num_devices == 0) {
             printf("no device found!");
@@ -65,6 +65,18 @@ int main(int argc, char* const argv[]) {
 
             clGetDeviceInfo(devices[i], CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, sizeof(char_vector_width), &char_vector_width, NULL);
             fprintf(stdout, "CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR: %u\n", char_vector_width);
+
+            clGetDeviceInfo(devices[i], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_uint), &global_mem_size, NULL);
+            fprintf(stdout, "CL_DEVICE_GLOBAL_MEM_SIZE: %u\n", global_mem_size);
+
+            clGetDeviceInfo(devices[i], CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, sizeof(cl_uint), &global_mem_cache, NULL);
+            fprintf(stdout, "CL_DEVICE_GLOBAL_MEM_CACHE_SIZE: %u\n", global_mem_cache);
+
+            clGetDeviceInfo(devices[i], CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(cl_uint), &buffer_size, NULL);
+            fprintf(stdout, "CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE: %u\n", buffer_size);
+
+            clGetDeviceInfo(devices[i], CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_uint), &local_mem_size, NULL);
+            fprintf(stdout, "CL_DEVICE_LOCAL_MEM_SIZE: %u\n", local_mem_size);
         }
 
         free(devices);
