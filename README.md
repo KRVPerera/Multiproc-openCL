@@ -11,6 +11,7 @@ This repository is for the learning purpose of GPGPU with OpenCL
 - buffer: Create buffer and sub-buffer, get info
 - mapNcopy: Mapping and copying buffer objects
 - hello-world: First kernal program
+- matAdd: Adding two matrixes
 
 ## Reference
 
