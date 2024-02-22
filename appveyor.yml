@@ -17,20 +17,20 @@ environment:
    - SETARCH: i686
    - SETARCH: x86_64
 matrix:
-  exclude:
-    - platform: Ubuntu
-      SETARCH: x86_64
+  fast_finish: true     # set this flag to immediately finish build once one of the jobs fails.
+  allow_failures:
+    - platform: x86
+      configuration: Debug
     - platform: x64
-      SETARCH: i686
+      configuration: Release
 before_build:
   # Setup environment:
-  - ps: $env:TOP = $env:APPVEYOR_BUILD_FOLDER
-  - ps: $env:TOP
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - mkdir build
+  - cd build
+  - cmake --build .
   - echo %TOP%
-  # Generate the CTS solution file:
-  - cmake -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=./bin
-          -DOPENCL_LIBRARIES="OpenCL"
-          -H. -Bbuild_win -DARCH=%SETARCH%
+  - cmake -DOPENCL_LIBRARIES="OpenCL" -H. -DARCH=%SETARCH%
 build:
   project: build_win\CLConform.sln
   parallel: true
