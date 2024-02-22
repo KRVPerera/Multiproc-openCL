@@ -17,7 +17,6 @@ list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
 include(CTest)
 #include(Catch)
 
-message("This: ${This}")
 target_link_libraries(${This} PUBLIC Catch2::Catch2WithMain)
 
 #catch_discover_tests(${This})

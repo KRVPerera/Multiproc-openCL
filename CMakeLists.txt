@@ -43,7 +43,7 @@ enable_testing()
 
 #target_link_libraries(tests Catch2::Catch2)
 
-
+add_subdirectory(learning)
 
 add_subdirectory(tests)
 #endif()

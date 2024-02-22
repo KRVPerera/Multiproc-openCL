@@ -3,14 +3,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <OpenCL/opencl.h>
+#ifdef MAC
+#include <OpenCL/cl.h>
+#else
+#define CL_USE_DEPRECATED_OPENCL_2_0_APIS
+#include <CL/cl.h>
+#endif
 
-int main(int argc, char* const argv[]) {
+int main() {
 
     cl_platform_id platform;
     cl_device_id device;
     cl_context context;
-    cl_int err, i;
+    cl_int err;
+    cl_uint i;
 
     cl_program program;
     FILE *program_handle;
@@ -74,7 +80,7 @@ int main(int argc, char* const argv[]) {
         exit(1);
     }
 
-    cl_kernel *kernels, found_kernel;
+    cl_kernel *kernels;
     cl_uint num_kernels;
     char kernel_name[20];
 
@@ -90,7 +96,6 @@ int main(int argc, char* const argv[]) {
     for (i = 0; i < num_kernels; i++) {
         clGetKernelInfo(kernels[i], CL_KERNEL_FUNCTION_NAME, 20, kernel_name, NULL);
         if (strcmp(kernel_name, "sub") == 0) {
-            found_kernel = kernels[i];
             printf("Found the kernel at index %u\n", i);
             break;
         }
