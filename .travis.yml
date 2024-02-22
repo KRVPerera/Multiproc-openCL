@@ -1,0 +1,10 @@
+dist:trusty
+sudo: required
+language:cpp
+
+script:
+  - sudo apt update
+  - sudo apt install -y ocl-icd-opencl-dev
+  - cmake .
+  - cmake --build . -- -j2
+  - ctest -j2

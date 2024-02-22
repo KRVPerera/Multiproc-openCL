@@ -1,2 +1,18 @@
 test
 .DS_Store
+
+# Ignore build folder
+build
+cmake-build-debug
+
+# Ignore CMakeLists.txt.user
+CMakeLists.txt.user
+
+# Ignore .idea folder
+.idea
+
+# Ignore .vs folder
+.vs
+
+# Ignore .vscode folder
+.vscode
