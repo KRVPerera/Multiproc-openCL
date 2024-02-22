@@ -2,8 +2,7 @@ os:
   - Ubuntu
 shallow_clone: true
 install:
-- sudo apt update
-- sudo apt install ocl-icd-opencl-dev
+- sudo apt install -y ocl-icd-opencl-dev
 platform:
   - x64
 configuration:
