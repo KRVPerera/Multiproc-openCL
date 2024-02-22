@@ -35,6 +35,4 @@ test_script:
   - cd _builds
   - ctest -C %CONFIGURATION% --output-on-failure
 
-build:
-  parallel: true
-  verbosity: normal
+build: off
