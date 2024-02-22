@@ -1,9 +1,5 @@
-//
-// Created by ruksh on 21/02/2024.
-//
-#include <gtest/gtest.h>
+#include <catch2/catch_test_macros.hpp>
 
-#include <iostream>
 #include <cstdint>
 
 uint32_t factorial( uint32_t number ) {
@@ -11,8 +7,8 @@ uint32_t factorial( uint32_t number ) {
 }
 
 TEST_CASE( "Factorials are computed", "[factorial]" ) {
-REQUIRE( factorial( 1) == 1 );
-REQUIRE( factorial( 2) == 2 );
-REQUIRE( factorial( 3) == 6 );
-REQUIRE( factorial(10) == 3'628'800 );
-}
+    REQUIRE( factorial( 1) == 1 );
+    REQUIRE( factorial( 2) == 2 );
+    REQUIRE( factorial( 3) == 6 );
+    REQUIRE( factorial(10) == 3'628'800 );
+    }
