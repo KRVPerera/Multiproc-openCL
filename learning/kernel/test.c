@@ -10,8 +10,8 @@
 #include <CL/cl.h>
 #endif
 
-int main() {
-
+int kernelFound() {
+    int kernelFound = 1;
     cl_platform_id platform;
     cl_device_id device;
     cl_context context;
@@ -51,7 +51,7 @@ int main() {
     program_handle = fopen(PROGRAM_FILE, "r");
     if(program_handle == NULL) {
         perror("Couldn't find the program file");
-        exit(1);   
+        exit(1);
     }
     fseek(program_handle, 0, SEEK_END);
     program_size = ftell(program_handle);
@@ -64,7 +64,7 @@ int main() {
     program = clCreateProgramWithSource(context, 1, (const char**)&program_buffer, &program_size, &err);
     if(err < 0) {
         perror("Error: clCreateProgramWithSource");
-        exit(1);   
+        exit(1);
     }
 
     free(program_buffer);
@@ -87,7 +87,7 @@ int main() {
     err = clCreateKernelsInProgram(program, 0, NULL, &num_kernels);
     if(err < 0) {
         perror("Error: clCreateKernelsInProgram");
-        exit(1);   
+        exit(1);
     }
 
     kernels = (cl_kernel*) malloc(sizeof(cl_kernel) * num_kernels);
@@ -97,6 +97,7 @@ int main() {
         clGetKernelInfo(kernels[i], CL_KERNEL_FUNCTION_NAME, 20, kernel_name, NULL);
         if (strcmp(kernel_name, "sub") == 0) {
             printf("Found the kernel at index %u\n", i);
+            kernelFound = 0;
             break;
         }
     }
@@ -109,6 +110,9 @@ int main() {
 
     clReleaseProgram(program);
     clReleaseContext(context);
-    return 0;
-
+    return kernelFound;
 }
+
+//int main() {
+//    return kernelFound();
+//}
