@@ -12,6 +12,8 @@ platform:
   - x64
 configuration:
   - Release
+  - Debug
+  -
 environment:
   matrix:
    - SETARCH: i686
@@ -25,13 +27,7 @@ matrix:
       configuration: Release
 before_build:
   # Setup environment:
-  - cd %APPVEYOR_BUILD_FOLDER%
-  - mkdir build
-  - cd build
-  - cmake --build .
-  - echo %TOP%
   - cmake -DOPENCL_LIBRARIES="OpenCL" -H. -DARCH=%SETARCH%
 build:
-  project: build_win\CLConform.sln
   parallel: true
   verbosity: normal
