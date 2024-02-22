@@ -3,6 +3,7 @@ os:
 shallow_clone: true
 install:
 - sudo apt install -y ocl-icd-opencl-dev
+- git submodule update --init --recursive
 platform:
   - x64
 configuration:
