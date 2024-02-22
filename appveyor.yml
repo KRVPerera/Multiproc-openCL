@@ -25,9 +25,15 @@ matrix:
       configuration: Debug
     - platform: x64
       configuration: Release
-before_build:
+
+build_script:
   # Setup environment:
   - cmake -DOPENCL_LIBRARIES="OpenCL" -H. -DARCH=%SETARCH%
+  - cmake --build . --config %CONFIGURATION%
+
+test_script:
+  - ctest -C %CONFIGURATION% --output-on-failure
+
 build:
   parallel: true
   verbosity: normal
