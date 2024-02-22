@@ -5,9 +5,36 @@
 #ifndef MULTIPROCOPENCL_PNGLOADER_H
 #define MULTIPROCOPENCL_PNGLOADER_H
 
+/**
+ * Decode from disk to raw pixels with a single function call
+ * @param filename
+ */
 void decodeOneStep(const char* filename);
+
+/**
+ * Load PNG file from disk to memory first, then decode to raw pixels in memory.
+ * @param filename
+ */
 void decodeTwoSteps(const char* filename);
+
+/**
+ * Encode from raw pixels to disk with a single function call
+ * The image argument has width * height RGBA pixels or width * height * 4 bytes
+ * @param filename
+ * @param image
+ * @param width
+ * @param height
+ */
 void encodeOneStep(const char* filename, const unsigned char* image, unsigned width, unsigned height);
+
+/**
+ * Encode from raw pixels to disk with a two function calls
+ * The image argument has width * height RGBA pixels or width * height * 4 bytes
+ * @param filename
+ * @param image
+ * @param width
+ * @param height
+ */
 void encodeTwoSteps(const char* filename, const unsigned char* image, unsigned width, unsigned height);
 
 #endif //MULTIPROCOPENCL_PNGLOADER_H
