@@ -28,10 +28,11 @@ matrix:
 
 build_script:
   # Setup environment:
-  - cmake -DOPENCL_LIBRARIES="OpenCL" -H. -DARCH=%SETARCH%
-  - cmake --build . --config %CONFIGURATION%
+  - cmake -DOPENCL_LIBRARIES="OpenCL" -H. -B_builds -DARCH=%SETARCH%
+  - cmake --build _builds --config %CONFIGURATION%
 
 test_script:
+  - cd _builds
   - ctest -C %CONFIGURATION% --output-on-failure
 
 build:
