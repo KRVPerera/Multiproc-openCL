@@ -1,8 +1,6 @@
-clone:
+lib/Catch2/README.md:
 	git submodule update --init --recursive
 
-create_build_folder:
+MultiProcOpenCL: 
 	mkdir -p build
-
-build:
 	cd build && cmake .. && make
