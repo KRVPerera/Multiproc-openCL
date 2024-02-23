@@ -8,7 +8,7 @@
 #include <OpenCL/cl.h>
 #else
 #define CL_USE_DEPRECATED_OPENCL_2_0_APIS
-#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+//#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #define CL_TARGET_OPENCL_VERSION 220
 #include <CL/cl.h>
 #endif
@@ -66,11 +66,15 @@ int main() {
     fread(program_buffer, sizeof(char), program_size, program_handle);
     fclose(program_handle);
 
+    printf("Programmer read OK\n");
+
     program = clCreateProgramWithSource(context, 1, (const char**)&program_buffer, &program_size, &err);
     if(err < 0) {
         perror("Error: clCreateProgramWithSource");
         exit(1);   
     }
+
+    printf("clCreateProgramWithSource OK\n");
 
     free(program_buffer);
 
@@ -84,6 +88,8 @@ int main() {
         free(program_log);
         exit(1);
     }
+
+    printf("clBuildProgram OK\n");
 
     kernel = clCreateKernel(program, KERNEL_NAME, &err);
     if(err < 0) {
@@ -132,5 +138,4 @@ int main() {
     clReleaseProgram(program);
     clReleaseContext(context);
     return 0;
-
 }
