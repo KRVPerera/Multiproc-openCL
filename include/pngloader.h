@@ -5,6 +5,27 @@
 #ifndef MULTIPROCOPENCL_PNGLOADER_H
 #define MULTIPROCOPENCL_PNGLOADER_H
 
+typedef struct Image {
+    unsigned char* image;
+    unsigned width;
+    unsigned height;
+    unsigned error;
+} Image;
+
+
+/**
+ * Handle image loading errors free memory if error
+ * @param imgI
+ */
+void handleImageLoad(Image *imgI);
+
+/**
+ * Load PNG file from disk to memory
+ * @param filename
+ * @return
+ */
+Image* loadImage(const char *filename);
+
 /**
  * Decode from disk to raw pixels with a single function call
  * @param filename
