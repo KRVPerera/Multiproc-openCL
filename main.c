@@ -28,7 +28,7 @@ void createSampleTestPng() {
 }
 
 int main() {
-    printf("Hello, World!\n");
+    printf("Starting Multiprocessor Programming project!\n");
     char* image0Name = "im0.png";
     char* image1Name = "im1.png";
 
@@ -42,6 +42,8 @@ int main() {
     free(im0);
     free(im1->image);
     free(im1);
+
+    printf("Stopping Multiprocessor Programming project!\n");
     return 0;
 }
 

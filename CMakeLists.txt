@@ -18,7 +18,7 @@ add_subdirectory(lib)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
-include_directories(include)
+include_directories(include/pngloader)
 
 set(FOLDER_FILES
         sample/im0.png
@@ -31,7 +31,7 @@ foreach(FILE ${FOLDER_FILES})
     file(COPY ${PROJECT_SOURCE_DIR}/data/${FILE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endforeach()
 
-add_library(img_loader SHARED src/pngloader.c include/pngloader.h)
+add_library(img_loader SHARED src/pngloader/pngloader.c include/pngloader/pngloader.h)
 target_link_libraries(img_loader PUBLIC lodepng)
 
 add_executable(${PROJECT_NAME} main.c)
