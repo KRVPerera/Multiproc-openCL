@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <pngloader.h>
 
-void handleImageLoad(Image *imgI);
-
 void createSampleTestPng() {
     const char* filename = "test.png";
 
@@ -31,8 +29,8 @@ void createSampleTestPng() {
 
 int main() {
     printf("Hello, World!\n");
-    char* image0Name = "data/im0.png";
-    char* image1Name = "data/im1.png";
+    char* image0Name = "im0.png";
+    char* image1Name = "im1.png";
 
     Image *im0 = loadImage(image0Name);
     handleImageLoad(im0);

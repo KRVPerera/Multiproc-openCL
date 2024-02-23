@@ -20,6 +20,17 @@ set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
 include_directories(include)
 
+set(FOLDER_FILES
+        sample/im0.png
+        sample/im1.png
+        # Add more files as needed
+)
+
+# Loop through the files and configure each one
+foreach(FILE ${FOLDER_FILES})
+    file(COPY ${PROJECT_SOURCE_DIR}/data/${FILE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endforeach()
+
 add_library(img_loader SHARED src/pngloader.c include/pngloader.h)
 target_link_libraries(img_loader PUBLIC lodepng)
 
