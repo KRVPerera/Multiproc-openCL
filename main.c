@@ -6,9 +6,9 @@
 #include <stdlib.h>
 #include <pngloader.h>
 
-int main() {
-    printf("Hello, World!\n");
+void handleImageLoad(Image *imgI);
 
+void createSampleTestPng() {
     const char* filename = "test.png";
 
     /*generate some image*/
@@ -27,5 +27,24 @@ int main() {
     encodeOneStep(filename, image, width, height);
 
     free(image);
+}
+
+int main() {
+    printf("Hello, World!\n");
+    char* image0Name = "data/im0.png";
+    char* image1Name = "data/im1.png";
+
+    Image *im0 = loadImage(image0Name);
+    handleImageLoad(im0);
+    Image *im1 = loadImage(image1Name);
+    handleImageLoad(im1);
+
+
+    free(im0->image);
+    free(im0);
+    free(im1->image);
+    free(im1);
     return 0;
 }
+
+

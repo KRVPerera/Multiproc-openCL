@@ -39,8 +39,6 @@ target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL lodepng)
 
 enable_testing()
 
-
-
 #target_link_libraries(tests Catch2::Catch2)
 
 add_subdirectory(learning)
