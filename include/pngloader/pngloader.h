@@ -12,6 +12,18 @@ typedef struct Image {
     unsigned error;
 } Image;
 
+/**
+ * Save raw pixels to disk as a PNG file with a single function call
+ * @param filename
+ * @param img
+ */
+void saveImage(const char *filename, Image* img);
+
+/**
+ * Free memory of image
+ * @param img
+ */
+void freeImage(Image *img);
 
 /**
  * Handle image loading errors free memory if error

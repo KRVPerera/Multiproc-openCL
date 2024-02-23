@@ -23,17 +23,34 @@ Image* loadImage(const char *filename)
     img->height = height;
     img->error = error;
 
+    handleImageLoad(img);
     return img;
+}
+
+void saveImage(const char *filename, Image* img)
+{
+    /*Encode the image*/
+    unsigned error = lodepng_encode32_file(filename, img->image, img->width, img->height);
+
+    /*if there's an error, display it*/
+    if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
 }
 
 void handleImageLoad(Image *imgI) {
     if (imgI->error) {
         printf("Error loading image\n");
-        free(imgI->image);
-        free(imgI);
+        freeImage(imgI);
     } else {
         printf("Image loaded\n");
     }
+}
+
+void freeImage(Image *img) {
+    if (img == NULL) return;
+    if (img->image != NULL) free(img->image);
+    img->image = NULL;
+    free(img);
+    img = NULL;
 }
 
 /*

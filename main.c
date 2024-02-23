@@ -33,15 +33,14 @@ int main() {
     char* image1Name = "im1.png";
 
     Image *im0 = loadImage(image0Name);
-    handleImageLoad(im0);
     Image *im1 = loadImage(image1Name);
-    handleImageLoad(im1);
+
+    saveImage("im0_copy.png", im0);
+    saveImage("im1_copy.png", im1);
 
 
-    free(im0->image);
-    free(im0);
-    free(im1->image);
-    free(im1);
+    freeImage(im0);
+    freeImage(im1);
 
     printf("Stopping Multiprocessor Programming project!\n");
     return 0;
