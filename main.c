@@ -35,12 +35,21 @@ int main() {
     Image *im0 = loadImage(image0Name);
     Image *im1 = loadImage(image1Name);
 
-    saveImage("im0_copy.png", im0);
-    saveImage("im1_copy.png", im1);
+    Image* grayIm0 = createNewImage(im0->width, im0->height);
+    Image* grayIm1 = createNewImage(im0->width, im0->height);
+    Image* outputImageWhite = createNewImageWithValue(im0->width, im0->height, 255);
 
+    getGrayScaleImage(im0, grayIm0);
+    getGrayScaleImage(im1, grayIm1);
+    saveImage("outputImageWhite.png", outputImageWhite);
+    saveImage("grayIm0.png", grayIm0);
+    saveImage("grayIm1.png", grayIm1);
 
     freeImage(im0);
     freeImage(im1);
+    freeImage(outputImageWhite);
+    freeImage(grayIm0);
+    freeImage(grayIm1);
 
     printf("Stopping Multiprocessor Programming project!\n");
     return 0;

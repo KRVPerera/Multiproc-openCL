@@ -27,6 +27,46 @@ Image* loadImage(const char *filename)
     return img;
 }
 
+Image* createNewImage(unsigned width, unsigned height) {
+    Image* img = malloc(sizeof(Image));
+    img->image = malloc(width * height * 4);
+    img->width = width;
+    img->height = height;
+    img->error = 0;
+    return img;
+}
+
+void getGrayScaleImage(Image* input, Image* output) {
+    for(unsigned x = 0; x < input->width; x++)
+        for(unsigned y = 0; y < input->height; y++) {
+            unsigned char r = input->image[4 * input->width * y + 4 * x + 0];
+            unsigned char g = input->image[4 * input->width * y + 4 * x + 1];
+            unsigned char b = input->image[4 * input->width * y + 4 * x + 2];
+            unsigned char a = input->image[4 * input->width * y + 4 * x + 3];
+            unsigned char gray = (r + g + b) / 3;
+            output->image[4 * input->width * y + 4 * x + 0] = gray;
+            output->image[4 * input->width * y + 4 * x + 1] = gray;
+            output->image[4 * input->width * y + 4 * x + 2] = gray;
+            output->image[4 * input->width * y + 4 * x + 3] = a;
+        }
+}
+
+Image* createNewImageWithValue(unsigned width, unsigned height, int value) {
+    Image* img = malloc(sizeof(Image));
+    img->image = malloc(width * height * 4);
+    img->width = width;
+    img->height = height;
+    for(unsigned x = 0; x < width; x++)
+        for(unsigned y = 0; y < height; y++) {
+            img->image[4 * width * y + 4 * x + 0] = value;
+            img->image[4 * width * y + 4 * x + 1] = value;
+            img->image[4 * width * y + 4 * x + 2] = value;
+            img->image[4 * width * y + 4 * x + 3] = value;
+        }
+    img->error = 0;
+    return img;
+}
+
 void saveImage(const char *filename, Image* img)
 {
     /*Encode the image*/

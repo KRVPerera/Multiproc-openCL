@@ -13,6 +13,30 @@ typedef struct Image {
 } Image;
 
 /**
+ * Create a new image in memory
+ * @param width
+ * @param height
+ * @return
+ */
+Image* createNewImage(unsigned width, unsigned height);
+
+/**
+ * Create a new image in memory with a single value
+ * @param width
+ * @param height
+ * @param value
+ * @return
+ */
+Image* createNewImageWithValue(unsigned width, unsigned height, int value);
+
+/**
+ * Convert an image to grayscale
+ * @param input
+ * @param output
+ */
+void getGrayScaleImage(Image* input, Image* output);
+
+/**
  * Save raw pixels to disk as a PNG file with a single function call
  * @param filename
  * @param img
