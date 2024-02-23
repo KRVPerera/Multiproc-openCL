@@ -29,13 +29,8 @@ find_package(OpenCL REQUIRED)
 add_executable(${PROJECT_NAME} ${Sources})
 
 target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL lodepng)
-target_link_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
 enable_testing()
 
 add_subdirectory(learning)
 add_subdirectory(tests)
-
-
-
-
