@@ -1,8 +1,17 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <OpenCL/opencl.h>
+#ifdef MAC
+#include <OpenCL/cl.h>
+#else
+#define CL_USE_DEPRECATED_OPENCL_2_0_APIS
+// #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#define CL_TARGET_OPENCL_VERSION 220
+#include <OpenCL/cl.h>
+#endif
 
-int main(int argc, char* const argv[]) {
+int main() {
 
     cl_platform_id *platforms;
     cl_uint num_platforms, err, j;
@@ -45,6 +54,7 @@ int main(int argc, char* const argv[]) {
 
         char buf[128];
         cl_uint work_item_dim, compute_units, char_vector_width, global_mem_size, global_mem_cache, buffer_size, local_mem_size;
+        cl_bool image_support;
 
         if (num_devices == 0) {
             printf("no device found!");
@@ -77,6 +87,30 @@ int main(int argc, char* const argv[]) {
 
             clGetDeviceInfo(devices[i], CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_uint), &local_mem_size, NULL);
             fprintf(stdout, "CL_DEVICE_LOCAL_MEM_SIZE: %u\n", local_mem_size);
+
+            clGetDeviceInfo(devices[i], CL_DEVICE_IMAGE_SUPPORT, sizeof(image_support), &image_support, NULL);
+            if (image_support == CL_TRUE) {
+                printf("Device Support Image operations!\n");
+            } else {
+                printf("Device doesn't support Image operations!\n");
+            }
+
+            // Query the maximum dimensions for 2D images
+            size_t max_width, max_height;
+            err = clGetDeviceInfo(devices[i], CL_DEVICE_IMAGE2D_MAX_WIDTH, sizeof(size_t), &max_width, NULL);
+            if (err != CL_SUCCESS) {
+                printf("Error getting max width\n");
+                return 1;
+            }
+
+            err = clGetDeviceInfo(devices[i], CL_DEVICE_IMAGE2D_MAX_HEIGHT, sizeof(size_t), &max_height, NULL);
+            if (err != CL_SUCCESS) {
+                printf("Error getting max height\n");
+                return 1;
+            }
+
+            printf("Max 2D Image Width: %zu\n", max_width);
+            printf("Max 2D Image Height: %zu\n", max_height);
         }
 
         free(devices);
