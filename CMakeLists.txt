@@ -4,6 +4,8 @@ project(MultiprocOpenCL
         VERSION 0.0.1
         LANGUAGES C CXX)
 
+find_package(OpenCL REQUIRED)
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -16,19 +18,13 @@ add_subdirectory(lib)
 
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
-message("lodepng_SOURCE_DIR: ${lodepng_SOURCE_DIR}")
 include_directories(include)
-include_directories(${lodepng_SOURCE_DIR})
 
-set (Sources main.c src/pngloader.c)
+add_library(img_loader SHARED src/pngloader.c include/pngloader.h)
+target_link_libraries(img_loader PUBLIC lodepng)
 
-set (Headers)
-
-find_package(OpenCL REQUIRED)
-
-add_executable(${PROJECT_NAME} ${Sources})
-
-target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL lodepng)
+add_executable(${PROJECT_NAME} main.c)
+target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader)
 
 enable_testing()
 

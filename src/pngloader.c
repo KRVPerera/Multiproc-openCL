@@ -7,22 +7,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 Image* loadImage(const char *filename)
 {
-  unsigned error;
-  unsigned char *image = 0;
-  unsigned width, height;
+    unsigned error;
+    unsigned char *image = 0;
+    unsigned width, height;
 
-  error = lodepng_decode32_file(&image, &width, &height, filename);
-  if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
+    error = lodepng_decode32_file(&image, &width, &height, filename);
+    if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
 
-  Image* img = malloc(sizeof(Image));
-  img->image = image;
-  img->width = width;
-  img->height = height;
-  img->error = error;
+    Image* img = malloc(sizeof(Image));
+    img->image = image;
+    img->width = width;
+    img->height = height;
+    img->error = error;
 
-  return img;
+    return img;
 }
 
 void handleImageLoad(Image *imgI) {
