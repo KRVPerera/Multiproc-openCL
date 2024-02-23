@@ -3,14 +3,23 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <OpenCL/opencl.h>
+#include <string.h>
+#ifdef MAC
+#include <OpenCL/cl.h>
+#else
+#define CL_USE_DEPRECATED_OPENCL_2_0_APIS
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#define CL_TARGET_OPENCL_VERSION 220
+#include <CL/cl.h>
+#endif
 
-int main(int argc, char* const argv[]) {
-
+int kernelFound() {
+    int kernelFound = 1;
     cl_platform_id platform;
     cl_device_id device;
     cl_context context;
-    cl_int err, i;
+    cl_int err;
+    cl_uint i;
 
     cl_program program;
     FILE *program_handle;
@@ -45,7 +54,7 @@ int main(int argc, char* const argv[]) {
     program_handle = fopen(PROGRAM_FILE, "r");
     if(program_handle == NULL) {
         perror("Couldn't find the program file");
-        exit(1);   
+        exit(1);
     }
     fseek(program_handle, 0, SEEK_END);
     program_size = ftell(program_handle);
@@ -58,7 +67,7 @@ int main(int argc, char* const argv[]) {
     program = clCreateProgramWithSource(context, 1, (const char**)&program_buffer, &program_size, &err);
     if(err < 0) {
         perror("Error: clCreateProgramWithSource");
-        exit(1);   
+        exit(1);
     }
 
     free(program_buffer);
@@ -74,14 +83,14 @@ int main(int argc, char* const argv[]) {
         exit(1);
     }
 
-    cl_kernel *kernels, found_kernel;
+    cl_kernel *kernels;
     cl_uint num_kernels;
     char kernel_name[20];
 
     err = clCreateKernelsInProgram(program, 0, NULL, &num_kernels);
     if(err < 0) {
         perror("Error: clCreateKernelsInProgram");
-        exit(1);   
+        exit(1);
     }
 
     kernels = (cl_kernel*) malloc(sizeof(cl_kernel) * num_kernels);
@@ -90,8 +99,8 @@ int main(int argc, char* const argv[]) {
     for (i = 0; i < num_kernels; i++) {
         clGetKernelInfo(kernels[i], CL_KERNEL_FUNCTION_NAME, 20, kernel_name, NULL);
         if (strcmp(kernel_name, "sub") == 0) {
-            found_kernel = kernels[i];
             printf("Found the kernel at index %u\n", i);
+            kernelFound = 0;
             break;
         }
     }
@@ -104,6 +113,9 @@ int main(int argc, char* const argv[]) {
 
     clReleaseProgram(program);
     clReleaseContext(context);
-    return 0;
-
+    return kernelFound;
 }
+
+//int main() {
+//    return kernelFound();
+//}

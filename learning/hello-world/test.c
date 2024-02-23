@@ -4,9 +4,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <OpenCL/opencl.h>
+#ifdef MAC
+#include <OpenCL/cl.h>
+#else
+#define CL_USE_DEPRECATED_OPENCL_2_0_APIS
+//#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#define CL_TARGET_OPENCL_VERSION 220
+#include <CL/cl.h>
+#endif
 
-int main(int argc, char* const argv[]) {
+int main() {
 
     cl_platform_id platform;
     cl_device_id device;
@@ -59,11 +66,15 @@ int main(int argc, char* const argv[]) {
     fread(program_buffer, sizeof(char), program_size, program_handle);
     fclose(program_handle);
 
+    printf("Programmer read OK\n");
+
     program = clCreateProgramWithSource(context, 1, (const char**)&program_buffer, &program_size, &err);
     if(err < 0) {
         perror("Error: clCreateProgramWithSource");
         exit(1);   
     }
+
+    printf("clCreateProgramWithSource OK\n");
 
     free(program_buffer);
 
@@ -78,6 +89,8 @@ int main(int argc, char* const argv[]) {
         exit(1);
     }
 
+    printf("clBuildProgram OK\n");
+
     kernel = clCreateKernel(program, KERNEL_NAME, &err);
     if(err < 0) {
         perror("Error: clCreateKernel");
@@ -86,7 +99,6 @@ int main(int argc, char* const argv[]) {
 
     char msg[16];
     cl_mem msg_buffer;
-    void *mapped_memory;
 
     msg_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(msg), NULL, &err);
     if (err < 0) {
@@ -126,5 +138,4 @@ int main(int argc, char* const argv[]) {
     clReleaseProgram(program);
     clReleaseContext(context);
     return 0;
-
 }
