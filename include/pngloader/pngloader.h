@@ -21,13 +21,16 @@ typedef struct Image {
 Image* createNewImage(unsigned width, unsigned height);
 
 /**
- * Create a new image in memory with a single value
+ * Create a new image in memory with a single color
  * @param width
  * @param height
- * @param value
+ * @param r
+ * @param g
+ * @param b
+ * @param a
  * @return
  */
-Image* createNewImageWithValue(unsigned width, unsigned height, int value);
+Image* createNewImageWithValue(unsigned width, unsigned height, int r, int g, int b, int a);
 
 /**
  * Convert an image to grayscale

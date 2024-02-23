@@ -37,17 +37,17 @@ int main() {
 
     Image* grayIm0 = createNewImage(im0->width, im0->height);
     Image* grayIm1 = createNewImage(im0->width, im0->height);
-    Image* outputImageWhite = createNewImageWithValue(im0->width, im0->height, 255);
+    Image* outputImageRed = createNewImageWithValue(im0->width, im0->height, 255, 0, 0, 255);
 
     getGrayScaleImage(im0, grayIm0);
     getGrayScaleImage(im1, grayIm1);
-    saveImage("outputImageWhite.png", outputImageWhite);
+    saveImage("outputImageRed.png", outputImageRed);
     saveImage("grayIm0.png", grayIm0);
     saveImage("grayIm1.png", grayIm1);
 
     freeImage(im0);
     freeImage(im1);
-    freeImage(outputImageWhite);
+    freeImage(outputImageRed);
     freeImage(grayIm0);
     freeImage(grayIm1);
 

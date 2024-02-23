@@ -51,17 +51,17 @@ void getGrayScaleImage(Image* input, Image* output) {
         }
 }
 
-Image* createNewImageWithValue(unsigned width, unsigned height, int value) {
+Image* createNewImageWithValue(unsigned width, unsigned height, int r, int g, int b, int a) {
     Image* img = malloc(sizeof(Image));
     img->image = malloc(width * height * 4);
     img->width = width;
     img->height = height;
     for(unsigned x = 0; x < width; x++)
         for(unsigned y = 0; y < height; y++) {
-            img->image[4 * width * y + 4 * x + 0] = value;
-            img->image[4 * width * y + 4 * x + 1] = value;
-            img->image[4 * width * y + 4 * x + 2] = value;
-            img->image[4 * width * y + 4 * x + 3] = value;
+            img->image[4 * width * y + 4 * x + 0] = r;
+            img->image[4 * width * y + 4 * x + 1] = g;
+            img->image[4 * width * y + 4 * x + 2] = b;
+            img->image[4 * width * y + 4 * x + 3] = a;
         }
     img->error = 0;
     return img;
