@@ -15,10 +15,10 @@ void createSampleTestPng() {
     unsigned x, y;
     for(y = 0; y < height; y++)
         for(x = 0; x < width; x++) {
-            image[4 * width * y + 4 * x + 0] = 255 * !(x & y);
-            image[4 * width * y + 4 * x + 1] = x ^ y;
-            image[4 * width * y + 4 * x + 2] = x | y;
-            image[4 * width * y + 4 * x + 3] = 255;
+            image[4 * width * y + 4 * x + 0] = 255 * !(x & y); // red
+            image[4 * width * y + 4 * x + 1] = x ^ y;       // green
+            image[4 * width * y + 4 * x + 2] = x | y;       // blue
+            image[4 * width * y + 4 * x + 3] = 255;         // alpha
         }
 
     /*run an example*/
