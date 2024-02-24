@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <OpenCL/opencl.h>
+#include <opencl_include.h>
 
 int main(int argc, char* const argv[]) {
 
@@ -84,7 +84,7 @@ int main(int argc, char* const argv[]) {
         exit(1);   
     }
 
-    const uint size = 3;
+    const int size = 3;
 
     int mat1[size][size] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
     int mat2[size][size] = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}};
