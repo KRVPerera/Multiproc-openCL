@@ -48,3 +48,4 @@ add_test(
 add_subdirectory(learning)
 add_subdirectory(tests)
 add_subdirectory(project/image_to_grayscale)
+add_subdirectory(project/matAdd)

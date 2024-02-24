@@ -15,6 +15,7 @@ This repository is for the learning purpose of GPGPU with OpenCL.
 
 - project
     - matAdd: Adding two matrixes
+    - image_to_grayscale: Convert color image to grayscale
 
 ## Reference
 
