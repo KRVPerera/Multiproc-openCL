@@ -4,14 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef MAC
-#include <OpenCL/cl.h>
-#else
-#define CL_USE_DEPRECATED_OPENCL_2_0_APIS
-#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
-#define CL_TARGET_OPENCL_VERSION 220
-#include <CL/cl.h>
-#endif
+#include <opencl_include.h>
 
 int kernelFound() {
     int kernelFound = 1;
