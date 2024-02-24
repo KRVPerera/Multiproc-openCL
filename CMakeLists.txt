@@ -19,6 +19,7 @@ add_subdirectory(lib)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
 include_directories(include/pngloader)
+include_directories(include/common)
 
 set(FOLDER_FILES
         sample/im0.png
