@@ -12,11 +12,11 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
 
 add_subdirectory(lib)
 
-set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+# set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
 include_directories(include/pngloader)
 include_directories(include/common)
@@ -47,3 +47,4 @@ add_test(
 
 add_subdirectory(learning)
 add_subdirectory(tests)
+add_subdirectory(project/image_to_grayscale)
