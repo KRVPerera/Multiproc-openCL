@@ -23,6 +23,9 @@ int main(int argc, char* const argv[]) {
     size_t program_size;
     size_t log_size;
 
+    cl_event prof_event;
+    cl_ulong time_start, time_end, total_time;
+
     err = clGetPlatformIDs(1, &platform, NULL);
     if (err < 0) {
         perror("Error: clGetPlatformIDs");
@@ -132,11 +135,19 @@ int main(int argc, char* const argv[]) {
         exit(1);   
     }
 
-    err = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(int) * size * size, &flatResult, 0, NULL, NULL);
+    err = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(int) * size * size, &flatResult, 0, NULL, &prof_event);
     if(err < 0) {
         perror("Error: clEnqueueReadBuffer");
         exit(1);   
     }
+
+    /* Finish processing the queue and get profiling information */
+    clFinish(queue);
+    clGetEventProfilingInfo(prof_event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+    clGetEventProfilingInfo(prof_event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+    total_time = time_end - time_start;
+
+    printf("Time taken to do the addition = %llu ns\n", total_time);
 
     // Unflatten the result matrix
     for (int i = 0; i < size; i++) {
