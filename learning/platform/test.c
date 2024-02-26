@@ -50,6 +50,7 @@ int main() {
         char buf[128];
         cl_uint work_item_dim, compute_units, char_vector_width, global_mem_size, global_mem_cache, buffer_size, local_mem_size;
         cl_bool image_support;
+        size_t time_res;
 
         if (num_devices == 0) {
             printf("no device found!");
@@ -82,6 +83,9 @@ int main() {
 
             clGetDeviceInfo(devices[i], CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_uint), &local_mem_size, NULL);
             fprintf(stdout, "CL_DEVICE_LOCAL_MEM_SIZE: %u\n", local_mem_size);
+
+            clGetDeviceInfo(devices[i], CL_DEVICE_PROFILING_TIMER_RESOLUTION, sizeof(time_res), &time_res, NULL);
+            fprintf(stdout, "CL_DEVICE_PROFILING_TIMER_RESOLUTION: %zu\n", time_res);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_IMAGE_SUPPORT, sizeof(image_support), &image_support, NULL);
             if (image_support == CL_TRUE) {
