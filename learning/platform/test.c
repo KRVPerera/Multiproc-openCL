@@ -85,7 +85,7 @@ int main() {
             fprintf(stdout, "CL_DEVICE_LOCAL_MEM_SIZE: %u\n", local_mem_size);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_PROFILING_TIMER_RESOLUTION, sizeof(time_res), &time_res, NULL);
-            fprintf(stdout, "CL_DEVICE_PROFILING_TIMER_RESOLUTION: %zu\n", time_res);
+            fprintf(stdout, "CL_DEVICE_PROFILING_TIMER_RESOLUTION: %zu ns\n", time_res);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_IMAGE_SUPPORT, sizeof(image_support), &image_support, NULL);
             if (image_support == CL_TRUE) {

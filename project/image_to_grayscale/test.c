@@ -36,6 +36,9 @@ int main() {
     cl_mem input_image, output_image;
     cl_image_format input_format, output_format;
 
+    cl_event prof_event, read_event;
+    cl_ulong time_queued, time_start, time_end, total_time, read_start, read_end, read_total_time;
+
     size_t width, height;
 
     /* Open input file and read image data */
@@ -146,7 +149,7 @@ int main() {
 
     // Execute the OpenCL kernel
     size_t globalWorkSize[2] = { width, height };
-    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &prof_event);
     if(err < 0) {
         perror("Error: clEnqueueNDRangeKernel");
         exit(1);   
@@ -154,11 +157,25 @@ int main() {
 
     // Read the output image back to the host
     err = clEnqueueReadImage(queue, output_image, CL_TRUE, (size_t[3]){0, 0, 0}, (size_t[3]){width, height, 1},
-                                0, 0, (void*)output_im0 -> image, 0, NULL, NULL);
+                                0, 0, (void*)output_im0 -> image, 0, NULL, &read_event);
     if(err < 0) {
         perror("Error: clEnqueueReadImage");
         exit(1);   
     }
+
+    /* Finish processing the queue and get profiling information */
+    clFinish(queue);
+    clGetEventProfilingInfo(prof_event, CL_PROFILING_COMMAND_QUEUED, sizeof(time_queued), &time_queued, NULL);
+    clGetEventProfilingInfo(prof_event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+    clGetEventProfilingInfo(prof_event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+    total_time = time_end - time_queued;
+
+    clGetEventProfilingInfo(read_event, CL_PROFILING_COMMAND_START, sizeof(read_start), &read_start, NULL);
+    clGetEventProfilingInfo(read_event, CL_PROFILING_COMMAND_END, sizeof(read_end), &read_end, NULL);
+    read_total_time = read_end - read_start;
+
+    printf("Time taken to do the gray scaling = %llu ns\n", total_time);
+    printf("Time taken to read the output image = %llu ns\n", read_total_time);
 
     /* Create output PNG file and write data */
     output_im0 -> width = width;
