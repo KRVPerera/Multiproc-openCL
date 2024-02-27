@@ -32,7 +32,7 @@ foreach(FILE ${FOLDER_FILES})
     file(COPY ${PROJECT_SOURCE_DIR}/data/${FILE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 endforeach()
 
-add_library(img_loader SHARED src/pngloader/pngloader.c include/pngloader/pngloader.h)
+add_library(img_loader STATIC src/pngloader/pngloader.c include/pngloader/pngloader.h)
 target_link_libraries(img_loader PUBLIC lodepng)
 
 add_executable(${PROJECT_NAME} main.c)
