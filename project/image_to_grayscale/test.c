@@ -1,22 +1,17 @@
-#define _CRT_SECURE_NO_WARNINGS
 #define PROGRAM_FILE "color_to_gray.cl"
 #define KERNEL_NAME "color_to_gray"
 
-#define PNG_DEBUG 3
-// #include <png.h>
 #include <pngloader.h>
 
 #define INPUT_FILE "im0.png"
 #define OUTPUT_FILE "output.png"
-// #define HEIGHT 2016
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <opencl_include.h>
 
 int main() {
-
+    printf("Hello, World!\n");
     cl_platform_id platform;
     cl_device_id device;
     cl_int err;
