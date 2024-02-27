@@ -3,7 +3,7 @@ set(This kernel)
 set(SOURCES test.c)
 add_library(${This} ${SOURCES})
 
-target_link_libraries(${This} PUBLIC Catch2::Catch2WithMain OpenCL::OpenCL)
+target_link_libraries(${This} PUBLIC OpenCL::OpenCL)
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test.cl DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <OpenCL/opencl.h>
+#include <opencl_include.h>
 
 int main(int argc, char* const argv[]) {
 

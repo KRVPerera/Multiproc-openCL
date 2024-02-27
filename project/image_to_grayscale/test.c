@@ -1,22 +1,15 @@
-#define _CRT_SECURE_NO_WARNINGS
 #define PROGRAM_FILE "color_to_gray.cl"
 #define KERNEL_NAME "color_to_gray"
 
-#define PNG_DEBUG 3
-// #include <png.h>
 #include <pngloader.h>
 
-#define INPUT_FILE "im0.png"
 #define OUTPUT_FILE "output.png"
-// #define HEIGHT 2016
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <opencl_include.h>
 
-int main() {
-
+int image_to_grayscale(char* image_path) {
     cl_platform_id platform;
     cl_device_id device;
     cl_int err;
@@ -42,11 +35,10 @@ int main() {
     size_t width, height;
 
     /* Open input file and read image data */
-    Image *im0 = loadImage(INPUT_FILE);
+    Image *im0 = loadImage(image_path);
     Image *output_im0 = createNewImage(im0->width, im0->height);
     width = im0 -> width;
     height = im0 -> height;
-
     err = clGetPlatformIDs(1, &platform, NULL);
     if (err < 0) {
         perror("Error: clGetPlatformIDs");
@@ -73,7 +65,7 @@ int main() {
     program_handle = fopen(PROGRAM_FILE, "r");
     if(program_handle == NULL) {
         perror("Couldn't find the program file");
-        exit(1);   
+        exit(1);
     }
     fseek(program_handle, 0, SEEK_END);
     program_size = ftell(program_handle);
@@ -86,7 +78,7 @@ int main() {
     program = clCreateProgramWithSource(context, 1, (const char**)&program_buffer, &program_size, &err);
     if(err < 0) {
         perror("Error: clCreateProgramWithSource");
-        exit(1);   
+        exit(1);
     }
 
     free(program_buffer);
@@ -105,7 +97,7 @@ int main() {
     kernel = clCreateKernel(program, KERNEL_NAME, &err);
     if(err < 0) {
         perror("Error: clCreateKernel");
-        exit(1);   
+        exit(1);
     }
 
     input_format.image_channel_order = CL_RGBA;
@@ -119,7 +111,7 @@ int main() {
     if(err < 0) {
         printf("Couldn't create the input image object");
         exit(1);
-    }; 
+    };
 
     /* Create output image object */
     output_image = clCreateImage2D(context, CL_MEM_WRITE_ONLY, &output_format, width, height, 0, NULL, &err);
@@ -132,19 +124,19 @@ int main() {
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_image);
     if(err < 0) {
         perror("Error: clSetKernelArg, inputImage");
-        exit(1);   
+        exit(1);
     }
 
     err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &output_image);
     if(err < 0) {
         perror("Error: clSetKernelArg, outputImage");
-        exit(1);   
+        exit(1);
     }
 
     queue = clCreateCommandQueue(context, device, 0, &err);
     if(err < 0) {
         perror("Error: clCreateCommandQueue");
-        exit(1);   
+        exit(1);
     }
 
     // Execute the OpenCL kernel
@@ -152,15 +144,15 @@ int main() {
     err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &prof_event);
     if(err < 0) {
         perror("Error: clEnqueueNDRangeKernel");
-        exit(1);   
+        exit(1);
     }
 
     // Read the output image back to the host
     err = clEnqueueReadImage(queue, output_image, CL_TRUE, (size_t[3]){0, 0, 0}, (size_t[3]){width, height, 1},
-                                0, 0, (void*)output_im0 -> image, 0, NULL, &read_event);
+                             0, 0, (void*)output_im0 -> image, 0, NULL, &read_event);
     if(err < 0) {
         perror("Error: clEnqueueReadImage");
-        exit(1);   
+        exit(1);
     }
 
     /* Finish processing the queue and get profiling information */
@@ -195,5 +187,8 @@ int main() {
     clReleaseProgram(program);
     clReleaseContext(context);
     return 0;
+}
 
+int main() {
+    return image_to_grayscale("im0.png");
 }
