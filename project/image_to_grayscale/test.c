@@ -190,6 +190,5 @@ int image_to_grayscale(char* image_path) {
 }
 
 int main() {
-    printf("Hello, World!\n");
     return image_to_grayscale("im0.png");
 }
