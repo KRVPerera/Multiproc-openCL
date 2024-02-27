@@ -6,7 +6,9 @@
 #include <stdlib.h>
 #include <opencl_include.h>
 
-int main(int argc, char* const argv[]) {
+#define SIZE 3
+
+int main() {
 
     cl_platform_id platform;
     cl_device_id device;
@@ -87,11 +89,11 @@ int main(int argc, char* const argv[]) {
         exit(1);   
     }
 
-    const int size = 3;
+    const int size = SIZE;
 
-    int mat1[size][size] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    int mat2[size][size] = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}};
-    int result[size][size];
+    int mat1[SIZE][SIZE] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    int mat2[SIZE][SIZE] = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}};
+    int result[SIZE][SIZE];
 
     // Flatten matrices
     int flatMat1[size * size], flatMat2[size * size], flatResult[size * size];
