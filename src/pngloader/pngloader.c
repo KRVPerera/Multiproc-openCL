@@ -40,7 +40,8 @@ Image *createNewImage(unsigned width, unsigned height) {
  * @param input
  * @param output
  */
-void getGrayScaleImage(Image *input, Image *output) {
+Image *getGrayScaleImage(Image *input) {
+    Image *output = createNewImage(input->width, input->height);
     for (unsigned x = 0; x < input->width; x++) {
         for (unsigned y = 0; y < input->height; y++) {
             size_t index = 4 * input->width * y + 4 * x;
@@ -56,6 +57,7 @@ void getGrayScaleImage(Image *input, Image *output) {
             output->image[index + 3] = a;
         }
     }
+    return output;
 }
 
 /**
@@ -111,8 +113,6 @@ void handleImageLoad(Image *imgI) {
     if (imgI->error) {
         printf("Error loading image\n");
         freeImage(imgI);
-    } else {
-        printf("Image loaded\n");
     }
 }
 

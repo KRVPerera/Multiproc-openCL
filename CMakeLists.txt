@@ -19,18 +19,21 @@ add_subdirectory(lib)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
 include_directories(include/pngloader)
+include_directories(include/util)
 include_directories(include/common)
 
 
 #add_compile_definitions(PROJECT_DIR_ABS_PATH ${PROJECT_SOURCE_DIR})
 
+add_library(utils STATIC src/util/util.c include/util/util.h)
+
 add_library(img_loader STATIC src/pngloader/pngloader.c include/pngloader/pngloader.h)
 target_link_libraries(img_loader PUBLIC lodepng)
 
 configure_file(config.h.in config.h)
-add_executable(${PROJECT_NAME} main.c config.h)
+add_executable(${PROJECT_NAME} main.c config.h driver.h driver.c)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader zncc_c)
+target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader zncc_c utils)
 
 enable_testing()
 
