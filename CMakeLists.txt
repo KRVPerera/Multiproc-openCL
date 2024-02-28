@@ -21,22 +21,16 @@ set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 include_directories(include/pngloader)
 include_directories(include/common)
 
-set(FOLDER_FILES
-        sample/im0.png
-        sample/im1.png
-        # Add more files as needed
-)
 
-# Loop through the files and configure each one
-foreach(FILE ${FOLDER_FILES})
-    file(COPY ${PROJECT_SOURCE_DIR}/data/${FILE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-endforeach()
+#add_compile_definitions(PROJECT_DIR_ABS_PATH ${PROJECT_SOURCE_DIR})
 
 add_library(img_loader STATIC src/pngloader/pngloader.c include/pngloader/pngloader.h)
 target_link_libraries(img_loader PUBLIC lodepng)
 
-add_executable(${PROJECT_NAME} main.c)
-target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader)
+configure_file(config.h.in config.h)
+add_executable(${PROJECT_NAME} main.c config.h)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader zncc_c)
 
 enable_testing()
 
