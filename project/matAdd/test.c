@@ -4,9 +4,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <opencl_include.h>
 
-#define SIZE 3
+#define SIZE 100
 
 int main() {
 
@@ -89,55 +90,61 @@ int main() {
         exit(1);   
     }
 
-    const int size = SIZE;
-
-    int mat1[SIZE][SIZE] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    int mat2[SIZE][SIZE] = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}};
-    int result[SIZE][SIZE];
-
-    // Flatten matrices
-    int flatMat1[size * size], flatMat2[size * size], flatResult[size * size];
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            flatMat1[i * size + j] = mat1[i][j];
-            flatMat2[i * size + j] = mat2[i][j];
-        }
-    }
-
-    cl_mem mat1_buffer, mat2_buffer, result_buffer;
-
-    mat1_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int) * size * size, flatMat1, &err);
-    if (err < 0) {
-        perror("Error: clCreateBuffer");
-        exit(1);
-    }
-
-    mat2_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(int) * size * size, flatMat2, &err);
-    result_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(int) * size * size, NULL, &err);
-
-    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &mat1_buffer);
-    if(err < 0) {
-        perror("Error: clSetKernelArg");
-        exit(1);   
-    }
-
-    clSetKernelArg(kernel, 1, sizeof(cl_mem), &mat2_buffer);
-    clSetKernelArg(kernel, 2, sizeof(cl_mem), &result_buffer);
-
     queue = clCreateCommandQueue(context, device, 0, &err);
     if(err < 0) {
         perror("Error: clCreateCommandQueue");
         exit(1);   
     }
 
-    size_t globalSize[2] = {size, size};
-    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalSize, NULL, 0, NULL, NULL);
+    cl_mem mat1_buffer, mat2_buffer, result_buffer;
+
+    // Create buffers for matrices A, B, and C
+    mat1_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float) * SIZE * SIZE, NULL, &err);
+    if (err < 0) {
+        perror("Error: clCreateBuffer");
+        exit(1);
+    }
+    mat2_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float) * SIZE * SIZE, NULL, &err);
+    result_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * SIZE * SIZE, NULL, &err);
+
+    // Write data to buffers
+    float *A = (float *)malloc(sizeof(float) * SIZE * SIZE);
+    float *B = (float *)malloc(sizeof(float) * SIZE * SIZE);
+    float *correct = (float *)malloc(sizeof(float) * SIZE * SIZE);
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            A[i * SIZE + j] = i * SIZE + j;
+            B[i * SIZE + j] = (SIZE - i) * SIZE + (SIZE - j);
+            correct[i * SIZE + j] = A[i * SIZE + j] + B[i * SIZE + j];
+        }
+    }
+    err = clEnqueueWriteBuffer(queue, mat1_buffer, CL_TRUE, 0, sizeof(float) * SIZE * SIZE, A, 0, NULL, NULL);
+    if (err < 0) {
+        perror("Error: clEnqueueWriteBuffer");
+        exit(1);
+    }
+    clEnqueueWriteBuffer(queue, mat2_buffer, CL_TRUE, 0, sizeof(float) * SIZE * SIZE, B, 0, NULL, NULL);
+
+    // Set kernel arguments
+    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &mat1_buffer);
+    if(err < 0) {
+        perror("Error: clSetKernelArg");
+        exit(1);   
+    }
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), &mat2_buffer);
+    clSetKernelArg(kernel, 2, sizeof(cl_mem), &result_buffer);
+
+    // Execute the kernel
+    size_t globalSize[2] = {SIZE, SIZE};
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalSize, NULL, 0, NULL, &prof_event);
     if(err < 0) {
         perror("Error: clEnqueueNDRangeKernel");
         exit(1);   
     }
 
-    err = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(int) * size * size, &flatResult, 0, NULL, &prof_event);
+    // Read the result buffer back to the host
+    float *C = (float *)malloc(sizeof(float) * SIZE * SIZE);
+    err = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(float) * SIZE * SIZE, C, 0, NULL, NULL);
     if(err < 0) {
         perror("Error: clEnqueueReadBuffer");
         exit(1);   
@@ -151,29 +158,39 @@ int main() {
 
     printf("Time taken to do the addition = %llu ns\n", total_time);
 
-    // Unflatten the result matrix
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            result[i][j] = flatResult[i * size + j];
+    cl_bool correctFlag = CL_TRUE;
+
+    // Output the result
+    // printf("Result:\n");
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            if (C[i * SIZE + j] != correct[i * SIZE + j]) {
+                correctFlag = CL_FALSE;
+            }
+            // printf("%.2f ", C[i * SIZE + j]);
         }
+        // printf("\n");
     }
 
-    // Display result matrix
-    printf("Resultant matrix after addition:\n");
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            printf("%d ", result[i][j]);
-        }
-        printf("\n");
-    }
+    if (correctFlag == CL_TRUE) {
+        printf("The result is correct\n");
+    } else {
+        printf("The result is incorrect\n");
+    }  
 
     clReleaseMemObject(mat1_buffer);
     clReleaseMemObject(mat2_buffer);
     clReleaseMemObject(result_buffer);
-    clReleaseKernel(kernel);
     clReleaseCommandQueue(queue);
+    clReleaseKernel(kernel);
     clReleaseProgram(program);
     clReleaseContext(context);
+
+    free(A);
+    free(B);
+    free(C);
+    free(correct);
+
     return 0;
 
 }
