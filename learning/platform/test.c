@@ -17,6 +17,9 @@ int main() {
         exit(1);
     }
 
+    printf("Number of platforms: %u\n", num_platforms);
+    printf("\n");
+
     platforms = (cl_platform_id*) malloc(sizeof(cl_platform_id) * num_platforms);
 
     clGetPlatformIDs(num_platforms, platforms, NULL);
@@ -56,9 +59,12 @@ int main() {
             printf("no device found!");
         }
 
+        printf("Number of devices: %u\n", num_devices);
+        printf("\n");
+
         for (i = 0; i < num_devices; i++) {
             clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 128, buf, NULL);
-            fprintf(stdout, "Platform: %s, Vendor: %s, Device %s supports ", p_name, p_vendor, buf);
+            fprintf(stdout, "Platform: %s, Vendor: %s, Device %s supports version ", p_name, p_vendor, buf);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_VERSION, 128, buf, NULL);
             fprintf(stdout, "%s\n", buf);
@@ -108,8 +114,10 @@ int main() {
                 return 1;
             }
 
-            printf("Max 2D Image Width: %zu\n", max_width);
-            printf("Max 2D Image Height: %zu\n", max_height);
+            printf("Maximum supported 2D Image Width: %zu\n", max_width);
+            printf("Maximum supported 2D Image Height: %zu\n", max_height);
+
+            printf("\n");
         }
 
         free(devices);
