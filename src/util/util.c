@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <xmmintrin.h>
 #include <getopt.h>
 #include "util.h"
 
