@@ -33,7 +33,7 @@ target_link_libraries(img_loader PUBLIC lodepng)
 configure_file(config.h.in config.h)
 add_executable(${PROJECT_NAME} main.c config.h driver.h driver.c)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader utils)
+target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader zncc_c)
 
 enable_testing()
 
