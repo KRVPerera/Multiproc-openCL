@@ -98,15 +98,6 @@ int main() {
 
     cl_mem mat1_buffer, mat2_buffer, result_buffer;
 
-    // Create buffers for matrices A, B, and C
-    mat1_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float) * SIZE * SIZE, NULL, &err);
-    if (err < 0) {
-        perror("Error: clCreateBuffer");
-        exit(1);
-    }
-    mat2_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float) * SIZE * SIZE, NULL, &err);
-    result_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * SIZE * SIZE, NULL, &err);
-
     // Write data to buffers
     float *A = (float *)malloc(sizeof(float) * SIZE * SIZE);
     float *B = (float *)malloc(sizeof(float) * SIZE * SIZE);
@@ -118,12 +109,16 @@ int main() {
             correct[i * SIZE + j] = A[i * SIZE + j] + B[i * SIZE + j];
         }
     }
-    err = clEnqueueWriteBuffer(queue, mat1_buffer, CL_TRUE, 0, sizeof(float) * SIZE * SIZE, A, 0, NULL, NULL);
+
+    // Create buffers for matrices A, B, and C
+    mat1_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float) * SIZE * SIZE, A, &err);
     if (err < 0) {
-        perror("Error: clEnqueueWriteBuffer");
+        perror("Error: clCreateBuffer");
         exit(1);
     }
-    clEnqueueWriteBuffer(queue, mat2_buffer, CL_TRUE, 0, sizeof(float) * SIZE * SIZE, B, 0, NULL, NULL);
+
+    mat2_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float) * SIZE * SIZE, B, &err);
+    result_buffer = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * SIZE * SIZE, NULL, &err);
 
     // Set kernel arguments
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &mat1_buffer);
