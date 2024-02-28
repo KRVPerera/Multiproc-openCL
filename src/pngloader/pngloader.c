@@ -8,8 +8,7 @@
 #include <stdlib.h>
 
 
-Image* loadImage(const char *filename)
-{
+Image *loadImage(const char *filename) {
     unsigned error;
     unsigned char *image = 0;
     unsigned width, height;
@@ -17,7 +16,7 @@ Image* loadImage(const char *filename)
     error = lodepng_decode32_file(&image, &width, &height, filename);
     if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
 
-    Image* img = malloc(sizeof(Image));
+    Image *img = malloc(sizeof(Image));
     img->image = image;
     img->width = width;
     img->height = height;
@@ -27,8 +26,8 @@ Image* loadImage(const char *filename)
     return img;
 }
 
-Image* createNewImage(unsigned width, unsigned height) {
-    Image* img = malloc(sizeof(Image));
+Image *createNewImage(unsigned width, unsigned height) {
+    Image *img = malloc(sizeof(Image));
     img->image = malloc(width * height * 4);
     img->width = width;
     img->height = height;
@@ -36,19 +35,27 @@ Image* createNewImage(unsigned width, unsigned height) {
     return img;
 }
 
-void getGrayScaleImage(Image* input, Image* output) {
-    for(unsigned x = 0; x < input->width; x++)
-        for(unsigned y = 0; y < input->height; y++) {
-            unsigned char r = input->image[4 * input->width * y + 4 * x + 0];
-            unsigned char g = input->image[4 * input->width * y + 4 * x + 1];
-            unsigned char b = input->image[4 * input->width * y + 4 * x + 2];
-            unsigned char a = input->image[4 * input->width * y + 4 * x + 3];
-            unsigned char gray = (r + g + b) / 3;
-            output->image[4 * input->width * y + 4 * x + 0] = gray;
-            output->image[4 * input->width * y + 4 * x + 1] = gray;
-            output->image[4 * input->width * y + 4 * x + 2] = gray;
-            output->image[4 * input->width * y + 4 * x + 3] = a;
+/**
+ * Y=0.2126R + 0.7152G + 0.0722B
+ * @param input
+ * @param output
+ */
+void getGrayScaleImage(Image *input, Image *output) {
+    for (unsigned x = 0; x < input->width; x++) {
+        for (unsigned y = 0; y < input->height; y++) {
+            size_t index = 4 * input->width * y + 4 * x;
+            unsigned char r = input->image[index + 0];
+            unsigned char g = input->image[index + 1];
+            unsigned char b = input->image[index + 2];
+            unsigned char a = input->image[index + 3];
+            float gray = r * 0.2126 + g * 0.7152 + b * 0.0722;
+            unsigned char grayChar = (unsigned char) gray;
+            output->image[index + 0] = grayChar;
+            output->image[index + 1] = grayChar;
+            output->image[index + 2] = grayChar;
+            output->image[index + 3] = a;
         }
+    }
 }
 
 Image* createNewImageWithValue(unsigned width, unsigned height, int r, int g, int b, int a) {
