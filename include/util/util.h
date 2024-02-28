@@ -6,7 +6,6 @@
 #define MULTIPROCOPENCL_UTIL_H
 
 #include <time.h>
-#include <xmmintrin.h>
 
 float elapsed_time_microsec(struct timespec *begin, struct timespec *end,
                             unsigned long *sec, unsigned long *nsec);
