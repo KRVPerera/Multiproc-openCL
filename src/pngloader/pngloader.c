@@ -8,8 +8,7 @@
 #include <stdlib.h>
 
 
-Image* loadImage(const char *filename)
-{
+Image *loadImage(const char *filename) {
     unsigned error;
     unsigned char *image = 0;
     unsigned width, height;
@@ -17,7 +16,7 @@ Image* loadImage(const char *filename)
     error = lodepng_decode32_file(&image, &width, &height, filename);
     if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
 
-    Image* img = malloc(sizeof(Image));
+    Image *img = malloc(sizeof(Image));
     img->image = image;
     img->width = width;
     img->height = height;
@@ -27,8 +26,8 @@ Image* loadImage(const char *filename)
     return img;
 }
 
-Image* createNewImage(unsigned width, unsigned height) {
-    Image* img = malloc(sizeof(Image));
+Image *createNewImage(unsigned width, unsigned height) {
+    Image *img = malloc(sizeof(Image));
     img->image = malloc(width * height * 4);
     img->width = width;
     img->height = height;
@@ -36,39 +35,73 @@ Image* createNewImage(unsigned width, unsigned height) {
     return img;
 }
 
-void getGrayScaleImage(Image* input, Image* output) {
-    for(unsigned x = 0; x < input->width; x++)
-        for(unsigned y = 0; y < input->height; y++) {
-            unsigned char r = input->image[4 * input->width * y + 4 * x + 0];
-            unsigned char g = input->image[4 * input->width * y + 4 * x + 1];
-            unsigned char b = input->image[4 * input->width * y + 4 * x + 2];
-            unsigned char a = input->image[4 * input->width * y + 4 * x + 3];
-            unsigned char gray = (r + g + b) / 3;
-            output->image[4 * input->width * y + 4 * x + 0] = gray;
-            output->image[4 * input->width * y + 4 * x + 1] = gray;
-            output->image[4 * input->width * y + 4 * x + 2] = gray;
-            output->image[4 * input->width * y + 4 * x + 3] = a;
+/**
+ * Y=0.2126R + 0.7152G + 0.0722B
+ * @param input
+ * @param output
+ */
+Image *getGrayScaleImage(Image *input) {
+    Image *output = createNewImage(input->width, input->height);
+    for (unsigned x = 0; x < input->width; x++) {
+        for (unsigned y = 0; y < input->height; y++) {
+            size_t index = 4 * input->width * y + 4 * x;
+            unsigned char r = input->image[index + 0];
+            unsigned char g = input->image[index + 1];
+            unsigned char b = input->image[index + 2];
+            unsigned char a = input->image[index + 3];
+            float gray = r * 0.2126 + g * 0.7152 + b * 0.0722;
+            unsigned char grayChar = (unsigned char) gray;
+            output->image[index + 0] = grayChar;
+            output->image[index + 1] = grayChar;
+            output->image[index + 2] = grayChar;
+            output->image[index + 3] = a;
         }
+    }
+    return output;
 }
 
-Image* createNewImageWithValue(unsigned width, unsigned height, int r, int g, int b, int a) {
-    Image* img = malloc(sizeof(Image));
+/**
+ * Scale down to 1/16 taking every 4th row and column
+ * @param input
+ * @param output
+ */
+Image *imageScaleDown(Image *input) {
+    Image *output = createNewImage(input->width / IMAGE_SCALE, input->height / IMAGE_SCALE);
+    for (unsigned x = 0; x < input->width; x = x + IMAGE_SCALE) {
+        for (unsigned y = 0; y < input->height; y = y + IMAGE_SCALE) {
+            size_t index = 4 * input->width * y + 4 * x;
+            size_t outIndex = 4 * output->width * (y / IMAGE_SCALE) + 4 * (x / IMAGE_SCALE);
+            unsigned char r = input->image[index + 0];
+            unsigned char g = input->image[index + 1];
+            unsigned char b = input->image[index + 2];
+            unsigned char a = input->image[index + 3];
+            output->image[outIndex + 0] = r;
+            output->image[outIndex + 1] = g;
+            output->image[outIndex + 2] = b;
+            output->image[outIndex + 3] = a;
+        }
+    }
+    return output;
+}
+
+Image *createNewImageWithValue(unsigned width, unsigned height, int r, int g, int b, int a) {
+    Image *img = malloc(sizeof(Image));
     img->image = malloc(width * height * 4);
     img->width = width;
     img->height = height;
-    for(unsigned x = 0; x < width; x++)
-        for(unsigned y = 0; y < height; y++) {
+    for (unsigned x = 0; x < width; x++) {
+        for (unsigned y = 0; y < height; y++) {
             img->image[4 * width * y + 4 * x + 0] = r;
             img->image[4 * width * y + 4 * x + 1] = g;
             img->image[4 * width * y + 4 * x + 2] = b;
             img->image[4 * width * y + 4 * x + 3] = a;
         }
+    }
     img->error = 0;
     return img;
 }
 
-void saveImage(const char *filename, Image* img)
-{
+void saveImage(const char *filename, Image *img) {
     /*Encode the image*/
     unsigned error = lodepng_encode32_file(filename, img->image, img->width, img->height);
 
@@ -80,8 +113,6 @@ void handleImageLoad(Image *imgI) {
     if (imgI->error) {
         printf("Error loading image\n");
         freeImage(imgI);
-    } else {
-        printf("Image loaded\n");
     }
 }
 
@@ -97,41 +128,39 @@ void freeImage(Image *img) {
 Example 1
 Decode from disk to raw pixels with a single function call
 */
-void decodeOneStep(const char *filename)
-{
-  unsigned error;
-  unsigned char *image = 0;
-  unsigned width, height;
+void decodeOneStep(const char *filename) {
+    unsigned error;
+    unsigned char *image = 0;
+    unsigned width, height;
 
-  error = lodepng_decode32_file(&image, &width, &height, filename);
-  if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
+    error = lodepng_decode32_file(&image, &width, &height, filename);
+    if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
 
-  /*use image here*/
+    /*use image here*/
 
-  free(image);
+    free(image);
 }
 
 /*
 Example 2
 Load PNG file from disk to memory first, then decode to raw pixels in memory.
 */
-void decodeTwoSteps(const char *filename)
-{
-  unsigned error;
-  unsigned char *image = 0;
-  unsigned width, height;
-  unsigned char *png = 0;
-  size_t pngsize;
+void decodeTwoSteps(const char *filename) {
+    unsigned error;
+    unsigned char *image = 0;
+    unsigned width, height;
+    unsigned char *png = 0;
+    size_t pngsize;
 
-  error = lodepng_load_file(&png, &pngsize, filename);
-  if (!error) error = lodepng_decode32(&image, &width, &height, png, pngsize);
-  if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
+    error = lodepng_load_file(&png, &pngsize, filename);
+    if (!error) error = lodepng_decode32(&image, &width, &height, png, pngsize);
+    if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
 
-  free(png);
+    free(png);
 
-  /*use image here*/
+    /*use image here*/
 
-  free(image);
+    free(image);
 }
 
 /*
@@ -139,13 +168,12 @@ Example 1
 Encode from raw pixels to disk with a single function call
 The image argument has width * height RGBA pixels or width * height * 4 bytes
 */
-void encodeOneStep(const char *filename, const unsigned char *image, unsigned width, unsigned height)
-{
-  /*Encode the image*/
-  unsigned error = lodepng_encode32_file(filename, image, width, height);
+void encodeOneStep(const char *filename, const unsigned char *image, unsigned width, unsigned height) {
+    /*Encode the image*/
+    unsigned error = lodepng_encode32_file(filename, image, width, height);
 
-  /*if there's an error, display it*/
-  if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
+    /*if there's an error, display it*/
+    if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
 }
 
 /*
@@ -153,16 +181,15 @@ Example 2
 Encode from raw pixels to an in-memory PNG file first, then write it to disk
 The image argument has width * height RGBA pixels or width * height * 4 bytes
 */
-void encodeTwoSteps(const char *filename, const unsigned char *image, unsigned width, unsigned height)
-{
-  unsigned char *png;
-  size_t pngsize;
+void encodeTwoSteps(const char *filename, const unsigned char *image, unsigned width, unsigned height) {
+    unsigned char *png;
+    size_t pngsize;
 
-  unsigned error = lodepng_encode32(&png, &pngsize, image, width, height);
-  if (!error) lodepng_save_file(png, pngsize, filename);
+    unsigned error = lodepng_encode32(&png, &pngsize, image, width, height);
+    if (!error) lodepng_save_file(png, pngsize, filename);
 
-  /*if there's an error, display it*/
-  if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
+    /*if there's an error, display it*/
+    if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
 
-  free(png);
+    free(png);
 }

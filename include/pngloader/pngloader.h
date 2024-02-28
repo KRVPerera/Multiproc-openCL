@@ -5,6 +5,8 @@
 #ifndef MULTIPROCOPENCL_PNGLOADER_H
 #define MULTIPROCOPENCL_PNGLOADER_H
 
+#define IMAGE_SCALE 4
+
 typedef struct Image {
     unsigned char* image;
     unsigned width;
@@ -19,6 +21,13 @@ typedef struct Image {
  * @return
  */
 Image* createNewImage(unsigned width, unsigned height);
+
+/**
+ * Scale down an image by a factor of 16
+ * @param input
+ * @return
+ */
+Image *imageScaleDown(Image *input);
 
 /**
  * Create a new image in memory with a single color
@@ -37,7 +46,7 @@ Image* createNewImageWithValue(unsigned width, unsigned height, int r, int g, in
  * @param input
  * @param output
  */
-void getGrayScaleImage(Image* input, Image* output);
+Image *getGrayScaleImage(Image *input);
 
 /**
  * Save raw pixels to disk as a PNG file with a single function call
