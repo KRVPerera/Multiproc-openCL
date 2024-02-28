@@ -2,10 +2,7 @@
 // Created by ruksh on 28/02/2024.
 //
 #include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
-#include <getopt.h>
 #include "util.h"
 
 long requiredSampleSize(float sd, float mean) {
