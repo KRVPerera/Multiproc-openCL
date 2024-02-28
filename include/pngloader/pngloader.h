@@ -5,6 +5,8 @@
 #ifndef MULTIPROCOPENCL_PNGLOADER_H
 #define MULTIPROCOPENCL_PNGLOADER_H
 
+#define IMAGE_SCALE 4
+
 typedef struct Image {
     unsigned char* image;
     unsigned width;
