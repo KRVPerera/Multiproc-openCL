@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pngloader.h>
+#include "config.h"
 
 void createSampleTestPng() {
     const char* filename = "test.png";
@@ -29,11 +30,19 @@ void createSampleTestPng() {
 
 int main() {
     printf("Starting Multiprocessor Programming project!\n");
+    printf("Data folder %s\n", PROJECT_DATA_DIR);
     char* image0Name = "im0.png";
     char* image1Name = "im1.png";
+    char imagePath0[256];  // Adjust the size based on your needs
+    char imagePath1[256];
+    snprintf(imagePath0, sizeof(imagePath0), "%s/sample/%s", PROJECT_DATA_DIR, image0Name);
+    snprintf(imagePath1, sizeof(imagePath1), "%s/sample/%s", PROJECT_DATA_DIR, image1Name);
 
-    Image *im0 = loadImage(image0Name);
-    Image *im1 = loadImage(image1Name);
+    printf("Image 0 path: %s\n", imagePath0);
+    printf("Image 1 path: %s\n", imagePath1);
+
+    Image *im0 = loadImage(imagePath0);
+    Image *im1 = loadImage(imagePath1);
 
     Image* grayIm0 = createNewImage(im0->width, im0->height);
     Image* grayIm1 = createNewImage(im0->width, im0->height);
@@ -41,7 +50,7 @@ int main() {
 
     getGrayScaleImage(im0, grayIm0);
     getGrayScaleImage(im1, grayIm1);
-    saveImage("outputImageRed.png", outputImageRed);
+    saveImage("image_0_bw.png", outputImageRed);
     saveImage("grayIm0.png", grayIm0);
     saveImage("grayIm1.png", grayIm1);
 
