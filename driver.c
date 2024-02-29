@@ -47,13 +47,10 @@ void zncc_flow_driver(const char *imagePath, const char *outputPath) {
         printf("Running ZNCC flow for %d times\n", req_n);
         float *times_2 = (float *) malloc(sizeof(float) * req_n);
         for (int i = 0; i < req_n; ++i) {
-            printf("Running ZNCC flow iteration : %d,\t time : ", i + 1);
             GET_TIME(t0);
             runZnccFlowForOneImage(imagePath, outputPath);
             GET_TIME(t1);
-            float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-            printf("\t%f micro seconds\n", elapsed_time);
-            times_2[i] = elapsed_time;
+            times_2[i] = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
         }
         mean = Average(times_2, req_n);
         sd = standardDeviation(times_2, req_n);
