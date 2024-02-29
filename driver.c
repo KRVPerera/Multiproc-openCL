@@ -10,15 +10,32 @@
 #define GET_TIME(x); if(clock_gettime(CLOCK_MONOTONIC, &(x)) < 0) \
 {perror("clock_gettime(): "); exit(EXIT_FAILURE);}
 
+// TODO: since the filter is syymetrical we may want to keep only wanted values
+// TODO: we may want to use x and y componets of the filter separately
+unsigned char* getGaussianFilter() {
+    unsigned char *filter = malloc(25 * sizeof(unsigned char));
+    filter[0]   = 1; filter[1]  = 4;    filter[2]   = 7;    filter[3]   = 4;    filter[4]   = 1;
+    filter[5]   = 4; filter[6]  = 16;   filter[7]   = 26;   filter[8]   = 16;   filter[9]   = 4;
+    filter[10]  = 7; filter[11] = 16;   filter[12]  = 41;   filter[13]  = 26;   filter[14]  = 7;
+    filter[15]  = 4; filter[16] = 16;   filter[17]  = 26;   filter[18]  = 16;   filter[19]  = 4;
+    filter[20]  = 1; filter[21] = 4;    filter[22]  = 7;    filter[23]  = 4;    filter[24]  = 1;
+    return filter;
+}
+
+
 void runZnccFlowForOneImage(const char * imagePath, const char * outputPath) {
-    Image *im = loadImage(imagePath);
-    Image *smallImage = imageScaleDown(im);
-    Image* grayIm = getGrayScaleImage(smallImage);
-    saveImage(outputPath, grayIm);
+    Image *im = readImage(imagePath);
+    Image *smallImage = resizeImage(im);
+    Image* grayIm = grayScaleImage(smallImage);
+    unsigned char* gaussianFilter = getGaussianFilter();
+    Image* filteredImage = applyFilter(grayIm, gaussianFilter, 273, 5);
+    saveImage(outputPath, filteredImage);
 
     freeImage(im);
     freeImage(grayIm);
     freeImage(smallImage);
+    free(gaussianFilter);
+    freeImage(filteredImage);
 }
 
 void zncc_flow_driver(const char *imagePath, const char *outputPath) {
@@ -60,26 +77,4 @@ void zncc_flow_driver(const char *imagePath, const char *outputPath) {
     } else {
         printf("Sample size is less than 10, so the confidence interval may be accurate\n");
     }
-}
-
-
-void createSampleTestPng() {
-    const char* filename = "test.png";
-
-    /*generate some image*/
-    unsigned width = 512, height = 512;
-    unsigned char* image = malloc(width * height * 4);
-    unsigned x, y;
-    for(y = 0; y < height; y++)
-        for(x = 0; x < width; x++) {
-            image[4 * width * y + 4 * x + 0] = 255 * !(x & y); // red
-            image[4 * width * y + 4 * x + 1] = x ^ y;       // green
-            image[4 * width * y + 4 * x + 2] = x | y;       // blue
-            image[4 * width * y + 4 * x + 3] = 255;         // alpha
-        }
-
-    /*run an example*/
-    encodeOneStep(filename, image, width, height);
-
-    free(image);
 }

@@ -25,7 +25,7 @@ cl_device_id create_device() {
    if(err < 0) {
       perror("Couldn't identify a platform");
       exit(1);
-   } 
+   }
 
    err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
    if(err == CL_DEVICE_NOT_FOUND) {
@@ -33,7 +33,7 @@ cl_device_id create_device() {
    }
    if(err < 0) {
       perror("Couldn't access any devices");
-      exit(1);   
+      exit(1);
    }
 
    return device;
@@ -61,7 +61,7 @@ cl_program build_program(cl_context ctx, cl_device_id device, const char* filena
    fread(program_buffer, sizeof(char), program_size, program_handle);
    fclose(program_handle);
 
-   program = clCreateProgramWithSource(ctx, 1, 
+   program = clCreateProgramWithSource(ctx, 1,
       (const char**)&program_buffer, &program_size, &err);
    if(err < 0) {
       perror("Couldn't create the program");
@@ -72,11 +72,11 @@ cl_program build_program(cl_context ctx, cl_device_id device, const char* filena
    err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
    if(err < 0) {
 
-      clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 
+      clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
             0, NULL, &log_size);
       program_log = (char*) malloc(log_size + 1);
       program_log[log_size] = '\0';
-      clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 
+      clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
             log_size + 1, program_log, NULL);
       printf("%s\n", program_log);
       free(program_log);
@@ -373,22 +373,22 @@ int main() {
     program = build_program(context, device, PROGRAM_FILE);
 
     /* Find out how many kernels are in the source file */
-    err = clCreateKernelsInProgram(program, 0, NULL, &num_kernels);	
+    err = clCreateKernelsInProgram(program, 0, NULL, &num_kernels);
     if(err < 0) {
         perror("Couldn't find any kernels");
-        exit(1);  
+        exit(1);
     }
 
     printf("Number of kernels: %u\n", num_kernels);
 
     /* Create a kernel for each function */
     kernels = (cl_kernel*) malloc(num_kernels * sizeof(cl_kernel));
-    clCreateKernelsInProgram(program, num_kernels, kernels, NULL);	
+    clCreateKernelsInProgram(program, num_kernels, kernels, NULL);
 
     // /* Search for the named kernel */
-    for(i=0; i<num_kernels; i++) {					
-        clGetKernelInfo(kernels[i], CL_KERNEL_FUNCTION_NAME, 		
-                sizeof(kernel_name), kernel_name, NULL);				
+    for(i=0; i<num_kernels; i++) {
+        clGetKernelInfo(kernels[i], CL_KERNEL_FUNCTION_NAME,
+                sizeof(kernel_name), kernel_name, NULL);
         if(strcmp(kernel_name, KERNEL_RESIZE_IMAGE) == 0) {
             kernel_resize_image = kernels[i];
             printf("Found resize_image kernel at index %u.\n", i);
@@ -398,8 +398,8 @@ int main() {
         } else if(strcmp(kernel_name, KERNEL_GAUSSIAN_BLUR) == 0) {
             kernel_gaussian_blur = kernels[i];
             printf("Found gaussian_blur kernel at index %u.\n", i);
-        }								
-    }	
+        }
+    }
 
     queue = clCreateCommandQueue(context, device, 0, &err);
     if(err < 0) {
