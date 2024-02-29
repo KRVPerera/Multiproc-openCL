@@ -16,9 +16,17 @@ unsigned char* getGaussianFilter() {
     unsigned char *filter = malloc(25 * sizeof(unsigned char));
     filter[0]   = 1; filter[1]  = 4;    filter[2]   = 7;    filter[3]   = 4;    filter[4]   = 1;
     filter[5]   = 4; filter[6]  = 16;   filter[7]   = 26;   filter[8]   = 16;   filter[9]   = 4;
-    filter[10]  = 7; filter[11] = 16;   filter[12]  = 41;   filter[13]  = 26;   filter[14]  = 7;
+    filter[10]  = 7; filter[11] = 26;   filter[12]  = 41;   filter[13]  = 26;   filter[14]  = 7;
     filter[15]  = 4; filter[16] = 16;   filter[17]  = 26;   filter[18]  = 16;   filter[19]  = 4;
     filter[20]  = 1; filter[21] = 4;    filter[22]  = 7;    filter[23]  = 4;    filter[24]  = 1;
+    return filter;
+}
+
+unsigned char* getMeanFilter() {
+    unsigned char *filter = malloc(25 * sizeof(unsigned char));
+    for (int i = 0; i < 25; ++i) {
+        filter[i] = 1;
+    }
     return filter;
 }
 
@@ -28,8 +36,9 @@ void runZnccFlowForOneImage(const char * imagePath, const char * outputPath) {
     Image *smallImage = resizeImage(im);
     Image* grayIm = grayScaleImage(smallImage);
 
-    unsigned char* gaussianFilter = getGaussianFilter();
-    Image* filteredImage = applyFilter(grayIm, gaussianFilter, 273, 5);
+    unsigned char* gaussianFilter = getMeanFilter();
+//    Image* filteredImage = applyFilter(grayIm, gaussianFilter, 273, 5);
+    Image* filteredImage = applyFilter(grayIm, gaussianFilter, 25, 5);
 
     saveImage(outputPath, filteredImage);
 

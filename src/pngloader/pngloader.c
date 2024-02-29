@@ -11,12 +11,10 @@
 // TODO: do we need to filter alpha?
 int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size) {
     int convolutionValue = 0;
-    for (unsigned char y = 0; y < size; ++y) {
-        for (unsigned char x = 0; x < size; ++x) {
-            int index = size * y + x;
-            convolutionValue += neighbours[index] * filter[index];
-        }
+    for (unsigned char index = 0; index < size * size; ++index) {
+        convolutionValue += neighbours[index] * filter[index];
     }
+    convolutionValue = neighbours[13];
     return convolutionValue;
 }
 
@@ -57,6 +55,7 @@ Image *grayScaleImage(Image *input) {
     for (unsigned y = 0; y < input->height; y++) {
         for (unsigned x = 0; x < input->width; x++) {
             size_t index = 4 * input->width * y + 4 * x;
+//            printf("(x,y) : (%d,%d) -- index %zu\n", x, y, index);
             unsigned char r = input->image[index + 0];
             unsigned char g = input->image[index + 1];
             unsigned char b = input->image[index + 2];
@@ -80,16 +79,18 @@ Image *grayScaleImage(Image *input) {
  * @return
  */
 unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y) {
-    unsigned char *neighbours = malloc(5 * 5);
+    unsigned char *neighbours = malloc(5 * 5 * sizeof(unsigned char));
     for (unsigned i = 0; i < 5; ++i) {
+        int y1 = y - 2 + i;
         for (unsigned j = 0; j < 5; ++j) {
-            int y1 = y - 2 + i;
             int x1 = x - 2 + j;
             unsigned char neighboursIndex = 5 * i + j;
             if (x1 < 0 || x1 >= (int) input->width || y1 < 0 || y1 >= (int) input->height) {
-                neighbours[neighboursIndex] = 100;
+                neighbours[neighboursIndex] = 0;
+//                printf("\tVALUE ZERO : index %d, neighboursIndex : %d\n", 0, neighboursIndex);
             } else {
                 unsigned char index = 4 * input->width * y1 + 4 * x1;
+//                printf("\tindex %d, neighboursIndex : %d\n", index, neighboursIndex);
                 neighbours[neighboursIndex] = input->image[index];
             }
         }
@@ -107,12 +108,16 @@ unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y) {
  */
 Image *applyFilter(Image *input, unsigned char *filter, int filterDenominator, int filterSize) {
     Image *output = createEmptyImage(input->width, input->height);
-    for (unsigned y = 0; y < output->height; y++) {
-        for (unsigned x = 0; x < output->width; x++) {
+    for (unsigned y = 0; y < input->height; y++) {
+        for (unsigned x = 0; x < input->width; x++) {
+//            printf("x %d y %d\n", x, y);
             unsigned char *neighbours = getNeighboursZeroPadding(input, x, y);
             int filterValue = applyFilterToNeighbours(neighbours, filter, filterSize);
+//            printf("filterValue %d\n", filterValue);
             unsigned char filterOut = (unsigned char) (filterValue / filterDenominator);
-            size_t index = 4 * output->width * y + 4 * x;
+            size_t index = 4 * input->width * y + 4 * x;
+//            printf("filterOut %d\n", filterOut);
+//            printf("\tRED %d\n", input->image[index + 0]);
             output->image[index + 0] = filterOut;
             output->image[index + 1] = filterOut;
             output->image[index + 2] = filterOut;
@@ -131,8 +136,8 @@ Image *applyFilter(Image *input, unsigned char *filter, int filterDenominator, i
  */
 Image *resizeImage(Image *input) {
     Image *output = createEmptyImage(input->width / IMAGE_SCALE, input->height / IMAGE_SCALE);
-    for (unsigned x = 0; x < input->width; x = x + IMAGE_SCALE) {
-        for (unsigned y = 0; y < input->height; y = y + IMAGE_SCALE) {
+    for (unsigned y = 0; y < input->height; y = y + IMAGE_SCALE) {
+        for (unsigned x = 0; x < input->width; x = x + IMAGE_SCALE) {
             size_t index = 4 * input->width * y + 4 * x;
             size_t outIndex = 4 * output->width * (y / IMAGE_SCALE) + 4 * (x / IMAGE_SCALE);
             unsigned char r = input->image[index + 0];
