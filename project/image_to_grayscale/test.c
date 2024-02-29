@@ -155,8 +155,6 @@ void resize_image(cl_context context, cl_kernel kernel, cl_command_queue queue, 
     }
 
     clFinish(queue);
-    // read_time = getExecutionTime(read_event);
-    // time_to_grayscale = getExecutionTime(grayscale_event);
 
     output_im0 -> width = new_width;
     output_im0 -> height = new_height;
@@ -167,19 +165,15 @@ void resize_image(cl_context context, cl_kernel kernel, cl_command_queue queue, 
     clGetEventProfilingInfo(*downsample_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
     time_to_downsample = end_time - start_time;
 
-    // time_to_grayscale = getExecutionTime(*grayscale_event);
-
     clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
     clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
     read_time = end_time_read - start_time_read;
-
-    // read_time = getExecutionTime(*read_event);
 
     printf("Time taken to do the downsampling = %llu ns\n", time_to_downsample);
     printf("Time taken to read the output image (downsampling) = %llu ns\n", read_time);
 }
 
-void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, cl_event *work_item, cl_event *read_event, cl_event *grayscale_event) {
+void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, cl_event *read_event, cl_event *grayscale_event) {
 
     /* Image data */
     cl_mem input_image, output_image;
@@ -226,7 +220,7 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
 
     // Execute the OpenCL kernel
     size_t globalWorkSize[2] = { width, height };
-    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 1, work_item, grayscale_event);
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, grayscale_event);
     if(err < 0) {
         perror("convert_image_to_gray, Error: clEnqueueNDRangeKernel");
         exit(1);
@@ -241,8 +235,6 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
     }
 
     clFinish(queue);
-    // read_time = getExecutionTime(read_event);
-    // time_to_grayscale = getExecutionTime(grayscale_event);
 
     output_im0 -> width = width;
     output_im0 -> height = height;
@@ -253,13 +245,9 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
     clGetEventProfilingInfo(*grayscale_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
     time_to_grayscale = end_time - start_time;
 
-    // time_to_grayscale = getExecutionTime(*grayscale_event);
-
     clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
     clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
     read_time = end_time_read - start_time_read;
-
-    // read_time = getExecutionTime(*read_event);
 
     printf("Time taken to do the gray scaling = %llu ns\n", time_to_grayscale);
     printf("Time taken to read the output image (gray scaling) = %llu ns\n", read_time);
@@ -337,10 +325,8 @@ int main() {
     resize_image(context, kernel_resize_image, queue, im0, output_1_im0, &resize_read_event, &resize_event);
 
     /* Convert color image to gray scale image */
-    convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_im0, output_2_im0, &resize_read_event, &grayscale_read_event, &grayscale_event);
+    convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_im0, output_2_im0, &grayscale_read_event, &grayscale_event);
 
-    // printf("Width output: %d\n", output_im0 -> width);
-    // printf("Height output: %d\n", output_im0 -> height);
     saveImage(OUTPUT_1_FILE, output_1_im0);
     saveImage(OUTPUT_2_FILE, output_2_im0);
 
