@@ -8,7 +8,17 @@
 #include <stdlib.h>
 
 
-int *applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size);
+// TODO: do we need to filter alpha?
+int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size) {
+    int convolutionValue = 0;
+    for (unsigned char y = 0; y < size; ++y) {
+        for (unsigned char x = 0; x < size; ++x) {
+            int index = size * y + x;
+            convolutionValue += neighbours[index] * filter[index];
+        }
+    }
+    return convolutionValue;
+}
 
 Image *readImage(const char *filename) {
     unsigned error;
@@ -44,8 +54,8 @@ Image *createEmptyImage(unsigned width, unsigned height) {
  */
 Image *grayScaleImage(Image *input) {
     Image *output = createEmptyImage(input->width, input->height);
-    for (unsigned x = 0; x < input->width; x++) {
-        for (unsigned y = 0; y < input->height; y++) {
+    for (unsigned y = 0; y < input->height; y++) {
+        for (unsigned x = 0; x < input->width; x++) {
             size_t index = 4 * input->width * y + 4 * x;
             unsigned char r = input->image[index + 0];
             unsigned char g = input->image[index + 1];
@@ -62,40 +72,50 @@ Image *grayScaleImage(Image *input) {
     return output;
 }
 
-unsigned char * getNeighboursZeroPadding(Image *input, unsigned x, unsigned y) {
-    unsigned char * neighbours = malloc(5 * 5 * 4);
+/**
+ * collect 25 neighbours of a pixel
+ * @param input input image is a BW image
+ * @param x
+ * @param y
+ * @return
+ */
+unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y) {
+    unsigned char *neighbours = malloc(5 * 5);
     for (unsigned i = 0; i < 5; ++i) {
         for (unsigned j = 0; j < 5; ++j) {
-            int x1 = x - 2 + i;
-            int y1 = y - 2 + j;
-            unsigned char neighboursIndex = 4 * 5 * i + 4 * j;
-            if (x1 < 0 || x1 >= (int)input->width || y1 < 0 || y1 >= (int)input->height) {
-                neighbours[neighboursIndex + 0] = 0;
-                neighbours[neighboursIndex + 1] = 0;
-                neighbours[neighboursIndex + 2] = 0;
-                neighbours[neighboursIndex + 3] = 0;
+            int y1 = y - 2 + i;
+            int x1 = x - 2 + j;
+            unsigned char neighboursIndex = 5 * i + j;
+            if (x1 < 0 || x1 >= (int) input->width || y1 < 0 || y1 >= (int) input->height) {
+                neighbours[neighboursIndex] = 100;
             } else {
                 unsigned char index = 4 * input->width * y1 + 4 * x1;
-                neighbours[neighboursIndex + 0] = input->image[index + 0];
-                neighbours[neighboursIndex + 1] = input->image[index + 1];
-                neighbours[neighboursIndex + 2] = input->image[index + 2];
-                neighbours[neighboursIndex + 3] = input->image[index + 3];
+                neighbours[neighboursIndex] = input->image[index];
             }
         }
     }
     return neighbours;
 }
 
-Image *applyFilter(Image *input, unsigned char* filter, int filterDenominator, int filterSize) {
+/**
+ * Apply a filter to an BW image
+ * @param input
+ * @param filter
+ * @param filterDenominator
+ * @param filterSize
+ * @return
+ */
+Image *applyFilter(Image *input, unsigned char *filter, int filterDenominator, int filterSize) {
     Image *output = createEmptyImage(input->width, input->height);
-    for (unsigned x = 0; x < output->width; x++) {
-        for (unsigned y = 0; y < output->height; y++) {
-            unsigned char * neighbours = getNeighboursZeroPadding(input, x, y);
+    for (unsigned y = 0; y < output->height; y++) {
+        for (unsigned x = 0; x < output->width; x++) {
+            unsigned char *neighbours = getNeighboursZeroPadding(input, x, y);
+            int filterValue = applyFilterToNeighbours(neighbours, filter, filterSize);
+            unsigned char filterOut = (unsigned char) (filterValue / filterDenominator);
             size_t index = 4 * output->width * y + 4 * x;
-            int * filteredNeighbours = applyFilterToNeighbours(neighbours, filter, filterSize);
-            output->image[index + 0] = filteredNeighbours[0] / filterDenominator;
-            output->image[index + 1] = filteredNeighbours[1] / filterDenominator;
-            output->image[index + 2] = filteredNeighbours[2] / filterDenominator;
+            output->image[index + 0] = filterOut;
+            output->image[index + 1] = filterOut;
+            output->image[index + 2] = filterOut;
             output->image[index + 3] = input->image[index + 3];
             free(neighbours);
         }
@@ -103,25 +123,6 @@ Image *applyFilter(Image *input, unsigned char* filter, int filterDenominator, i
     return output;
 }
 
-
-int *applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size) {
-    int *filteredNeighbours = malloc(sizeof(int) * 3);
-        int r_sum = 0;
-        int g_sum = 0;
-        int b_sum = 0;
-        for (int j = 0; j < size; ++j) {
-            for (int k = 0; k < size; ++k) {
-                r_sum += neighbours[4 * size * j + 4 * k + 0] * filter[size * j + k];
-                g_sum += neighbours[4 * size * j + 4 * k + 1] * filter[size * j + k];
-                b_sum += neighbours[4 * size * j + 4 * k + 2] * filter[size * j + k];
-            }
-        }
-        filteredNeighbours[0] = r_sum;;
-        filteredNeighbours[1] = g_sum;;
-        filteredNeighbours[2] = b_sum;;
-
-    return filteredNeighbours;
-}
 
 /**
  * Scale down to 1/16 taking every 4th row and column

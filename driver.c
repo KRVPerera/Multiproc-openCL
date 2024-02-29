@@ -27,8 +27,10 @@ void runZnccFlowForOneImage(const char * imagePath, const char * outputPath) {
     Image *im = readImage(imagePath);
     Image *smallImage = resizeImage(im);
     Image* grayIm = grayScaleImage(smallImage);
+
     unsigned char* gaussianFilter = getGaussianFilter();
     Image* filteredImage = applyFilter(grayIm, gaussianFilter, 273, 5);
+
     saveImage(outputPath, filteredImage);
 
     freeImage(im);
