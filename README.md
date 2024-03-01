@@ -22,6 +22,9 @@ This repository is for the learning purpose of GPGPU with OpenCL.
 
 - clone the repository
 - create a build folder inside the repository
+
+### To run the c implemenation
+
 - run the following commands
 ```bash
   cmake ..
@@ -30,7 +33,14 @@ This repository is for the learning purpose of GPGPU with OpenCL.
 ```
 - Output images will be saved in `data/out` folder
 
-Main program currently
+Main program currently use images from `data/sample` folder.
+
+### Run opencl implementation
+- After building the project run.
+
+- `ctest -R image_to_grayscale`
+
+- Check the outputs at `build\project\image_to_grayscale`
 
 ## Reference
 
