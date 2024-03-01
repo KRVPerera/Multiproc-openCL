@@ -45,14 +45,11 @@ __kernel void gaussian_blur(__read_only image2d_t inputImage, __write_only image
     for (int i = -2; i <= 2; ++i) {
         for (int j = -2; j <= 2; ++j) {
             const int2 offsetPos = pos + (int2)(i, j);
-            if (offsetPos.x >= 0 && offsetPos.x < width && offsetPos.y >= 0 && offsetPos.y < height) {
-                const float4 color = read_imagef(inputImage, sampler, offsetPos);
-                const float weight = gassian_kernel[i + 2][j + 2];
-                sum += weight * color;
-            }
+            const float4 color = read_imagef(inputImage, sampler, offsetPos);
+            const float weight = gassian_kernel[i + 2][j + 2];
+            sum += weight * color;
         }
     }
     const float4 result = sum;
     write_imagef(outputImage, pos, result);
 }
-

@@ -1,4 +1,3 @@
-#define PROGRAM_FILE "test.cl"
 #define KERNEL_RESIZE_IMAGE "resize_image"
 #define KERNEL_COLOR_TO_GRAY "color_to_gray"
 #define KERNEL_GAUSSIAN_BLUR "gaussian_blur"
@@ -14,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "config_im_to_g.h"
 
 cl_device_id create_device() {
 
@@ -336,6 +336,7 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
 }
 
 int main() {
+
     cl_device_id device;
     cl_context context;
     cl_command_queue queue;
