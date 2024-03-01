@@ -2,9 +2,11 @@
 // Created by ruksh on 27/02/2024.
 //
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "config_zncc_c.h"
 
-int getFolder(char * folder) {
-    printf("IMAGE_ROOT : %s\n", folder);
+int main() {
     printf("Hello, World!\n");
     return 0;
 }
