@@ -55,6 +55,9 @@ float *getZeroPaddedWindow(Image *input, unsigned x, unsigned y, int windowSize)
 int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size);
 float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int size);
 
+float applyFilterForNonZeroFloat(float *neighbours, unsigned char *filter, int size);
+
+
 /**
  * Apply a filter to an image
  * @param input

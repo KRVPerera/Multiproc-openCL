@@ -24,6 +24,30 @@ float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int
     return convolutionValue;
 }
 
+
+float applyFilterForNonZeroFloat(float *neighbours, unsigned char *filter, int size) {
+    float convolutionValue = 0;
+    float prevNonZeroValue = 0;
+
+    for (unsigned char index = 0; index < size * size; ++index) {
+        if (neighbours[index] != 0) {
+            prevNonZeroValue = neighbours[index];
+            break;
+        }
+    }
+
+    for (unsigned char index = 0; index < size * size; ++index) {
+        float pixelValue = neighbours[index];
+        if (pixelValue == 0) {
+            pixelValue = prevNonZeroValue;
+        } else {
+            prevNonZeroValue = pixelValue;
+        }
+        convolutionValue += pixelValue * (float)filter[index];
+    }
+    return convolutionValue;
+}
+
 Image *readImage(const char *filename) {
     unsigned error;
     unsigned char *image = 0;
