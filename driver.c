@@ -95,13 +95,22 @@ Image* getBWImage(const char * imagePath, const char * outputPath, const char * 
 }
 
 void postProcessFlow() {
-
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
     Image* bwImage0 = readImage(OUTPUT_FILE_LEFT_DISPARITY);
     Image* bwImage1 = readImage(OUTPUT_FILE_RIGHT_DISPARITY);
 
+    GET_TIME(t0);
     Image* crossCheckLeft = CrossCheck(bwImage0, bwImage1, CROSS_CHECKING_THRESHOLD);
+    GET_TIME(t1);
+    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Cross Check Time Left : %f micro seconds\n", elapsed_time);
 
+    GET_TIME(t0);
     Image* occlusionFilledLeft = OcclusionFill(crossCheckLeft);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Occlusion Fill Time Left : %f micro seconds\n", elapsed_time);
 
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT, occlusionFilledLeft);
 

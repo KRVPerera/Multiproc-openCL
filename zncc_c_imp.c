@@ -18,11 +18,11 @@ Image *Get_zncc_c_imp(Image *image1, Image *image2, const int direction) {
             float max_zncc = 0;
             size_t index = tyIndex + 4 * x;
 
-            float *image1Window = getZeroPaddedWindow(image1, x, y, ZNCC_WINDOW_SIZE);
+            float *image1Window = getNeighbourWindowWithMirroring(image1, x, y, ZNCC_WINDOW_SIZE);
             float image1mean = Average(image1Window, ZNCC_WINDOW_SIZE * ZNCC_WINDOW_SIZE);
 
             for (int d = 0; d < MAX_DISP; ++d) {
-                float *image2Window = getZeroPaddedWindow(image2, x - direction*d, y, ZNCC_WINDOW_SIZE);
+                float *image2Window = getNeighbourWindowWithMirroring(image2, x - direction * d, y, ZNCC_WINDOW_SIZE);
                 float iamge2mean = Average(image2Window, ZNCC_WINDOW_SIZE * ZNCC_WINDOW_SIZE);
 
                 float diffMultiSum = 0;

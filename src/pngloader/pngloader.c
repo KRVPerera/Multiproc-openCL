@@ -19,7 +19,7 @@ int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, in
 float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int size) {
     float convolutionValue = 0;
     for (unsigned char index = 0; index < size * size; ++index) {
-        convolutionValue += neighbours[index] * (float)filter[index];
+        convolutionValue += neighbours[index] * (float) filter[index];
     }
     return convolutionValue;
 }
@@ -43,7 +43,7 @@ float applyFilterForNonZeroFloat(float *neighbours, unsigned char *filter, int s
         } else {
             prevNonZeroValue = pixelValue;
         }
-        convolutionValue += pixelValue * (float)filter[index];
+        convolutionValue += pixelValue * (float) filter[index];
     }
     return convolutionValue;
 }
@@ -85,7 +85,6 @@ Image *grayScaleImage(Image *input) {
     for (unsigned y = 0; y < input->height; y++) {
         for (unsigned x = 0; x < input->width; x++) {
             size_t index = 4 * input->width * y + 4 * x;
-//            printf("(x,y) : (%d,%d) -- index %zu\n", x, y, index);
             unsigned char r = input->image[index + 0];
             unsigned char g = input->image[index + 1];
             unsigned char b = input->image[index + 2];
@@ -108,39 +107,53 @@ Image *grayScaleImage(Image *input) {
  * @param y
  * @return
  */
-unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y) {
+unsigned char *getNeighbourWindowWithMirroringUnsigned(Image *input, unsigned x, unsigned y) {
     unsigned char *neighbours = malloc(5 * 5 * sizeof(unsigned char));
     for (unsigned i = 0; i < 5; ++i) {
         int y1 = y - 2 + i;
         for (unsigned j = 0; j < 5; ++j) {
             int x1 = x - 2 + j;
             unsigned char neighboursIndex = 5 * i + j;
-            if (x1 < 0 || x1 >= (int) input->width || y1 < 0 || y1 >= (int) input->height) {
-                neighbours[neighboursIndex] = 0;
-//                printf("\tVALUE ZERO : index %d, neighboursIndex : %d\n", 0, neighboursIndex);
-            } else {
-                unsigned char index = 4 * input->width * y1 + 4 * x1;
-//                printf("\tindex %d, neighboursIndex : %d\n", index, neighboursIndex);
-                neighbours[neighboursIndex] = input->image[index];
+            if (x1 < 0) {
+                x1 = abs(x1);
+            } else if (x1 >= (int) input->width) {
+                x1 = input->width + (input->width - x1) - 1;
             }
+
+            if (y1 < 0) {
+                y1 = abs(y1);
+            } else if (y1 >= (int) input->height) {
+                y1 = input->height + input->height - y1 - 1;
+            }
+
+            unsigned char index = 4 * input->width * y1 + 4 * x1;
+            neighbours[neighboursIndex] = input->image[index];
         }
     }
     return neighbours;
 }
 
-float *getZeroPaddedWindow(Image *input, unsigned x, unsigned y, int windowSize) {
+float *getNeighbourWindowWithMirroring(Image *input, unsigned x, unsigned y, int windowSize) {
     float *neighbours = malloc(windowSize * windowSize * sizeof(float));
     for (int i = 0; i < windowSize; ++i) {
-        int y1 = y - windowSize/2 + i;
+        int y1 = y - windowSize / 2 + i;
         for (int j = 0; j < windowSize; ++j) {
-            int x1 = x - windowSize/2 + j;
+            int x1 = x - windowSize / 2 + j;
             unsigned char neighboursIndex = windowSize * i + j;
-            if (x1 < 0 || x1 >= (int) input->width || y1 < 0 || y1 >= (int) input->height) {
-                neighbours[neighboursIndex] = 0;
-            } else {
-                size_t index = 4 * input->width * y1 + 4 * x1;
-                neighbours[neighboursIndex] = input->image[index];
+            if (x1 < 0) {
+                x1 = abs(x1);
+            } else if (x1 >= (int) input->width) {
+                x1 = input->width + (input->width - x1) - 1;
             }
+
+            if (y1 < 0) {
+                y1 = abs(y1);
+            } else if (y1 >= (int) input->height) {
+                y1 = input->height + input->height - y1 - 1;
+            }
+
+            size_t index = 4 * input->width * y1 + 4 * x1;
+            neighbours[neighboursIndex] = input->image[index];
         }
     }
     return neighbours;
@@ -153,12 +166,18 @@ float *getNeighboursZeroPaddingFloats(Image *input, unsigned x, unsigned y) {
         for (unsigned j = 0; j < 5; ++j) {
             int x1 = x - 2 + j;
             unsigned char neighboursIndex = 5 * i + j;
-            if (x1 < 0 || x1 >= (int) input->width || y1 < 0 || y1 >= (int) input->height) {
-                neighbours[neighboursIndex] = 0;
-            } else {
-                size_t index = 4 * input->width * y1 + 4 * x1;
-                neighbours[neighboursIndex] = input->image[index];
+            if (x1 < 0) {
+                x1 = abs(x1);
+            } else if (x1 >= (int) input->width) {
+                x1 = input->width + (input->width - x1) - 1;
             }
+            if (y1 < 0) {
+                y1 = abs(y1);
+            } else if (y1 >= (int) input->height) {
+                y1 = input->height + input->height - y1 - 1;
+            }
+            size_t index = 4 * input->width * y1 + 4 * x1;
+            neighbours[neighboursIndex] = input->image[index];
         }
     }
     return neighbours;
@@ -177,21 +196,11 @@ Image *applyFilter(Image *input, unsigned char *filter, float filterDenominator,
     for (unsigned y = 0; y < input->height; y++) {
         size_t yIndex = 4 * input->width * y;
         for (unsigned x = 0; x < input->width; x++) {
-//            printf("x %d y %d\n", x, y);
-//            unsigned char original = input->image[yIndex + 4 * x];
-//            printf("original %d\n", original);
-            unsigned char *neighbours = getNeighboursZeroPadding(input, x, y);
+            unsigned char *neighbours = getNeighbourWindowWithMirroringUnsigned(input, x, y);
             float *neighboursFloat = getNeighboursZeroPaddingFloats(input, x, y);
             float filterValueFloat = applyFilterToNeighboursFloat(neighboursFloat, filter, filterSize);
-//            int filterValue = applyFilterToNeighbours(neighbours, filter, filterSize);
-//            printf("\tfilterValue %d\n", filterValue);
-//            float out = (float)filterValue / filterDenominator;
-//            printf("\tout %f\n", out);
             unsigned char filterOut = MIN(255, (filterValueFloat / filterDenominator));
-//            printf("\tfilterOut %d\n", filterOut);
             size_t index = yIndex + 4 * x;
-//            printf("filterOut %d\n", filterOut);
-//            printf("\tRED %d\n", input->image[index + 0]);
             output->image[index + 0] = filterOut;
             output->image[index + 1] = filterOut;
             output->image[index + 2] = filterOut;

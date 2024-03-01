@@ -9,7 +9,7 @@ struct Image {
 };
 Image *createEmptyImage(unsigned width, unsigned height);
 void freeImage(Image *img);
-unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y);
+unsigned char *getNeighbourWindowWithMirroringUnsigned(Image *input, unsigned x, unsigned y);
 }
 
 TEST_CASE("create a image and assign same value to red channel", "[Image]") {
@@ -78,7 +78,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
         }
     }
 
-    unsigned char *neigb00 = getNeighboursZeroPadding(im, 0, 0);
+    unsigned char *neigb00 = getNeighbourWindowWithMirroringUnsigned(im, 0, 0);
     int neighbourSum = 0;
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 5; ++j) {
@@ -88,7 +88,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
     free(neigb00);
     REQUIRE(neighbourSum == 4*(1 + 2 + 5 + 6 + 7 + 10 + 11 + 12));
 
-    unsigned char *neigb01 = getNeighboursZeroPadding(im, 1, 0);
+    unsigned char *neigb01 = getNeighbourWindowWithMirroringUnsigned(im, 1, 0);
     neighbourSum = 0;
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 5; ++j) {
@@ -98,7 +98,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
     free(neigb01);
     REQUIRE(neighbourSum == 4*(1 + 2 + 5 + 6 + 7 + 10 + 11 + 12+3+8+13));
 
-    unsigned char *neigbMid = getNeighboursZeroPadding(im, 2, 2);
+    unsigned char *neigbMid = getNeighbourWindowWithMirroringUnsigned(im, 2, 2);
     neighbourSum = 0;
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 5; ++j) {
@@ -109,7 +109,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
     REQUIRE(neighbourSum == 4*(1 + 2 + 3 + 4 + 5 + 6 + 7 + 8+9+10+11+12+13+14+15+16+17+18+19+20+21+22+23+24));
 
 
-    unsigned char *neigbLeftMiddle = getNeighboursZeroPadding(im, 0, 2);
+    unsigned char *neigbLeftMiddle = getNeighbourWindowWithMirroringUnsigned(im, 0, 2);
     neighbourSum = 0;
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 5; ++j) {
@@ -119,7 +119,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
     free(neigbLeftMiddle);
     REQUIRE(neighbourSum == 4*(1 + 2 + 5 + 6 + 7 + 10 + 11 + 12 + 15 + 16 + 17 + 20 +21 +22));
 
-    unsigned char *neigbRightMiddle = getNeighboursZeroPadding(im, 4, 2);
+    unsigned char *neigbRightMiddle = getNeighbourWindowWithMirroringUnsigned(im, 4, 2);
     neighbourSum = 0;
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 5; ++j) {
@@ -130,7 +130,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
     REQUIRE(neighbourSum == 4*(2 + 3 + 4 + 7 + 8 + 9 + 12 + 13 + 14 + 17 + 18 + 19 + 22 + 23 + 24));
 
 
-    unsigned char *neigbBottomLeft = getNeighboursZeroPadding(im, 0, 4);
+    unsigned char *neigbBottomLeft = getNeighbourWindowWithMirroringUnsigned(im, 0, 4);
     neighbourSum = 0;
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 5; ++j) {
@@ -141,7 +141,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
     REQUIRE(neighbourSum == 4*(10 + 11 + 12 + 15 + 16 + 17 + 20+ 21 + 22));
 
 
-    unsigned char *neigbBottomMiddle = getNeighboursZeroPadding(im, 2, 4);
+    unsigned char *neigbBottomMiddle = getNeighbourWindowWithMirroringUnsigned(im, 2, 4);
     neighbourSum = 0;
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 5; ++j) {
@@ -151,7 +151,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
     free(neigbBottomMiddle);
     REQUIRE(neighbourSum == 4*(10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24));
 
-    unsigned char *neigbBottomRight = getNeighboursZeroPadding(im, 4, 4);
+    unsigned char *neigbBottomRight = getNeighbourWindowWithMirroringUnsigned(im, 4, 4);
     neighbourSum = 0;
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 5; ++j) {

@@ -15,8 +15,8 @@ int main() {
     time_t t;
     srand((unsigned) time(&t));
 
-//    fullFlow();
-    postProcessFlow();
+    fullFlow();
+//    postProcessFlow();
 
     printf("Stopping Multiprocessor Programming project!\n");
     return 0;

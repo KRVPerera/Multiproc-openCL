@@ -38,12 +38,12 @@ Image *resizeImage(Image *input);
  * @param y
  * @return
  */
-unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y);
+unsigned char *getNeighbourWindowWithMirroringUnsigned(Image *input, unsigned x, unsigned y);
 
 
 float *getNeighboursZeroPaddingFloats(Image *input, unsigned x, unsigned y);
 
-float *getZeroPaddedWindow(Image *input, unsigned x, unsigned y, int windowSize);
+float *getNeighbourWindowWithMirroring(Image *input, unsigned x, unsigned y, int windowSize);
 
 /**
  *
@@ -52,9 +52,16 @@ float *getZeroPaddedWindow(Image *input, unsigned x, unsigned y, int windowSize)
  * @param size
  * @return
  */
-int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size);
 float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int size);
 
+
+/**
+ * Apply a filter to an BW image
+ * @param neighbours
+ * @param filter
+ * @param size
+ * @return
+ */
 float applyFilterForNonZeroFloat(float *neighbours, unsigned char *filter, int size);
 
 
