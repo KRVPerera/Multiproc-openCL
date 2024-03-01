@@ -11,6 +11,8 @@
 #define GET_TIME(x); if(clock_gettime(CLOCK_MONOTONIC, &(x)) < 0) \
 {perror("clock_gettime(): "); exit(EXIT_FAILURE);}
 
+Image* CrossCheck(Image * image1, Image* image2, int threshold);
+
 // TODO: since the filter is syymetrical we may want to keep only wanted values
 // TODO: we may want to use x and y componets of the filter separately
 unsigned char* getGaussianFilter() {
@@ -97,15 +99,31 @@ Image* getBWImage(const char * imagePath, const char * outputPath, const char * 
 }
 
 void fullFlow() {
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+
     Image* bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW, OUTPUT_FILE_PROFILE_FILTERED_0);
-    Image* bwImage2 = getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, OUTPUT_FILE_PROFILE_FILTERED_1);
+    Image* bwImage1= getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, OUTPUT_FILE_PROFILE_FILTERED_1);
 
 
+    GET_TIME(t0);
+    Image* crossCheckLeft = CrossCheck(bwImage0, bwImage1, CROSS_CHECKING_THRESHOLD);
+    GET_TIME(t1);
+    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Cross Check Time Left : %f micro seconds\n", elapsed_time);
 
+    GET_TIME(t0);
+    Image* crossCheckRight = CrossCheck(bwImage1, bwImage0, CROSS_CHECKING_THRESHOLD);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Cross Check Time Right : %f micro seconds\n", elapsed_time);
 
-
+    saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT, crossCheckLeft);
+    saveImage(OUTPUT_FILE_CROSS_CHECKING_RIGHT, crossCheckLeft);
     freeImage(bwImage0);
-    freeImage(bwImage2);
+    freeImage(bwImage1);
+    freeImage(crossCheckLeft);
+    freeImage(crossCheckRight);
 }
 
 void runZnccFlowForOneImage(const char * imagePath, const char * outputPath) {
