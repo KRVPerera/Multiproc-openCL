@@ -152,7 +152,7 @@ Image *applyFilter(Image *input, unsigned char *filter, float filterDenominator,
 //            printf("\tRED %d\n", input->image[index + 0]);
             output->image[index + 0] = filterOut;
             output->image[index + 1] = filterOut;
-            output->image[index + 2] = input->image[index + 2];
+            output->image[index + 2] = filterOut;
             output->image[index + 3] = input->image[index + 3];
             free(neighbours);
         }
