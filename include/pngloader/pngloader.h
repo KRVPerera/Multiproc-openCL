@@ -6,6 +6,7 @@
 #define MULTIPROCOPENCL_PNGLOADER_H
 
 #define IMAGE_SCALE 4
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 typedef struct Image {
     unsigned char* image;
@@ -29,6 +30,24 @@ Image* createEmptyImage(unsigned width, unsigned height);
  */
 Image *resizeImage(Image *input);
 
+
+/**
+ *
+ * @param input
+ * @param x
+ * @param y
+ * @return
+ */
+unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y);
+
+/**
+ *
+ * @param neighbours
+ * @param filter
+ * @param size
+ * @return
+ */
+int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size);
 
 /**
  * Apply a filter to an image

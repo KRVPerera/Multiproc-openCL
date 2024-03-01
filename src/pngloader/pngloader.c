@@ -7,8 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-
 // TODO: do we need to filter alpha?
 int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size) {
     int convolutionValue = 0;
