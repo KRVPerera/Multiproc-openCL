@@ -8,4 +8,25 @@
 #define PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@"
 #define PROJECT_DATA_DIR "@PROJECT_SOURCE_DIR@/data"
 
+#define INPUT_FILE_0 "@PROJECT_SOURCE_DIR@/data/sample/im0.png"
+#define INPUT_FILE_1 "@PROJECT_SOURCE_DIR@/data/sample/im1.png"
+
+#define OUTPUT_FILE_0_BW "@PROJECT_SOURCE_DIR@/data/out/image_0_bw.png"
+#define OUTPUT_FILE_1_BW "@PROJECT_SOURCE_DIR@/data/out/image_1_bw.png"
+
+#define OUTPUT_FILE_0_BW_FILTERED "@PROJECT_SOURCE_DIR@/data/out/image_0_bw_blurred.png"
+#define OUTPUT_FILE_1_BW_FILTERED "@PROJECT_SOURCE_DIR@/data/out/image_1_bw_blurred.png"
+
+#define OUTPUT_FILE_LEFT_DISPARITY "@PROJECT_SOURCE_DIR@/data/out/image_left_disparity.png"
+#define OUTPUT_FILE_RIGHT_DISPARITY "@PROJECT_SOURCE_DIR@/data/out/image_right_disparity.png"
+
+#define OUTPUT_FILE_CROSS_CHECKING_LEFT "@PROJECT_SOURCE_DIR@/data/out/image_cross_checking_LEFT.png"
+#define OUTPUT_FILE_CROSS_CHECKING_RIGHT "@PROJECT_SOURCE_DIR@/data/out/image_cross_checking_RIGHT.png"
+
+#define OUTPUT_FILE_OCCULSION_FILLED_LEFT "@PROJECT_SOURCE_DIR@/data/out/image_occulsion_filed_LEFT.png"
+#define OUTPUT_FILE_OCCULSION_FILLED_RIGHT "@PROJECT_SOURCE_DIR@/data/out/image_occulsion_filed_RIGHT.png"
+
+#define OUTPUT_FILE_PROFILE_FILTERED_0 "@PROJECT_SOURCE_DIR@/data/out/profile_data_0.txt"
+#define OUTPUT_FILE_PROFILE_FILTERED_1 "@PROJECT_SOURCE_DIR@/data/out/profile_data_1.txt"
+
 #endif //MULTIPROCOPENCL_CONFIG_H
