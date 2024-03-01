@@ -12,6 +12,7 @@
 {perror("clock_gettime(): "); exit(EXIT_FAILURE);}
 
 Image* CrossCheck(Image * image1, Image* image2, int threshold);
+Image *OcclusionFill(Image *image);
 
 // TODO: since the filter is syymetrical we may want to keep only wanted values
 // TODO: we may want to use x and y componets of the filter separately
@@ -118,12 +119,29 @@ void fullFlow() {
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     printf("Cross Check Time Right : %f micro seconds\n", elapsed_time);
 
-    saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT, crossCheckLeft);
-    saveImage(OUTPUT_FILE_CROSS_CHECKING_RIGHT, crossCheckLeft);
+    GET_TIME(t0);
+    Image* occlusionFilledLeft = OcclusionFill(crossCheckLeft);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Occlusion Fill Time Left : %f micro seconds\n", elapsed_time);
+
+    GET_TIME(t0);
+    Image* occlusionFilledRight = OcclusionFill(crossCheckRight);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Occlusion Fill Time Right : %f micro seconds\n", elapsed_time);
+
+    saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT, occlusionFilledLeft);
+    saveImage(OUTPUT_FILE_OCCULSION_FILLED_RIGHT, occlusionFilledRight);
+
+    saveImage(OUTPUT_FILE_CROSS_CHECKING_LEFT, crossCheckLeft);
+    saveImage(OUTPUT_FILE_CROSS_CHECKING_RIGHT, crossCheckRight);
     freeImage(bwImage0);
     freeImage(bwImage1);
     freeImage(crossCheckLeft);
     freeImage(crossCheckRight);
+    freeImage(occlusionFilledLeft);
+    freeImage(occlusionFilledRight);
 }
 
 void runZnccFlowForOneImage(const char * imagePath, const char * outputPath) {
