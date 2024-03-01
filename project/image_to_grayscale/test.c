@@ -352,15 +352,15 @@ int main() {
     size_t width, height, new_width, new_height;
 
     /* Open input file and read image data */
-    Image *im0 = loadImage(INPUT_FILE);
+    Image *im0 = readImage(INPUT_FILE);
     width = im0 -> width;
     height = im0 -> height;
     new_width = width / 4;
     new_height = height / 4;
 
-    Image *output_1_im0 = createNewImage(new_width, new_height);
-    Image *output_2_im0 = createNewImage(new_width, new_height);
-    Image *output_3_im0 = createNewImage(new_width, new_height);
+    Image *output_1_im0 = createEmptyImage(new_width, new_height);
+    Image *output_2_im0 = createEmptyImage(new_width, new_height);
+    Image *output_3_im0 = createEmptyImage(new_width, new_height);
 
     device = create_device();
 
