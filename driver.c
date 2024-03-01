@@ -5,8 +5,7 @@
 #include <pngloader.h>
 #include "config.h"
 
-#define GET_TIME(x); if(clock_gettime(CLOCK_MONOTONIC, &(x)) < 0) \
-{perror("clock_gettime(): "); exit(EXIT_FAILURE);}
+
 
 Image* CrossCheck(Image * image1, Image* image2, int threshold);
 Image *OcclusionFill(Image *image);

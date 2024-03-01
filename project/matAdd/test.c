@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define PROGRAM_FILE "matrix_add.cl"
 #define KERNEL_NAME "matrix_add"
+#include <util.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -106,9 +107,20 @@ int main() {
         for (int j = 0; j < SIZE; j++) {
             A[i * SIZE + j] = i * SIZE + j;
             B[i * SIZE + j] = (SIZE - i) * SIZE + (SIZE - j);
+        }
+    }
+
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+    GET_TIME(t0);
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
             correct[i * SIZE + j] = A[i * SIZE + j] + B[i * SIZE + j];
         }
     }
+    GET_TIME(t1);
+    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("CPU Time : %f micro seconds\n", elapsed_time);
 
     // Create buffers for matrices A, B, and C
     mat1_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float) * SIZE * SIZE, A, &err);
