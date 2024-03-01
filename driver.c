@@ -6,6 +6,7 @@
 #include <string.h>
 #include <util.h>
 #include <pngloader.h>
+#include "config.h"
 
 #define GET_TIME(x); if(clock_gettime(CLOCK_MONOTONIC, &(x)) < 0) \
 {perror("clock_gettime(): "); exit(EXIT_FAILURE);}
@@ -30,6 +31,77 @@ unsigned char* getMeanFilter() {
     return filter;
 }
 
+// open text file to write line by line
+FILE* openfile(const char *filename) {
+    FILE *fp = fopen(filename, "w");
+
+    if (fp == NULL) {
+        printf("Error opening file! : %s\n", filename);
+    }
+    return fp;
+}
+
+void closefile(FILE *fp) {
+    fclose(fp);
+}
+
+
+Image* getBWImage(const char * imagePath, const char * outputPath, const char * profilePath) {
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+    FILE *fp = openfile(profilePath);
+
+    GET_TIME(t0);
+    Image *im = readImage(imagePath);
+    GET_TIME(t1);
+    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    fprintf(fp, "Image Load Time : %f micro seconds\n", elapsed_time);
+
+
+    GET_TIME(t0);
+    Image *smallImage = resizeImage(im);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    fprintf(fp, "Image Resize Time : %f micro seconds\n", elapsed_time);
+
+    GET_TIME(t0);
+    Image* grayIm = grayScaleImage(smallImage);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    fprintf(fp, "Image GrayScale Time : %f micro seconds\n", elapsed_time);
+
+
+    unsigned char* gaussianFilter = getGaussianFilter();
+
+    GET_TIME(t0);
+    Image* filteredImage = applyFilter(grayIm, gaussianFilter, 273, 5);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    fprintf(fp, "Image Filter Time : %f micro seconds\n", elapsed_time);
+
+    GET_TIME(t0);
+    saveImage(outputPath, filteredImage);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    fprintf(fp, "Image Save Time : %f micro seconds\n", elapsed_time);
+
+    freeImage(im);
+    freeImage(smallImage);
+    free(gaussianFilter);
+    free(filteredImage);
+
+    closefile(fp);
+    return grayIm;
+}
+
+void fullFlow() {
+    Image* bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW, OUTPUT_FILE_PROFILE_FILTERED_0);
+    Image* bwImage2 = getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, OUTPUT_FILE_PROFILE_FILTERED_1);
+
+    
+    freeImage(bwImage0);
+    freeImage(bwImage2);
+}
 
 void runZnccFlowForOneImage(const char * imagePath, const char * outputPath) {
     Image *im = readImage(imagePath);
