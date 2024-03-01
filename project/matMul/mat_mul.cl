@@ -5,4 +5,3 @@ __kernel void mat_mul(__global float4* matrix,
    int i = get_global_id(0);
    result[i] = dot(matrix[i], vector[0]);
 }
-
