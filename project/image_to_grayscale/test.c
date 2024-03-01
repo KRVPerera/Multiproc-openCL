@@ -4,7 +4,6 @@
 
 #include <pngloader.h>
 
-#define INPUT_FILE "im0.png"
 #define OUTPUT_1_FILE "output_1.png"
 #define OUTPUT_2_FILE "output_2.png"
 #define OUTPUT_3_FILE "output_3.png"
