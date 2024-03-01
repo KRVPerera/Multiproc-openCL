@@ -1,4 +1,4 @@
-add_subdirectory(image_to_grayscale)
+add_subdirectory(opencl_flow_ex3)
 add_subdirectory(matAdd)
 add_subdirectory(matMul)
 add_subdirectory(kernel_search)

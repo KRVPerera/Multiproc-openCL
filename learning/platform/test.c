@@ -70,7 +70,7 @@ int main() {
             fprintf(stdout, "%s\n", buf);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(cl_uint), &work_item_dim, NULL);
-            fprintf(stdout, "CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS: %u\n", work_item_dim);
+            fprintf(stdout, "Maximum work dimensions device support : %u\n", work_item_dim);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &compute_units, NULL);
             fprintf(stdout, "CL_DEVICE_MAX_COMPUTE_UNITS: %u\n", compute_units);

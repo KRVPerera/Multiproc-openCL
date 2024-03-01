@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <opencl_include.h>
 
-#define SIZE 100
+#define SIZE 10000
 
 int main() {
 
@@ -28,7 +28,8 @@ int main() {
     size_t log_size;
 
     cl_event prof_event;
-    cl_ulong time_start, time_end, total_time;
+    cl_ulong time_start, total_time;
+    cl_ulong time_end;
 
     err = clGetPlatformIDs(1, &platform, NULL);
     if (err < 0) {
@@ -90,8 +91,8 @@ int main() {
         perror("Error: clCreateKernel");
         exit(1);   
     }
-
-    queue = clCreateCommandQueue(context, device, 0, &err);
+    cl_command_queue_properties props[3] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
+    queue = clCreateCommandQueueWithProperties(context, device, props, &err);
     if(err < 0) {
         perror("Error: clCreateCommandQueue");
         exit(1);   
@@ -141,6 +142,7 @@ int main() {
     clSetKernelArg(kernel, 1, sizeof(cl_mem), &mat2_buffer);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), &result_buffer);
 
+    GET_TIME(t0);
     // Execute the kernel
     size_t globalSize[2] = {SIZE, SIZE};
     err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalSize, NULL, 0, NULL, &prof_event);
@@ -149,20 +151,28 @@ int main() {
         exit(1);   
     }
 
+    clFinish(queue);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Kernal Time : %f micro seconds\n", elapsed_time);
+
     // Read the result buffer back to the host
     float *C = (float *)malloc(sizeof(float) * SIZE * SIZE);
     err = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(float) * SIZE * SIZE, C, 0, NULL, NULL);
     if(err < 0) {
         perror("Error: clEnqueueReadBuffer");
-        exit(1);   
+        exit(1);
     }
 
     /* Finish processing the queue and get profiling information */
-    clFinish(queue);
+
     clGetEventProfilingInfo(prof_event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
     clGetEventProfilingInfo(prof_event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
-    total_time = time_end - time_start;
+    printf("Kernel execution time_end: %lld ns\n", time_end);
+    printf("Kernel execution time_start: %lld ns\n", time_start);
+    clReleaseEvent(prof_event);
 
+    total_time = time_end - time_start;
     printf("Time taken to do the addition = %llu ns\n", total_time);
 
     cl_bool correctFlag = CL_TRUE;
