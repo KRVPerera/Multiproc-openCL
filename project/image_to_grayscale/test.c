@@ -1,12 +1,14 @@
 #define PROGRAM_FILE "test.cl"
 #define KERNEL_RESIZE_IMAGE "resize_image"
 #define KERNEL_COLOR_TO_GRAY "color_to_gray"
+#define KERNEL_GAUSSIAN_BLUR "gaussian_blur"
 
 #include <pngloader.h>
 
 #define INPUT_FILE "im0.png"
 #define OUTPUT_1_FILE "output_1.png"
 #define OUTPUT_2_FILE "output_2.png"
+#define OUTPUT_3_FILE "output_3.png"
 
 #include <opencl_include.h>
 #include <stdio.h>
@@ -253,6 +255,86 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
     printf("Time taken to read the output image (gray scaling) = %llu ns\n", read_time);
 }
 
+void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, cl_event *read_event, cl_event *gaussian_event) {
+
+    /* Image data */
+    cl_mem input_image, output_image;
+    cl_image_format input_format, output_format;
+    int err;
+
+    cl_ulong read_time, time_to_gaussian_blur;
+
+    size_t width = im0 -> width;
+    size_t height = im0 -> height;
+
+    input_format.image_channel_order = CL_RGBA;
+    input_format.image_channel_data_type = CL_UNORM_INT8;
+
+    output_format.image_channel_order = CL_RGBA;
+    output_format.image_channel_data_type = CL_UNORM_INT8;
+
+    /* Create input image object */
+    input_image = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format, width, height, 0, (void*)im0 -> image, &err);
+    if(err < 0) {
+        printf("apply_gaussian_blur: Couldn't create the input image object");
+        exit(1);
+    };
+
+    /* Create output image object */
+    output_image = clCreateImage2D(context, CL_MEM_WRITE_ONLY, &output_format, width, height, 0, NULL, &err);
+    if(err < 0) {
+        perror("apply_gaussian_blur: Couldn't create the input image object");
+        exit(1);
+    };
+
+    // Set kernel arguments
+    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_image);
+    if(err < 0) {
+        perror("apply_gaussian_blur, Error: clSetKernelArg, inputImage");
+        exit(1);
+    }
+
+    err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &output_image);
+    if(err < 0) {
+        perror("apply_gaussian_blur, Error: clSetKernelArg, outputImage");
+        exit(1);
+    }
+
+    // Execute the OpenCL kernel
+    size_t globalWorkSize[2] = { width, height };
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, gaussian_event);
+    if(err < 0) {
+        perror("apply_gaussian_blur, Error: clEnqueueNDRangeKernel");
+        exit(1);
+    }
+
+    // Read the output image back to the host
+    err = clEnqueueReadImage(queue, output_image, CL_TRUE, (size_t[3]){0, 0, 0}, (size_t[3]){width, height, 1},
+                             0, 0, (void*)output_im0 -> image, 0, NULL, read_event);
+    if(err < 0) {
+        perror("apply_gaussian_blur, Error: clEnqueueReadImage");
+        exit(1);
+    }
+
+    clFinish(queue);
+
+    output_im0 -> width = width;
+    output_im0 -> height = height;
+
+    cl_ulong start_time, end_time;
+    cl_ulong start_time_read, end_time_read;
+    clGetEventProfilingInfo(*gaussian_event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
+    clGetEventProfilingInfo(*gaussian_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
+    time_to_gaussian_blur = end_time - start_time;
+
+    clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
+    clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
+    read_time = end_time_read - start_time_read;
+
+    printf("Time taken to do the gaussian blur = %llu ns\n", time_to_gaussian_blur);
+    printf("Time taken to read the output image (gaussian blur) = %llu ns\n", read_time);
+}
+
 int main() {
     cl_device_id device;
     cl_context context;
@@ -260,12 +342,12 @@ int main() {
     cl_program program;
     cl_int err;
 
-    cl_kernel *kernels, kernel_resize_image, kernel_color_to_gray;
+    cl_kernel *kernels, kernel_resize_image, kernel_color_to_gray, kernel_gaussian_blur;
     char kernel_name[20];
     cl_uint i, num_kernels;
 
     /* Profiling data */
-    cl_event grayscale_read_event, grayscale_event, resize_read_event, resize_event;
+    cl_event grayscale_read_event, grayscale_event, resize_read_event, resize_event, gaussian_read_event, gaussian_event;
 
     size_t width, height, new_width, new_height;
 
@@ -278,6 +360,7 @@ int main() {
 
     Image *output_1_im0 = createNewImage(new_width, new_height);
     Image *output_2_im0 = createNewImage(new_width, new_height);
+    Image *output_3_im0 = createNewImage(new_width, new_height);
 
     device = create_device();
 
@@ -312,7 +395,10 @@ int main() {
         } else if(strcmp(kernel_name, KERNEL_COLOR_TO_GRAY) == 0) {
             kernel_color_to_gray = kernels[i];
             printf("Found color_to_gray kernel at index %u.\n", i);
-        }									
+        } else if(strcmp(kernel_name, KERNEL_GAUSSIAN_BLUR) == 0) {
+            kernel_gaussian_blur = kernels[i];
+            printf("Found gaussian_blur kernel at index %u.\n", i);
+        }								
     }	
 
     queue = clCreateCommandQueue(context, device, 0, &err);
@@ -327,19 +413,27 @@ int main() {
     /* Convert color image to gray scale image */
     convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_im0, output_2_im0, &grayscale_read_event, &grayscale_event);
 
+    /* Apply gaussian blur with 5 x 5 kernel */
+    apply_gaussian_blur(context, kernel_gaussian_blur, queue, output_2_im0, output_3_im0, &gaussian_read_event, &gaussian_event);
+
     saveImage(OUTPUT_1_FILE, output_1_im0);
     saveImage(OUTPUT_2_FILE, output_2_im0);
+    saveImage(OUTPUT_3_FILE, output_3_im0);
 
     /* Deallocate resources */
     freeImage(im0);
     freeImage(output_1_im0);
     freeImage(output_2_im0);
+    freeImage(output_3_im0);
     clReleaseEvent(resize_read_event);
     clReleaseEvent(resize_event);
     clReleaseEvent(grayscale_read_event);
     clReleaseEvent(grayscale_event);
+    clReleaseEvent(gaussian_read_event);
+    clReleaseEvent(gaussian_event);
     clReleaseKernel(kernel_color_to_gray);
     clReleaseKernel(kernel_resize_image);
+    clReleaseKernel(kernel_gaussian_blur);
     clReleaseCommandQueue(queue);
     clReleaseProgram(program);
     clReleaseContext(context);
