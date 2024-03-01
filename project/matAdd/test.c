@@ -8,10 +8,9 @@
 #include <sys/types.h>
 #include <opencl_include.h>
 
-#define SIZE 10000
+#define SIZE 100
 
 int main() {
-
     cl_platform_id platform;
     cl_device_id device;
     cl_int err;
@@ -95,9 +94,8 @@ int main() {
     queue = clCreateCommandQueueWithProperties(context, device, props, &err);
     if(err < 0) {
         perror("Error: clCreateCommandQueue");
-        exit(1);   
+        exit(1);
     }
-
     cl_mem mat1_buffer, mat2_buffer, result_buffer;
 
     // Write data to buffers
@@ -121,7 +119,7 @@ int main() {
     }
     GET_TIME(t1);
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("CPU Time : %f micro seconds\n", elapsed_time);
+
 
     // Create buffers for matrices A, B, and C
     mat1_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float) * SIZE * SIZE, A, &err);
@@ -142,7 +140,6 @@ int main() {
     clSetKernelArg(kernel, 1, sizeof(cl_mem), &mat2_buffer);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), &result_buffer);
 
-    GET_TIME(t0);
     // Execute the kernel
     size_t globalSize[2] = {SIZE, SIZE};
     err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalSize, NULL, 0, NULL, &prof_event);
@@ -152,9 +149,6 @@ int main() {
     }
 
     clFinish(queue);
-    GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Kernal Time : %f micro seconds\n", elapsed_time);
 
     // Read the result buffer back to the host
     float *C = (float *)malloc(sizeof(float) * SIZE * SIZE);
@@ -168,12 +162,12 @@ int main() {
 
     clGetEventProfilingInfo(prof_event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
     clGetEventProfilingInfo(prof_event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
-    printf("Kernel execution time_end: %lld ns\n", time_end);
-    printf("Kernel execution time_start: %lld ns\n", time_start);
     clReleaseEvent(prof_event);
 
     total_time = time_end - time_start;
-    printf("Time taken to do the addition = %llu ns\n", total_time);
+    printf("############# Profiling information #############\n");
+    printf("Matrix addition in C CPU  Time taken : %f micro seconds\n", elapsed_time);
+    printf("Matrix addition in OpenCL Time taken  = %llu micro seconds\n", total_time/1000);
 
     cl_bool correctFlag = CL_TRUE;
 
@@ -209,5 +203,4 @@ int main() {
     free(correct);
 
     return 0;
-
 }

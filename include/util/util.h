@@ -1,7 +1,3 @@
-//
-// Created by ruksh on 28/02/2024.
-//
-
 #ifndef MULTIPROCOPENCL_UTIL_H
 #define MULTIPROCOPENCL_UTIL_H
 
