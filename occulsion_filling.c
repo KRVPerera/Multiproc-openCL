@@ -16,7 +16,7 @@ Image *OcclusionFill(Image *image) {
             if (0 == image->image[index] && 0 == image->image[index + 1] && 0 == image->image[index + 2]) {
 
                 float *neighboursFloat = getNeighboursZeroPaddingFloats(image, j, i);
-                float filterValueFloat = applyFilterToNeighboursFloat(neighboursFloat, gaussianFilter, 5);
+                float filterValueFloat = applyFilterForNonZeroFloat(neighboursFloat, gaussianFilter, 5);
                 unsigned char filterOut = MIN(255, (filterValueFloat / 273));
 
                 occulsionFilledImage->image[index] = filterOut;

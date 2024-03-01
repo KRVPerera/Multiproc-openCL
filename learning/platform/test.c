@@ -64,34 +64,35 @@ int main() {
 
         for (i = 0; i < num_devices; i++) {
             clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 128, buf, NULL);
-            fprintf(stdout, "Platform: %s, Vendor: %s, Device %s supports version ", p_name, p_vendor, buf);
-
+            fprintf(stdout, "Platform:  %s\n", p_name);
+            fprintf(stdout, "Vendor:    %s\n", p_vendor);
+            fprintf(stdout, "Device:    %s\n",buf);
             clGetDeviceInfo(devices[i], CL_DEVICE_VERSION, 128, buf, NULL);
-            fprintf(stdout, "%s\n", buf);
+            fprintf(stdout, "Device OpenCL version : %s\n", buf);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(cl_uint), &work_item_dim, NULL);
-            fprintf(stdout, "CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS: %u\n", work_item_dim);
+            fprintf(stdout, "Maximum work dimensions device support : \t%u\n", work_item_dim);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &compute_units, NULL);
-            fprintf(stdout, "CL_DEVICE_MAX_COMPUTE_UNITS: %u\n", compute_units);
+            fprintf(stdout, "The number of parallel compute units : \t\t%u\n", compute_units);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, sizeof(char_vector_width), &char_vector_width, NULL);
-            fprintf(stdout, "CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR: %u\n", char_vector_width);
+            fprintf(stdout, "Preferred native vector width size : \t\t%u\n", char_vector_width);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_uint), &global_mem_size, NULL);
-            fprintf(stdout, "CL_DEVICE_GLOBAL_MEM_SIZE: %u\n", global_mem_size);
+            fprintf(stdout, "Max size of memory object allocation in bytes : %u\n", global_mem_size);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, sizeof(cl_uint), &global_mem_cache, NULL);
-            fprintf(stdout, "CL_DEVICE_GLOBAL_MEM_CACHE_SIZE: %u\n", global_mem_cache);
+            fprintf(stdout, "Size of global memory cache in bytes : \t\t%u\n", global_mem_cache);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(cl_uint), &buffer_size, NULL);
-            fprintf(stdout, "CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE: %u\n", buffer_size);
+            fprintf(stdout, "Max constant buffer allocation in bytes : \t%u\n", buffer_size);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_uint), &local_mem_size, NULL);
-            fprintf(stdout, "CL_DEVICE_LOCAL_MEM_SIZE: %u\n", local_mem_size);
+            fprintf(stdout, "Size of local memory region in bytes :  \t%u\n", local_mem_size);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_PROFILING_TIMER_RESOLUTION, sizeof(time_res), &time_res, NULL);
-            fprintf(stdout, "CL_DEVICE_PROFILING_TIMER_RESOLUTION: %zu ns\n", time_res);
+            fprintf(stdout, "Resolution of device timer : \t\t\t%zu ns\n", time_res);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_IMAGE_SUPPORT, sizeof(image_support), &image_support, NULL);
             if (image_support == CL_TRUE) {

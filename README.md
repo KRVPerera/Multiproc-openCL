@@ -18,6 +18,30 @@ This repository is for the learning purpose of GPGPU with OpenCL.
     - matMul: Muliply two matrixes
     - image_to_grayscale: Convert color image to grayscale
 
+## How to run
+
+- clone the repository
+- create a build folder inside the repository
+
+### To run the c implemenation
+
+- run the following commands
+```bash
+  cmake ..
+  make
+  ./MultiprocOpenCL
+```
+- Output images will be saved in `data/out` folder
+
+Main program currently use images from `data/sample` folder.
+
+### Run opencl implementation
+- After building the project run.
+
+- `ctest -R image_to_grayscale`
+
+- Check the outputs at `build\project\image_to_grayscale`
+
 ## Reference
 
 - OpenCL in Action by Matthew Scarpino

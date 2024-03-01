@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define PROGRAM_FILE "matrix_add.cl"
 #define KERNEL_NAME "matrix_add"
+#include <util.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,7 +11,6 @@
 #define SIZE 100
 
 int main() {
-
     cl_platform_id platform;
     cl_device_id device;
     cl_int err;
@@ -27,7 +27,8 @@ int main() {
     size_t log_size;
 
     cl_event prof_event;
-    cl_ulong time_start, time_end, total_time;
+    cl_ulong time_start, total_time;
+    cl_ulong time_end;
 
     err = clGetPlatformIDs(1, &platform, NULL);
     if (err < 0) {
@@ -89,13 +90,12 @@ int main() {
         perror("Error: clCreateKernel");
         exit(1);   
     }
-
-    queue = clCreateCommandQueue(context, device, 0, &err);
+    cl_command_queue_properties props[3] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
+    queue = clCreateCommandQueueWithProperties(context, device, props, &err);
     if(err < 0) {
         perror("Error: clCreateCommandQueue");
-        exit(1);   
+        exit(1);
     }
-
     cl_mem mat1_buffer, mat2_buffer, result_buffer;
 
     // Write data to buffers
@@ -106,9 +106,20 @@ int main() {
         for (int j = 0; j < SIZE; j++) {
             A[i * SIZE + j] = i * SIZE + j;
             B[i * SIZE + j] = (SIZE - i) * SIZE + (SIZE - j);
+        }
+    }
+
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+    GET_TIME(t0);
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
             correct[i * SIZE + j] = A[i * SIZE + j] + B[i * SIZE + j];
         }
     }
+    GET_TIME(t1);
+    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+
 
     // Create buffers for matrices A, B, and C
     mat1_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float) * SIZE * SIZE, A, &err);
@@ -137,21 +148,26 @@ int main() {
         exit(1);   
     }
 
+    clFinish(queue);
+
     // Read the result buffer back to the host
     float *C = (float *)malloc(sizeof(float) * SIZE * SIZE);
     err = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(float) * SIZE * SIZE, C, 0, NULL, NULL);
     if(err < 0) {
         perror("Error: clEnqueueReadBuffer");
-        exit(1);   
+        exit(1);
     }
 
     /* Finish processing the queue and get profiling information */
-    clFinish(queue);
+
     clGetEventProfilingInfo(prof_event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
     clGetEventProfilingInfo(prof_event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
-    total_time = time_end - time_start;
+    clReleaseEvent(prof_event);
 
-    printf("Time taken to do the addition = %llu ns\n", total_time);
+    total_time = time_end - time_start;
+    printf("############# Profiling information #############\n");
+    printf("Matrix addition in C CPU  Time taken : %f micro seconds\n", elapsed_time);
+    printf("Matrix addition in OpenCL Time taken  = %llu micro seconds\n", total_time/1000);
 
     cl_bool correctFlag = CL_TRUE;
 
@@ -187,5 +203,4 @@ int main() {
     free(correct);
 
     return 0;
-
 }
