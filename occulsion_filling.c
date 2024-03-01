@@ -15,13 +15,15 @@ Image *OcclusionFill(Image *image) {
             occulsionFilledImage->image[index + 3] = 255;
             if (0 == image->image[index] && 0 == image->image[index + 1] && 0 == image->image[index + 2]) {
 
-                unsigned char *neighbours = getNeighboursZeroPadding(image, j, i);
-                int filterValue = applyFilterToNeighbours(neighbours, gaussianFilter, 5);
-                unsigned char filterOut = MIN(255, (filterValue / 273));
+                float *neighboursFloat = getNeighboursZeroPaddingFloats(image, j, i);
+                float filterValueFloat = applyFilterToNeighboursFloat(neighboursFloat, gaussianFilter, 5);
+                unsigned char filterOut = MIN(255, (filterValueFloat / 273));
 
                 occulsionFilledImage->image[index] = filterOut;
                 occulsionFilledImage->image[index + 1] = filterOut;
                 occulsionFilledImage->image[index + 2] = filterOut;
+
+                free(neighboursFloat);
             } else {
                 occulsionFilledImage->image[index] = image->image[index];
                 occulsionFilledImage->image[index + 1] = image->image[index + 1];

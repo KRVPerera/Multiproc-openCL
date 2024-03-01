@@ -60,7 +60,6 @@ Image* getBWImage(const char * imagePath, const char * outputPath, const char * 
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     fprintf(fp, "Image Load Time : %f micro seconds\n", elapsed_time);
 
-
     GET_TIME(t0);
     Image *smallImage = resizeImage(im);
     GET_TIME(t1);
@@ -73,9 +72,7 @@ Image* getBWImage(const char * imagePath, const char * outputPath, const char * 
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     fprintf(fp, "Image GrayScale Time : %f micro seconds\n", elapsed_time);
 
-
     unsigned char* gaussianFilter = getGaussianFilter();
-
     GET_TIME(t0);
     Image* filteredImage = applyFilter(grayIm, gaussianFilter, 273, 5);
     GET_TIME(t1);
