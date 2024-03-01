@@ -18,6 +18,19 @@ This repository is for the learning purpose of GPGPU with OpenCL.
     - matMul: Muliply two matrixes
     - image_to_grayscale: Convert color image to grayscale
 
+## Implementation locations
+- OpenCL and C matrix addition : `project/matAdd/`
+- OpenCL resize, grayscale, gaussian filter : `project/opencl_flow_ex3`
+- save image (C) : `void saveImage(const char *filename, Image *image)` in `src/pngloader/pngloader.c`
+- read image (C) : `Image *readImage(const char *filename)` in `src/pngloader/pngloader.c`
+- resize (C) : `Image *resizeImage(Image *input)` in `src/pngloader/pngloader.c`
+- grayscale scale (C) : `Image *grayScaleImage(Image *input)` in `src/pngloader/pngloader.c` 
+- occlusion_filling (C) : `occulsion_filling.c`
+- cross_checking (C): `cross_checking.c`
+- 5x5 filter (C) :
+    - `float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int size)` in `src/pngloader/pngloader.c`
+    - `getGaussianFilter` in `driver.c`
+
 ## How to run
 
 - clone the repository
