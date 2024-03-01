@@ -38,7 +38,7 @@ Image *resizeImage(Image *input);
  * @param filterSize
  * @return
  */
-Image *applyFilter(Image *input, unsigned char* filter, int filterDenominator, int filterSize);
+Image *applyFilter(Image *input, unsigned char* filter, float filterDenominator, int filterSize);
 
 /**
  * Convert an image to grayscale

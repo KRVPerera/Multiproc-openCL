@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 // TODO: do we need to filter alpha?
 int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size) {
@@ -14,7 +15,6 @@ int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, in
     for (unsigned char index = 0; index < size * size; ++index) {
         convolutionValue += neighbours[index] * filter[index];
     }
-    convolutionValue = neighbours[13];
     return convolutionValue;
 }
 
@@ -106,21 +106,27 @@ unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y) {
  * @param filterSize
  * @return
  */
-Image *applyFilter(Image *input, unsigned char *filter, int filterDenominator, int filterSize) {
+Image *applyFilter(Image *input, unsigned char *filter, float filterDenominator, int filterSize) {
     Image *output = createEmptyImage(input->width, input->height);
     for (unsigned y = 0; y < input->height; y++) {
+        size_t yIndex = 4 * input->width * y;
         for (unsigned x = 0; x < input->width; x++) {
 //            printf("x %d y %d\n", x, y);
+//            unsigned char original = input->image[yIndex + 4 * x];
+//            printf("original %d\n", original);
             unsigned char *neighbours = getNeighboursZeroPadding(input, x, y);
             int filterValue = applyFilterToNeighbours(neighbours, filter, filterSize);
-//            printf("filterValue %d\n", filterValue);
-            unsigned char filterOut = (unsigned char) (filterValue / filterDenominator);
-            size_t index = 4 * input->width * y + 4 * x;
+//            printf("\tfilterValue %d\n", filterValue);
+//            float out = (float)filterValue / filterDenominator;
+//            printf("\tout %f\n", out);
+            unsigned char filterOut = MIN(255, (filterValue / filterDenominator));
+//            printf("\tfilterOut %d\n", filterOut);
+            size_t index = yIndex + 4 * x;
 //            printf("filterOut %d\n", filterOut);
 //            printf("\tRED %d\n", input->image[index + 0]);
             output->image[index + 0] = filterOut;
-            output->image[index + 1] = filterOut;
-            output->image[index + 2] = filterOut;
+            output->image[index + 1] = input->image[index + 2];
+            output->image[index + 2] = input->image[index + 2];
             output->image[index + 3] = input->image[index + 3];
             free(neighbours);
         }
