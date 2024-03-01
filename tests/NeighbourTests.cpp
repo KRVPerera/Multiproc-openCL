@@ -87,7 +87,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
     neighbourSum = 0;
     for (int i = 0; i < 5; ++i) {
         for (int j = 0; j < 5; ++j) {
-            neighbourSum += neigb00[i * 5 + j];
+            neighbourSum += neigb01[i * 5 + j];
         }
     }
     REQUIRE(neighbourSum == 4*(1 + 2 + 5 + 6 + 7 + 10 + 11 + 12+3+8+13));
