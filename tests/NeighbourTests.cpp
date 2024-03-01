@@ -90,7 +90,71 @@ TEST_CASE("test neighbours test", "[img_loader]") {
             neighbourSum += neigb01[i * 5 + j];
         }
     }
+    free(neigb01);
     REQUIRE(neighbourSum == 4*(1 + 2 + 5 + 6 + 7 + 10 + 11 + 12+3+8+13));
+
+    unsigned char *neigbMid = getNeighboursZeroPadding(im, 2, 2);
+    neighbourSum = 0;
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 5; ++j) {
+            neighbourSum += neigbMid[i * 5 + j];
+        }
+    }
+    free(neigbMid);
+    REQUIRE(neighbourSum == 4*(1 + 2 + 3 + 4 + 5 + 6 + 7 + 8+9+10+11+12+13+14+15+16+17+18+19+20+21+22+23+24));
+
+
+    unsigned char *neigbLeftMiddle = getNeighboursZeroPadding(im, 0, 2);
+    neighbourSum = 0;
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 5; ++j) {
+            neighbourSum += neigbLeftMiddle[i * 5 + j];
+        }
+    }
+    free(neigbLeftMiddle);
+    REQUIRE(neighbourSum == 4*(1 + 2 + 5 + 6 + 7 + 10 + 11 + 12 + 15 + 16 + 17 + 20 +21 +22));
+
+    unsigned char *neigbRightMiddle = getNeighboursZeroPadding(im, 4, 2);
+    neighbourSum = 0;
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 5; ++j) {
+            neighbourSum += neigbRightMiddle[i * 5 + j];
+        }
+    }
+    free(neigbRightMiddle);
+    REQUIRE(neighbourSum == 4*(2 + 3 + 4 + 7 + 8 + 9 + 12 + 13 + 14 + 17 + 18 + 19 + 22 + 23 + 24));
+
+
+    unsigned char *neigbBottomLeft = getNeighboursZeroPadding(im, 0, 4);
+    neighbourSum = 0;
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 5; ++j) {
+            neighbourSum += neigbBottomLeft[i * 5 + j];
+        }
+    }
+    free(neigbBottomLeft);
+    REQUIRE(neighbourSum == 4*(10 + 11 + 12 + 15 + 16 + 17 + 20+ 21 + 22));
+
+
+    unsigned char *neigbBottomMiddle = getNeighboursZeroPadding(im, 2, 4);
+    neighbourSum = 0;
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 5; ++j) {
+            neighbourSum += neigbBottomMiddle[i * 5 + j];
+        }
+    }
+    free(neigbBottomMiddle);
+    REQUIRE(neighbourSum == 4*(10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24));
+
+    unsigned char *neigbBottomRight = getNeighboursZeroPadding(im, 4, 4);
+    neighbourSum = 0;
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 5; ++j) {
+            neighbourSum += neigbBottomRight[i * 5 + j];
+        }
+    }
+    free(neigbBottomRight);
+    REQUIRE(neighbourSum == 4*(12 + 13 + 14 + 17 + 18 + 19 + 22 + 23 + 24));
 
     freeImage(im);
 }
