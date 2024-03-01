@@ -103,6 +103,12 @@ void fullFlow() {
     Image* bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW, OUTPUT_FILE_PROFILE_FILTERED_0);
     Image* bwImage1= getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, OUTPUT_FILE_PROFILE_FILTERED_1);
 
+    Image* Get_zncc_c_imp(Image* img1, Image* img2, const char* outputPath);
+    Image* disparity_image = Get_zncc_c_imp(bwImage0, bwImage1, OUTPUT_FILE_LEFT_DISPARITY);
+
+    freeImage(disparity_image);
+
+
     GET_TIME(t0);
     Image* crossCheckLeft = CrossCheck(bwImage0, bwImage1, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);

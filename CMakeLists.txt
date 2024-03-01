@@ -31,9 +31,9 @@ add_library(img_loader STATIC src/pngloader/pngloader.c include/pngloader/pngloa
 target_link_libraries(img_loader PUBLIC lodepng)
 
 configure_file(config.h.in config.h)
-add_executable(${PROJECT_NAME} main.c driver.c cross_checking.c occulsion_filling.c)
+add_executable(${PROJECT_NAME} main.c driver.c zncc_c_imp.c cross_checking.c occulsion_filling.c)
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader zncc_c utils)
+target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader utils)
 
 enable_testing()
 
