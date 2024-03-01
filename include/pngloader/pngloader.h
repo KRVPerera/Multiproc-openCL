@@ -40,6 +40,9 @@ Image *resizeImage(Image *input);
  */
 unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y);
 
+
+float *getNeighboursZeroPaddingFloats(Image *input, unsigned x, unsigned y);
+
 /**
  *
  * @param neighbours
@@ -48,6 +51,7 @@ unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y);
  * @return
  */
 int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size);
+float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int size);
 
 /**
  * Apply a filter to an image

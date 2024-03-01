@@ -16,6 +16,14 @@ int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, in
     return convolutionValue;
 }
 
+float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int size) {
+    float convolutionValue = 0;
+    for (unsigned char index = 0; index < size * size; ++index) {
+        convolutionValue += neighbours[index] * (float)filter[index];
+    }
+    return convolutionValue;
+}
+
 Image *readImage(const char *filename) {
     unsigned error;
     unsigned char *image = 0;
@@ -96,6 +104,24 @@ unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y) {
     return neighbours;
 }
 
+float *getNeighboursZeroPaddingFloats(Image *input, unsigned x, unsigned y) {
+    float *neighbours = malloc(5 * 5 * sizeof(float));
+    for (unsigned i = 0; i < 5; ++i) {
+        int y1 = y - 2 + i;
+        for (unsigned j = 0; j < 5; ++j) {
+            int x1 = x - 2 + j;
+            unsigned char neighboursIndex = 5 * i + j;
+            if (x1 < 0 || x1 >= (int) input->width || y1 < 0 || y1 >= (int) input->height) {
+                neighbours[neighboursIndex] = 0;
+            } else {
+                size_t index = 4 * input->width * y1 + 4 * x1;
+                neighbours[neighboursIndex] = input->image[index];
+            }
+        }
+    }
+    return neighbours;
+}
+
 /**
  * Apply a filter to an BW image
  * @param input
@@ -113,17 +139,19 @@ Image *applyFilter(Image *input, unsigned char *filter, float filterDenominator,
 //            unsigned char original = input->image[yIndex + 4 * x];
 //            printf("original %d\n", original);
             unsigned char *neighbours = getNeighboursZeroPadding(input, x, y);
-            int filterValue = applyFilterToNeighbours(neighbours, filter, filterSize);
+            float *neighboursFloat = getNeighboursZeroPaddingFloats(input, x, y);
+            float filterValueFloat = applyFilterToNeighboursFloat(neighboursFloat, filter, filterSize);
+//            int filterValue = applyFilterToNeighbours(neighbours, filter, filterSize);
 //            printf("\tfilterValue %d\n", filterValue);
 //            float out = (float)filterValue / filterDenominator;
 //            printf("\tout %f\n", out);
-            unsigned char filterOut = MIN(255, (filterValue / filterDenominator));
+            unsigned char filterOut = MIN(255, (filterValueFloat / filterDenominator));
 //            printf("\tfilterOut %d\n", filterOut);
             size_t index = yIndex + 4 * x;
 //            printf("filterOut %d\n", filterOut);
 //            printf("\tRED %d\n", input->image[index + 0]);
             output->image[index + 0] = filterOut;
-            output->image[index + 1] = input->image[index + 2];
+            output->image[index + 1] = filterOut;
             output->image[index + 2] = input->image[index + 2];
             output->image[index + 3] = input->image[index + 3];
             free(neighbours);
