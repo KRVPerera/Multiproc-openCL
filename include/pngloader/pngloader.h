@@ -43,6 +43,8 @@ unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y);
 
 float *getNeighboursZeroPaddingFloats(Image *input, unsigned x, unsigned y);
 
+float *getZeroPaddedWindow(Image *input, unsigned x, unsigned y, int windowSize);
+
 /**
  *
  * @param neighbours

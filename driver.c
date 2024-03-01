@@ -13,6 +13,7 @@
 
 Image* CrossCheck(Image * image1, Image* image2, int threshold);
 Image *OcclusionFill(Image *image);
+Image* Get_zncc_c_imp(Image* img1, Image* img2);
 
 // TODO: since the filter is syymetrical we may want to keep only wanted values
 // TODO: we may want to use x and y componets of the filter separately
@@ -103,20 +104,26 @@ void fullFlow() {
     Image* bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW, OUTPUT_FILE_PROFILE_FILTERED_0);
     Image* bwImage1= getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, OUTPUT_FILE_PROFILE_FILTERED_1);
 
-    Image* Get_zncc_c_imp(Image* img1, Image* img2, const char* outputPath);
-    Image* disparity_image = Get_zncc_c_imp(bwImage0, bwImage1, OUTPUT_FILE_LEFT_DISPARITY);
-
-    freeImage(disparity_image);
-
+    GET_TIME(t0);
+    Image* left_disparity_image = Get_zncc_c_imp(bwImage0, bwImage1);
+    GET_TIME(t1);
+    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Left Disparity Time : %f micro seconds\n", elapsed_time);
 
     GET_TIME(t0);
-    Image* crossCheckLeft = CrossCheck(bwImage0, bwImage1, CROSS_CHECKING_THRESHOLD);
+    Image* right_disparity_image = Get_zncc_c_imp(bwImage1, bwImage0);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Right Disparity Time : %f micro seconds\n", elapsed_time);
+    
+    GET_TIME(t0);
+    Image* crossCheckLeft = CrossCheck(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     printf("Cross Check Time Left : %f micro seconds\n", elapsed_time);
 
     GET_TIME(t0);
-    Image* crossCheckRight = CrossCheck(bwImage1, bwImage0, CROSS_CHECKING_THRESHOLD);
+    Image* crossCheckRight = CrossCheck(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     printf("Cross Check Time Right : %f micro seconds\n", elapsed_time);
@@ -138,12 +145,18 @@ void fullFlow() {
 
     saveImage(OUTPUT_FILE_CROSS_CHECKING_LEFT, crossCheckLeft);
     saveImage(OUTPUT_FILE_CROSS_CHECKING_RIGHT, crossCheckRight);
+
+    saveImage(OUTPUT_FILE_LEFT_DISPARITY, left_disparity_image);
+    saveImage(OUTPUT_FILE_RIGHT_DISPARITY, right_disparity_image);
+
     freeImage(bwImage0);
     freeImage(bwImage1);
     freeImage(crossCheckLeft);
     freeImage(crossCheckRight);
     freeImage(occlusionFilledLeft);
     freeImage(occlusionFilledRight);
+    freeImage(left_disparity_image);
+    freeImage(right_disparity_image);
 }
 
 void runZnccFlowForOneImage(const char * imagePath, const char * outputPath) {

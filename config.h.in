@@ -33,5 +33,7 @@
 #define OUTPUT_FILE_PROFILE_POST_1 "@PROJECT_SOURCE_DIR@/data/out/profile_data_post_1.txt"
 
 #define CROSS_CHECKING_THRESHOLD 8
+#define ZNCC_WINDOW_SIZE 9
+#define MAX_DISP 260/4
 
 #endif //MULTIPROCOPENCL_CONFIG_H

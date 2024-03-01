@@ -104,6 +104,24 @@ unsigned char *getNeighboursZeroPadding(Image *input, unsigned x, unsigned y) {
     return neighbours;
 }
 
+float *getZeroPaddedWindow(Image *input, unsigned x, unsigned y, int windowSize) {
+    float *neighbours = malloc(windowSize * windowSize * sizeof(float));
+    for (int i = 0; i < windowSize; ++i) {
+        int y1 = y - windowSize/2 + i;
+        for (int j = 0; j < windowSize; ++j) {
+            int x1 = x - windowSize/2 + j;
+            unsigned char neighboursIndex = windowSize * i + j;
+            if (x1 < 0 || x1 >= (int) input->width || y1 < 0 || y1 >= (int) input->height) {
+                neighbours[neighboursIndex] = 0;
+            } else {
+                size_t index = 4 * input->width * y1 + 4 * x1;
+                neighbours[neighboursIndex] = input->image[index];
+            }
+        }
+    }
+    return neighbours;
+}
+
 float *getNeighboursZeroPaddingFloats(Image *input, unsigned x, unsigned y) {
     float *neighbours = malloc(5 * 5 * sizeof(float));
     for (unsigned i = 0; i < 5; ++i) {
