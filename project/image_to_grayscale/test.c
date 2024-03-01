@@ -92,7 +92,7 @@ cl_program build_program(cl_context ctx, cl_device_id device, const char* filena
 //     return end_time - start_time;
 // }
 
-void resize_image(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, cl_event *read_event, cl_event *downsample_event) {
+void resize_image(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0) {
 
     /* Image data */
     cl_mem input_image, output_image;
@@ -100,6 +100,8 @@ void resize_image(cl_context context, cl_kernel kernel, cl_command_queue queue, 
     int err;
 
     cl_ulong read_time, time_to_downsample;
+
+    cl_event resize_read_event, resize_event;
 
     size_t width = im0 -> width;
     size_t height = im0 -> height;
@@ -141,7 +143,7 @@ void resize_image(cl_context context, cl_kernel kernel, cl_command_queue queue, 
 
     // Execute the OpenCL kernel
     size_t globalWorkSize[2] = { new_width, new_height };
-    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, downsample_event);
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &resize_event);
     if(err < 0) {
         perror("resize_image, Error: clEnqueueNDRangeKernel");
         exit(1);
@@ -149,7 +151,7 @@ void resize_image(cl_context context, cl_kernel kernel, cl_command_queue queue, 
 
     // Read the output image back to the host
     err = clEnqueueReadImage(queue, output_image, CL_TRUE, (size_t[3]){0, 0, 0}, (size_t[3]){new_width, new_height, 1},
-                             0, 0, (void*)output_im0 -> image, 0, NULL, read_event);
+                             0, 0, (void*)output_im0 -> image, 0, NULL, &resize_read_event);
     if(err < 0) {
         perror("resize_image, Error: clEnqueueReadImage");
         exit(1);
@@ -162,19 +164,22 @@ void resize_image(cl_context context, cl_kernel kernel, cl_command_queue queue, 
 
     cl_ulong start_time, end_time;
     cl_ulong start_time_read, end_time_read;
-    clGetEventProfilingInfo(*downsample_event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
-    clGetEventProfilingInfo(*downsample_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
+    clGetEventProfilingInfo(resize_event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
+    clGetEventProfilingInfo(resize_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
     time_to_downsample = end_time - start_time;
 
-    clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
-    clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
+    clGetEventProfilingInfo(resize_read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
+    clGetEventProfilingInfo(resize_read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
     read_time = end_time_read - start_time_read;
+
+    clReleaseEvent(resize_read_event);
+    clReleaseEvent(resize_event);
 
     printf("Time taken to do the downsampling = %llu ns\n", time_to_downsample);
     printf("Time taken to read the output image (downsampling) = %llu ns\n", read_time);
 }
 
-void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, cl_event *read_event, cl_event *grayscale_event) {
+void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0) {
 
     /* Image data */
     cl_mem input_image, output_image;
@@ -182,6 +187,8 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
     int err;
 
     cl_ulong read_time, time_to_grayscale;
+
+    cl_event grayscale_read_event, grayscale_event;
 
     size_t width = im0 -> width;
     size_t height = im0 -> height;
@@ -221,7 +228,7 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
 
     // Execute the OpenCL kernel
     size_t globalWorkSize[2] = { width, height };
-    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, grayscale_event);
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &grayscale_event);
     if(err < 0) {
         perror("convert_image_to_gray, Error: clEnqueueNDRangeKernel");
         exit(1);
@@ -229,7 +236,7 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
 
     // Read the output image back to the host
     err = clEnqueueReadImage(queue, output_image, CL_TRUE, (size_t[3]){0, 0, 0}, (size_t[3]){width, height, 1},
-                             0, 0, (void*)output_im0 -> image, 0, NULL, read_event);
+                             0, 0, (void*)output_im0 -> image, 0, NULL, &grayscale_read_event);
     if(err < 0) {
         perror("convert_image_to_gray, Error: clEnqueueReadImage");
         exit(1);
@@ -242,19 +249,22 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
 
     cl_ulong start_time, end_time;
     cl_ulong start_time_read, end_time_read;
-    clGetEventProfilingInfo(*grayscale_event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
-    clGetEventProfilingInfo(*grayscale_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
+    clGetEventProfilingInfo(grayscale_event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
+    clGetEventProfilingInfo(grayscale_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
     time_to_grayscale = end_time - start_time;
 
-    clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
-    clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
+    clGetEventProfilingInfo(grayscale_read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
+    clGetEventProfilingInfo(grayscale_read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
     read_time = end_time_read - start_time_read;
+
+    clReleaseEvent(grayscale_read_event);
+    clReleaseEvent(grayscale_event);
 
     printf("Time taken to do the gray scaling = %llu ns\n", time_to_grayscale);
     printf("Time taken to read the output image (gray scaling) = %llu ns\n", read_time);
 }
 
-void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, cl_event *read_event, cl_event *gaussian_event) {
+void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0) {
 
     /* Image data */
     cl_mem input_image, output_image;
@@ -262,6 +272,8 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
     int err;
 
     cl_ulong read_time, time_to_gaussian_blur;
+    
+    cl_event gaussian_read_event, gaussian_event;
 
     size_t width = im0 -> width;
     size_t height = im0 -> height;
@@ -301,7 +313,7 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
 
     // Execute the OpenCL kernel
     size_t globalWorkSize[2] = { width, height };
-    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, gaussian_event);
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &gaussian_event);
     if(err < 0) {
         perror("apply_gaussian_blur, Error: clEnqueueNDRangeKernel");
         exit(1);
@@ -309,7 +321,7 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
 
     // Read the output image back to the host
     err = clEnqueueReadImage(queue, output_image, CL_TRUE, (size_t[3]){0, 0, 0}, (size_t[3]){width, height, 1},
-                             0, 0, (void*)output_im0 -> image, 0, NULL, read_event);
+                             0, 0, (void*)output_im0 -> image, 0, NULL, &gaussian_read_event);
     if(err < 0) {
         perror("apply_gaussian_blur, Error: clEnqueueReadImage");
         exit(1);
@@ -322,13 +334,16 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
 
     cl_ulong start_time, end_time;
     cl_ulong start_time_read, end_time_read;
-    clGetEventProfilingInfo(*gaussian_event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
-    clGetEventProfilingInfo(*gaussian_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
+    clGetEventProfilingInfo(gaussian_event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
+    clGetEventProfilingInfo(gaussian_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
     time_to_gaussian_blur = end_time - start_time;
 
-    clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
-    clGetEventProfilingInfo(*read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
+    clGetEventProfilingInfo(gaussian_read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
+    clGetEventProfilingInfo(gaussian_read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
     read_time = end_time_read - start_time_read;
+
+    clReleaseEvent(gaussian_read_event);
+    clReleaseEvent(gaussian_event);
 
     printf("Time taken to do the gaussian blur = %llu ns\n", time_to_gaussian_blur);
     printf("Time taken to read the output image (gaussian blur) = %llu ns\n", read_time);
@@ -347,7 +362,7 @@ int main() {
     cl_uint i, num_kernels;
 
     /* Profiling data */
-    cl_event grayscale_read_event, grayscale_event, resize_read_event, resize_event, gaussian_read_event, gaussian_event;
+    // cl_event grayscale_read_event, grayscale_event, resize_read_event, resize_event, gaussian_read_event, gaussian_event;
 
     size_t width, height, new_width, new_height;
 
@@ -408,13 +423,16 @@ int main() {
     }
 
     /* Resize image size */
-    resize_image(context, kernel_resize_image, queue, im0, output_1_im0, &resize_read_event, &resize_event);
+    // resize_image(context, kernel_resize_image, queue, im0, output_1_im0, &resize_read_event, &resize_event);
+    resize_image(context, kernel_resize_image, queue, im0, output_1_im0);
 
     /* Convert color image to gray scale image */
-    convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_im0, output_2_im0, &grayscale_read_event, &grayscale_event);
+    // convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_im0, output_2_im0, &grayscale_read_event, &grayscale_event);
+    convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_im0, output_2_im0);
 
     /* Apply gaussian blur with 5 x 5 kernel */
-    apply_gaussian_blur(context, kernel_gaussian_blur, queue, output_2_im0, output_3_im0, &gaussian_read_event, &gaussian_event);
+    // apply_gaussian_blur(context, kernel_gaussian_blur, queue, output_2_im0, output_3_im0, &gaussian_read_event, &gaussian_event);
+    apply_gaussian_blur(context, kernel_gaussian_blur, queue, output_2_im0, output_3_im0);
 
     saveImage(OUTPUT_1_FILE, output_1_im0);
     saveImage(OUTPUT_2_FILE, output_2_im0);
@@ -425,12 +443,12 @@ int main() {
     freeImage(output_1_im0);
     freeImage(output_2_im0);
     freeImage(output_3_im0);
-    clReleaseEvent(resize_read_event);
-    clReleaseEvent(resize_event);
-    clReleaseEvent(grayscale_read_event);
-    clReleaseEvent(grayscale_event);
-    clReleaseEvent(gaussian_read_event);
-    clReleaseEvent(gaussian_event);
+    // clReleaseEvent(resize_read_event);
+    // clReleaseEvent(resize_event);
+    // clReleaseEvent(grayscale_read_event);
+    // clReleaseEvent(grayscale_event);
+    // clReleaseEvent(gaussian_read_event);
+    // clReleaseEvent(gaussian_event);
     clReleaseKernel(kernel_color_to_gray);
     clReleaseKernel(kernel_resize_image);
     clReleaseKernel(kernel_gaussian_blur);
