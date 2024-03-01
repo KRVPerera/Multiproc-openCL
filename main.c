@@ -13,7 +13,7 @@ int main() {
     printf("Data folder %s\n", PROJECT_DATA_DIR);
 
     char* image0Name = "im0.png";
-    char* image0_BW_Name = "im_0_bw.png";
+    char* image0_BW_Name = "im_0_bw_filtered.png";
 
     char imagePath0[256];
     char imagePath0_out[256];

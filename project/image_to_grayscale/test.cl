@@ -5,14 +5,12 @@ __kernel void resize_image(__read_only image2d_t inputImage, __write_only image2
     const int new_width = get_global_size(0);
     const int new_height = get_global_size(1);
 
-    if(output_cord.x < new_width && output_cord.y < new_height) {
-        // Read the color pixel from the input image
-        int2 input_image_cord = (int2)(output_cord.x * 4, output_cord.y * 4);
-        float4 colorPixel = read_imagef(inputImage, sampler, input_image_cord);
+    // Read the color pixel from the input image
+    int2 input_image_cord = (int2)(output_cord.x * 4, output_cord.y * 4);
+    float4 colorPixel = read_imagef(inputImage, sampler, input_image_cord);
 
-        // Write the value to the output image
-        write_imagef(outputImage, output_cord, colorPixel);
-    }
+    // Write the value to the output image
+    write_imagef(outputImage, output_cord, colorPixel);
 }
 
 __kernel void color_to_gray(__read_only image2d_t inputImage, __write_only image2d_t outputImage) {
@@ -45,14 +43,11 @@ __kernel void gaussian_blur(__read_only image2d_t inputImage, __write_only image
     for (int i = -2; i <= 2; ++i) {
         for (int j = -2; j <= 2; ++j) {
             const int2 offsetPos = pos + (int2)(i, j);
-            if (offsetPos.x >= 0 && offsetPos.x < width && offsetPos.y >= 0 && offsetPos.y < height) {
-                const float4 color = read_imagef(inputImage, sampler, offsetPos);
-                const float weight = gassian_kernel[i + 2][j + 2];
-                sum += weight * color;
-            }
+            const float4 color = read_imagef(inputImage, sampler, offsetPos);
+            const float weight = gassian_kernel[i + 2][j + 2];
+            sum += weight * color;
         }
     }
     const float4 result = sum;
     write_imagef(outputImage, pos, result);
 }
-

@@ -20,33 +20,32 @@ typedef struct Image {
  * @param height
  * @return
  */
-Image* createNewImage(unsigned width, unsigned height);
+Image* createEmptyImage(unsigned width, unsigned height);
 
 /**
  * Scale down an image by a factor of 16
  * @param input
  * @return
  */
-Image *imageScaleDown(Image *input);
+Image *resizeImage(Image *input);
+
 
 /**
- * Create a new image in memory with a single color
- * @param width
- * @param height
- * @param r
- * @param g
- * @param b
- * @param a
+ * Apply a filter to an image
+ * @param input
+ * @param filter
+ * @param filterDenominator
+ * @param filterSize
  * @return
  */
-Image* createNewImageWithValue(unsigned width, unsigned height, int r, int g, int b, int a);
+Image *applyFilter(Image *input, unsigned char* filter, float filterDenominator, int filterSize);
 
 /**
  * Convert an image to grayscale
  * @param input
  * @param output
  */
-Image *getGrayScaleImage(Image *input);
+Image *grayScaleImage(Image *input);
 
 /**
  * Save raw pixels to disk as a PNG file with a single function call
@@ -72,38 +71,6 @@ void handleImageLoad(Image *imgI);
  * @param filename
  * @return
  */
-Image* loadImage(const char *filename);
-
-/**
- * Decode from disk to raw pixels with a single function call
- * @param filename
- */
-void decodeOneStep(const char* filename);
-
-/**
- * Load PNG file from disk to memory first, then decode to raw pixels in memory.
- * @param filename
- */
-void decodeTwoSteps(const char* filename);
-
-/**
- * Encode from raw pixels to disk with a single function call
- * The image argument has width * height RGBA pixels or width * height * 4 bytes
- * @param filename
- * @param image
- * @param width
- * @param height
- */
-void encodeOneStep(const char* filename, const unsigned char* image, unsigned width, unsigned height);
-
-/**
- * Encode from raw pixels to disk with a two function calls
- * The image argument has width * height RGBA pixels or width * height * 4 bytes
- * @param filename
- * @param image
- * @param width
- * @param height
- */
-void encodeTwoSteps(const char* filename, const unsigned char* image, unsigned width, unsigned height);
+Image* readImage(const char *filename);
 
 #endif //MULTIPROCOPENCL_PNGLOADER_H
