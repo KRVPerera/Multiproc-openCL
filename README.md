@@ -55,6 +55,31 @@ Main program currently use images from `data/sample` folder.
 
 - Check the outputs at `build\project\image_to_grayscale`
 
+## Outputs
+
+- One of the Inputs 2940x2016
+![Input 1](data/sample/im0.png)
+
+
+- Resized and grayscale 735x504
+![Scaled down grayscale](data/out/image_0_bw.png)
+
+
+- Blur filter added 735x504
+![Blurred](data/out/image_0_bw_blurred.png)
+
+
+- Left disparity 735x504
+![Blurred](data/out/image_left_disparity.png)
+
+
+- Cross check 735x504
+![Blurred](data/out/image_cross_checking_LEFT.png)
+
+
+- Occulsion filled 735x504
+![Output](data/out/image_occulsion_filed_LEFT.png)
+
 ## Reference
 
 - OpenCL in Action by Matthew Scarpino
