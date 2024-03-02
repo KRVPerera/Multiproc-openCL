@@ -117,13 +117,13 @@ unsigned char *getNeighbourWindowWithMirroringUnsigned(Image *input, unsigned x,
             if (x1 < 0) {
                 x1 = abs(x1);
             } else if (x1 >= (int) input->width) {
-                x1 = input->width + (input->width - x1) - 1;
+                x1 = input->width + (input->width - x1) - 2;
             }
 
             if (y1 < 0) {
                 y1 = abs(y1);
             } else if (y1 >= (int) input->height) {
-                y1 = input->height + input->height - y1 - 1;
+                y1 = input->height + input->height - y1 - 2;
             }
 
             unsigned char index = 4 * input->width * y1 + 4 * x1;

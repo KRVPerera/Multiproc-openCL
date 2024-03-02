@@ -31,13 +31,13 @@ TEST_CASE("create a image and assign same value to red channel", "[Image]") {
 
 TEST_CASE("create a image and assign different value to all channels", "[img_loader]") {
     Image *im = createEmptyImage(5, 5);
-    for (unsigned char i = 0; i < 5*5*4; i += 4) {
+    for (unsigned char i = 0; i < 5 * 5 * 4; i += 4) {
         im->image[i] = i;
         im->image[i + 1] = i;
         im->image[i + 2] = i;
         im->image[i + 3] = i;
     }
-    for (unsigned char i = 0; i < 5*5*4; i += 4) {
+    for (unsigned char i = 0; i < 5 * 5 * 4; i += 4) {
         REQUIRE(im->image[i] == i);
         REQUIRE(im->image[i + 1] == i);
         REQUIRE(im->image[i + 2] == i);
@@ -86,7 +86,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
         }
     }
     free(neigb00);
-    REQUIRE(neighbourSum == 4*(1 + 2 + 5 + 6 + 7 + 10 + 11 + 12));
+    REQUIRE(neighbourSum == 4 * (2 * (1 + 2 + 5 + 6 + 7 + 10 + 11 + 12) + 2 * (6 + 7 + 11 + 12)));
 
     unsigned char *neigb01 = getNeighbourWindowWithMirroringUnsigned(im, 1, 0);
     neighbourSum = 0;
@@ -96,7 +96,9 @@ TEST_CASE("test neighbours test", "[img_loader]") {
         }
     }
     free(neigb01);
-    REQUIRE(neighbourSum == 4*(1 + 2 + 5 + 6 + 7 + 10 + 11 + 12+3+8+13));
+    REQUIRE(neighbourSum ==
+            4 *
+            (11 + 10 + 11 + 12 + 13 + 6 + 5 + 6 + 7 + 8 + 1 + 1 + 2 + 3 + 6 + 5 + 6 + 7 + 8 + 11 + 10 + 11 + 12 + 13));
 
     unsigned char *neigbMid = getNeighbourWindowWithMirroringUnsigned(im, 2, 2);
     neighbourSum = 0;
@@ -106,7 +108,9 @@ TEST_CASE("test neighbours test", "[img_loader]") {
         }
     }
     free(neigbMid);
-    REQUIRE(neighbourSum == 4*(1 + 2 + 3 + 4 + 5 + 6 + 7 + 8+9+10+11+12+13+14+15+16+17+18+19+20+21+22+23+24));
+    REQUIRE(neighbourSum == 4 *
+                            (1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 +
+                             21 + 22 + 23 + 24));
 
 
     unsigned char *neigbLeftMiddle = getNeighbourWindowWithMirroringUnsigned(im, 0, 2);
@@ -117,7 +121,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
         }
     }
     free(neigbLeftMiddle);
-    REQUIRE(neighbourSum == 4*(1 + 2 + 5 + 6 + 7 + 10 + 11 + 12 + 15 + 16 + 17 + 20 +21 +22));
+    REQUIRE(neighbourSum == 4 * (5 + 10 + 15 + 20 + 2 * (1 + 2 + 6 + 7 + 11 + 12 + 16 + 17 + 21 + 22)));
 
     unsigned char *neigbRightMiddle = getNeighbourWindowWithMirroringUnsigned(im, 4, 2);
     neighbourSum = 0;
@@ -127,7 +131,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
         }
     }
     free(neigbRightMiddle);
-    REQUIRE(neighbourSum == 4*(2 + 3 + 4 + 7 + 8 + 9 + 12 + 13 + 14 + 17 + 18 + 19 + 22 + 23 + 24));
+    REQUIRE(neighbourSum == 4 * (4 + 9 + 14 + 19 + 24 + 2 * (2 + 3 + 7 + 8 + 12 + 13 + 17 + 18 + 22 + 23)));
 
 
     unsigned char *neigbBottomLeft = getNeighbourWindowWithMirroringUnsigned(im, 0, 4);
@@ -138,7 +142,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
         }
     }
     free(neigbBottomLeft);
-    REQUIRE(neighbourSum == 4*(10 + 11 + 12 + 15 + 16 + 17 + 20+ 21 + 22));
+    REQUIRE(neighbourSum == 4 * (22 + 21 + 20 + 21 + 22 + 2 * (12 + 11 + 10 + 11 + 12 + 17 + 16 + 15 + 16 + 17)));
 
 
     unsigned char *neigbBottomMiddle = getNeighbourWindowWithMirroringUnsigned(im, 2, 4);
@@ -149,7 +153,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
         }
     }
     free(neigbBottomMiddle);
-    REQUIRE(neighbourSum == 4*(10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19 + 20 + 21 + 22 + 23 + 24));
+    REQUIRE(neighbourSum == 4 * (20 + 21 + 22 + 23 + 24 + 2 * (10 + 11 + 12 + 13 + 14 + 15 + 16 + 17 + 18 + 19)));
 
     unsigned char *neigbBottomRight = getNeighbourWindowWithMirroringUnsigned(im, 4, 4);
     neighbourSum = 0;
@@ -159,7 +163,7 @@ TEST_CASE("test neighbours test", "[img_loader]") {
         }
     }
     free(neigbBottomRight);
-    REQUIRE(neighbourSum == 4*(12 + 13 + 14 + 17 + 18 + 19 + 22 + 23 + 24));
+    REQUIRE(neighbourSum == 4 * (22 + 23 + 24 + 23 + 22 + 2 * (12 + 13 + 14 + 13 + 12 + 17 + 18 + 19 + 18 + 17)));
 
     freeImage(im);
 }
