@@ -1,8 +1,8 @@
-#include <pngloader.h>
+#include "pngloader.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "config.h"
-#include <util.h>
+#include "util.h"
 #include <math.h>
 
 Image *Get_zncc_c_imp(Image *image1, Image *image2, const int direction) {

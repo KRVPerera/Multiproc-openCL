@@ -1,4 +1,4 @@
-#include <pngloader.h>
+#include "pngloader.h"
 #include <stdlib.h>
 
 unsigned char *getGaussianFilter();
