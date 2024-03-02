@@ -62,23 +62,23 @@ Main program currently use images from `data/sample` folder.
 
 
 - Resized and grayscale 735x504
-![Scaled down grayscale](data/out/image_0_bw.png)
+![Scaled down grayscale](docs/image_0_bw.png)
 
 
 - Blur filter added 735x504
-![Blurred](data/out/image_0_bw_blurred.png)
+![Blurred](docs/image_0_bw_blurred.png)
 
 
 - Left disparity 735x504
-![Blurred](data/out/image_left_disparity.png)
+![Blurred](docs/image_left_disparity.png)
 
 
 - Cross check 735x504
-![Blurred](data/out/image_cross_checking_LEFT.png)
+![Blurred](docs/image_cross_checking_LEFT.png)
 
 
 - Occulsion filled 735x504
-![Output](data/out/image_occulsion_filed_LEFT.png)
+![Output](docs/image_occulsion_filed_LEFT.png)
 
 ## Reference
 
