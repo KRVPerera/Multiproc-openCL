@@ -54,6 +54,31 @@ Main program currently use images from `data/sample` folder.
 
 - Check the outputs at `build\project\opencl_flow_ex3`
 
+## Outputs
+
+- One of the Inputs 2940x2016
+![Input 1](data/sample/im0.png)
+
+
+- Resized and grayscale 735x504
+![Scaled down grayscale](docs/image_0_bw.png)
+
+
+- Blur filter added 735x504
+![Blurred](docs/image_0_bw_blurred.png)
+
+
+- Left disparity 735x504
+![Blurred](docs/image_left_disparity.png)
+
+
+- Cross check 735x504
+![Blurred](docs/image_cross_checking_LEFT.png)
+
+
+- Occulsion filled 735x504
+![Output](docs/image_occulsion_filed_LEFT.png)
+
 ## Reference
 
 - OpenCL in Action by Matthew Scarpino
