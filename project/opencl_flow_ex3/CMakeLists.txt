@@ -1,4 +1,4 @@
-set(This image_to_grayscale)
+set(This opencl_flow_ex3)
 
 set(SOURCES test.c)
 add_executable(${This} ${SOURCES})

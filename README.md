@@ -14,9 +14,8 @@ This repository is for the learning purpose of GPGPU with OpenCL.
     - hello-world: First kernal program
 
 - project
-    - matAdd: Adding two matrixes
-    - matMul: Muliply two matrixes
-    - image_to_grayscale: Convert color image to grayscale
+    - matAdd: Added two matrixes using C and OpenCL.
+    - opencl_flow_ex3: OpenCL implementation of Image resizing, gray scaling and applied gaussian blur.
 
 ## Implementation locations
 - OpenCL and C matrix addition : `project/matAdd/`
@@ -53,7 +52,7 @@ Main program currently use images from `data/sample` folder.
 
 - `ctest -R image_to_grayscale`
 
-- Check the outputs at `build\project\image_to_grayscale`
+- Check the outputs at `build\project\opencl_flow_ex3`
 
 ## Outputs
 

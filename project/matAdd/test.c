@@ -90,8 +90,10 @@ int main() {
         perror("Error: clCreateKernel");
         exit(1);   
     }
-    cl_command_queue_properties props[3] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
-    queue = clCreateCommandQueueWithProperties(context, device, props, &err);
+    // cl_command_queue_properties props[3] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
+    // queue = clCreateCommandQueueWithProperties(context, device, props, &err);
+
+    queue = clCreateCommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, &err);
     if(err < 0) {
         perror("Error: clCreateCommandQueue");
         exit(1);

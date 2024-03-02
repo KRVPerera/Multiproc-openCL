@@ -85,12 +85,12 @@ cl_program build_program(cl_context ctx, cl_device_id device, const char* filena
    return program;
 }
 
-// cl_ulong getExecutionTime(cl_event event) {
-//     cl_ulong start_time, end_time;
-//     clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
-//     clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
-//     return end_time - start_time;
-// }
+cl_ulong getExecutionTime(cl_event event) {
+    cl_ulong start_time, end_time;
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
+    return end_time - start_time;
+}
 
 void resize_image(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0) {
 
@@ -162,15 +162,8 @@ void resize_image(cl_context context, cl_kernel kernel, cl_command_queue queue, 
     output_im0 -> width = new_width;
     output_im0 -> height = new_height;
 
-    cl_ulong start_time, end_time;
-    cl_ulong start_time_read, end_time_read;
-    clGetEventProfilingInfo(resize_event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
-    clGetEventProfilingInfo(resize_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
-    time_to_downsample = end_time - start_time;
-
-    clGetEventProfilingInfo(resize_read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
-    clGetEventProfilingInfo(resize_read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
-    read_time = end_time_read - start_time_read;
+    time_to_downsample = getExecutionTime(resize_event);
+    read_time = getExecutionTime(resize_read_event);
 
     clReleaseEvent(resize_read_event);
     clReleaseEvent(resize_event);
@@ -247,15 +240,8 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
     output_im0 -> width = width;
     output_im0 -> height = height;
 
-    cl_ulong start_time, end_time;
-    cl_ulong start_time_read, end_time_read;
-    clGetEventProfilingInfo(grayscale_event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
-    clGetEventProfilingInfo(grayscale_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
-    time_to_grayscale = end_time - start_time;
-
-    clGetEventProfilingInfo(grayscale_read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
-    clGetEventProfilingInfo(grayscale_read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
-    read_time = end_time_read - start_time_read;
+    time_to_grayscale = getExecutionTime(grayscale_event);
+    read_time = getExecutionTime(grayscale_read_event);
 
     clReleaseEvent(grayscale_read_event);
     clReleaseEvent(grayscale_event);
@@ -332,15 +318,8 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
     output_im0 -> width = width;
     output_im0 -> height = height;
 
-    cl_ulong start_time, end_time;
-    cl_ulong start_time_read, end_time_read;
-    clGetEventProfilingInfo(gaussian_event, CL_PROFILING_COMMAND_START, sizeof(start_time), &start_time, NULL);
-    clGetEventProfilingInfo(gaussian_event, CL_PROFILING_COMMAND_END, sizeof(end_time), &end_time, NULL);
-    time_to_gaussian_blur = end_time - start_time;
-
-    clGetEventProfilingInfo(gaussian_read_event, CL_PROFILING_COMMAND_START, sizeof(start_time_read), &start_time_read, NULL);
-    clGetEventProfilingInfo(gaussian_read_event, CL_PROFILING_COMMAND_END, sizeof(end_time_read), &end_time_read, NULL);
-    read_time = end_time_read - start_time_read;
+    time_to_gaussian_blur = getExecutionTime(gaussian_event);
+    read_time = getExecutionTime(gaussian_read_event);
 
     clReleaseEvent(gaussian_read_event);
     clReleaseEvent(gaussian_event);
@@ -360,9 +339,6 @@ int main() {
     cl_kernel *kernels, kernel_resize_image, kernel_color_to_gray, kernel_gaussian_blur;
     char kernel_name[20];
     cl_uint i, num_kernels;
-
-    /* Profiling data */
-    // cl_event grayscale_read_event, grayscale_event, resize_read_event, resize_event, gaussian_read_event, gaussian_event;
 
     size_t width, height, new_width, new_height;
 
@@ -415,23 +391,21 @@ int main() {
             printf("Found gaussian_blur kernel at index %u.\n", i);
         }
     }
-    cl_command_queue_properties props[3] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
-    queue = clCreateCommandQueueWithProperties(context, device, props, &err);
+    // cl_command_queue_properties props[3] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
+    // queue = clCreateCommandQueueWithProperties(context, device, props, &err);
+    queue = clCreateCommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, &err);
     if(err < 0) {
         perror("Error: clCreateCommandQueue");
         exit(1);
     }
 
     /* Resize image size */
-    // resize_image(context, kernel_resize_image, queue, im0, output_1_im0, &resize_read_event, &resize_event);
     resize_image(context, kernel_resize_image, queue, im0, output_1_im0);
 
     /* Convert color image to gray scale image */
-    // convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_im0, output_2_im0, &grayscale_read_event, &grayscale_event);
     convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_im0, output_2_im0);
 
     /* Apply gaussian blur with 5 x 5 kernel */
-    // apply_gaussian_blur(context, kernel_gaussian_blur, queue, output_2_im0, output_3_im0, &gaussian_read_event, &gaussian_event);
     apply_gaussian_blur(context, kernel_gaussian_blur, queue, output_2_im0, output_3_im0);
 
     saveImage(OUTPUT_1_FILE, output_1_im0);
@@ -443,12 +417,6 @@ int main() {
     freeImage(output_1_im0);
     freeImage(output_2_im0);
     freeImage(output_3_im0);
-    // clReleaseEvent(resize_read_event);
-    // clReleaseEvent(resize_event);
-    // clReleaseEvent(grayscale_read_event);
-    // clReleaseEvent(grayscale_event);
-    // clReleaseEvent(gaussian_read_event);
-    // clReleaseEvent(gaussian_event);
     clReleaseKernel(kernel_color_to_gray);
     clReleaseKernel(kernel_resize_image);
     clReleaseKernel(kernel_gaussian_blur);
