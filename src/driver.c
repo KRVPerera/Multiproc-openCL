@@ -4,12 +4,9 @@
 #include <util.h>
 #include <pngloader.h>
 #include "config.h"
-
-
-
-Image* CrossCheck(Image * image1, Image* image2, int threshold);
-Image *OcclusionFill(Image *image);
-Image *Get_zncc_c_imp(Image *image1, Image *image2, const int direction);
+#include <cross_checking.h>
+#include <zncc_c_imp.h>
+#include <occlusion_filling.h>
 
 // TODO: since the filter is syymetrical we may want to keep only wanted values
 // TODO: we may want to use x and y componets of the filter separately
