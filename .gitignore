@@ -17,14 +17,14 @@ CMakeLists.txt.user
 # Ignore .vscode folder
 .vscode
 
-image_0_bw.png
-image_1_bw.png
-image_0_bw_blurred.png
-image_1_bw_blurred.png
-image_left_disparity.png
-image_right_disparity.png
-image_cross_checking_LEFT.png
-image_cross_checking_RIGHT.png
-image_occulsion_filed_LEFT.png
-image_occulsion_filed_RIGHT.png
+data/out/image_0_bw.png
+data/out/image_1_bw.png
+data/out/image_0_bw_blurred.png
+data/out/image_1_bw_blurred.png
+data/out/image_left_disparity.png
+data/out/image_right_disparity.png
+data/out/image_cross_checking_LEFT.png
+data/out/image_cross_checking_RIGHT.png
+data/out/image_occulsion_filed_LEFT.png
+data/out/image_occulsion_filed_RIGHT.png
 *.txt
