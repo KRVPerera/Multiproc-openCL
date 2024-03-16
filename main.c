@@ -14,9 +14,20 @@
 #include <time.h>
 #include <stdarg.h>
 #include <logger.h>
+#include <omp.h>
 
 void multithreadedFunction() {
     logger("Running multithreaded mode.");
+    int maxthreads = omp_get_max_threads();
+
+    printf("Max threads: %d\n", maxthreads);
+
+    #pragma omp parallel
+    {
+        int id = omp_get_thread_num();
+        printf("Hello %d\n", id);
+        printf("World %d\n", id);
+    }
 }
 
 int main(int argc, char *argv[]) {
