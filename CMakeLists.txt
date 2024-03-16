@@ -19,14 +19,24 @@ set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 configure_file(config.h.in config.h)
 
 include_directories(include)
+include_directories(include/opencl)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(utils STATIC src/util.c include/util.h)
 add_library(img_loader STATIC src/pngloader.c include/pngloader.h)
 target_link_libraries(img_loader PUBLIC lodepng)
 
+add_library(logger STATIC src/logger.c include/logger.h)
+
 add_executable(${PROJECT_NAME} main.c src/driver.c src/zncc_c_imp.c src/cross_checking.c src/occlusion_filling.c)
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader utils)
+#target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader utils opencl_flow_ex3_lib logger)
+
+
+add_test(
+        NAME ${PROJECT_NAME}
+        COMMAND ${PROJECT_NAME}
+)
 
 enable_testing()
 

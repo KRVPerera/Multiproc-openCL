@@ -1,5 +1,5 @@
-Image Load Time : 507.703003 micro seconds
-Image Resize Time : 2.910000 micro seconds
-Image GrayScale Time : 3.320000 micro seconds
-Image Filter Time : 119.612000 micro seconds
-Image Save Time : 67.753998 micro seconds
+Image Load Time : 539.186707 micro seconds
+Image Resize Time : 3.211000 micro seconds
+Image GrayScale Time : 3.680000 micro seconds
+Image Filter Time : 236.072006 micro seconds
+Image Save Time : 79.706703 micro seconds
