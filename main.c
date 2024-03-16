@@ -16,6 +16,7 @@
 #include <logger.h>
 #include <omp.h>
 #include <unistd.h>
+#include <calc_pi.h>
 
 void openmpTestCode(void) {
     logger("Running multithreaded mode.");
@@ -24,13 +25,31 @@ void openmpTestCode(void) {
     printf("Max threads: %d\n", maxthreads);
 
 //    #pragma omp parallel num_threads(5)
-    #pragma omp parallel num_threads(5)
+    #pragma omp parallel
     {
         int id = omp_get_thread_num();
         printf("Hello %d\n", id);
         sleep(1);
         printf("World %d\n", id);
     }
+
+    int num_steps = 1000000000;
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+    GET_TIME(t0);
+    double pi = calc_pi(num_steps);
+    GET_TIME(t1);
+    logger("Pi: %f", pi);
+    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    logger("calc_pi(%d) time : %f micro seconds", num_steps, elapsed_time);
+
+    GET_TIME(t0);
+    pi = calc_pi_mt(num_steps);
+    GET_TIME(t1);
+    logger("MT Pi: %f", pi);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    logger("calc_pi_mt(%d) time : %f micro seconds", num_steps, elapsed_time);
+
 }
 
 int main(int argc, char *argv[]) {
@@ -61,7 +80,7 @@ int main(int argc, char *argv[]) {
     }
     GET_TIME(t1);
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Total time of the program : %f micro seconds", elapsed_time);
+    logger("\nTotal time of the program : %f micro seconds", elapsed_time);
     logger("Stopping Multiprocessor Programming project!");
     return 0;
 }
