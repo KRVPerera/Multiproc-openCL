@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <util.h>
 #include <driver.h>
+#include <string.h>
 #include <opencl_flow_ex3.h>
 
 #include "config.h"

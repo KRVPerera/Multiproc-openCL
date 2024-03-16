@@ -5,8 +5,8 @@
 #include <omp.h>
 #include <logger.h>
 
-#define NUM_THREADS 12
-#define PAD 8 // assume 64 byte L1 cache line size
+#define NUM_THREADS PROCESSOR_COUNT*2
+#define PAD 4 // assume 64 byte L1 cache line size
 
 double calc_pi(int num_steps) {
     int i;
@@ -28,6 +28,7 @@ double calc_pi_mt(int num_steps) {
     double step = 1.0 / (double) num_steps;
     double sums[NUM_THREADS][PAD];
     int nThreads = NUM_THREADS;
+    logger("Initial thread count prediction : %d", nThreads);
 
     omp_set_num_threads(NUM_THREADS);
     #pragma omp parallel
