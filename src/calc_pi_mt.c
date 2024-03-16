@@ -23,6 +23,35 @@ double calc_pi(int num_steps) {
 }
 
 double calc_pi_mt(int num_steps) {
+    double pi = 0.0;
+
+    const double step = 1.0 / (double) num_steps;
+    int nThreads = NUM_THREADS;
+    logger("Initial thread count prediction : %d", nThreads);
+
+    omp_set_num_threads(NUM_THREADS);
+    #pragma omp parallel
+    {
+        int i, id, nLocalThreads;
+        double x, sum;
+
+        id = omp_get_thread_num();
+        nLocalThreads = omp_get_num_threads();
+        if (id == 0) {
+            nThreads = nLocalThreads;
+        }
+        for (i = id, sum = 0.0; i < num_steps; i = i + nThreads) {
+            x = (i + 0.5) * step;
+            sum += 4.0 / (1.0 + x * x);
+        }
+
+        #pragma omp critical
+        pi += sum * step;
+    }
+    return pi;
+}
+
+double calc_pi_mt_false_sharing(int num_steps) {
     double pi;
 
     const double step = 1.0 / (double) num_steps;

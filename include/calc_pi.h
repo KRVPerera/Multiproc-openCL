@@ -7,5 +7,6 @@
 
 double calc_pi(int num_steps);
 double calc_pi_mt(int num_steps);
+double calc_pi_mt_false_sharing(int num_steps);
 
 #endif //MULTIPROCOPENCL_CALC_PI_H
