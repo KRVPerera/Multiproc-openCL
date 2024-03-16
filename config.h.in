@@ -32,6 +32,10 @@
 #define OUTPUT_FILE_PROFILE_POST_0 "@PROJECT_SOURCE_DIR@/data/out/profile_data_post_0.txt"
 #define OUTPUT_FILE_PROFILE_POST_1 "@PROJECT_SOURCE_DIR@/data/out/profile_data_post_1.txt"
 
+#define OUTPUT_1_FILE "@PROJECT_SOURCE_DIR@/data/out/output_1.png"
+#define OUTPUT_2_FILE "@PROJECT_SOURCE_DIR@/data/out/output_2.png"
+#define OUTPUT_3_FILE "@PROJECT_SOURCE_DIR@/data/out/output_3.png"
+
 #define CROSS_CHECKING_THRESHOLD 150
 #define ZNCC_WINDOW_SIZE 15
 #define MAX_DISP 65
