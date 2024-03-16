@@ -6,11 +6,16 @@ project(MultiprocOpenCL
 
 find_package(OpenCL REQUIRED)
 
+cmake_host_system_information(RESULT N
+                              QUERY NUMBER_OF_PHYSICAL_CORES)
+add_definitions( -DPROCESSOR_COUNT=${N} )
+
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wno-deprecated-declarations -pedantic -Wno-newline-eof -Wno-strict-prototypes")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wno-deprecated-declarations -pedantic -Wno-newline-eof -Wno-strict-prototypes -Wno-error=format= -Wno-format")
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
 find_package(OpenMP)
@@ -31,6 +36,7 @@ include_directories(include/opencl)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(utils STATIC src/util.c include/util.h)
+target_link_libraries(utils PUBLIC m)
 add_library(img_loader STATIC src/pngloader.c include/pngloader.h)
 target_link_libraries(img_loader PUBLIC lodepng)
 
