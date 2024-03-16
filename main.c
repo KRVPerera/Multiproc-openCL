@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
     }
     GET_TIME(t1);
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("\nTotal time of the program : %f micro seconds", elapsed_time);
+    logger("Total time of the program : %f micro seconds", elapsed_time);
     logger("Stopping Multiprocessor Programming project!");
     return 0;
 }
