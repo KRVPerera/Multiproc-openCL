@@ -12,7 +12,7 @@ double calc_pi(int num_steps) {
     int i;
     double pi, x, sum = 0.0;
 
-    double step = 1.0 / (double) num_steps;
+    const double step = 1.0 / (double) num_steps;
 
     for (i = 0; i < num_steps; i++) {
         x = (i + 0.5) * step;
@@ -25,7 +25,7 @@ double calc_pi(int num_steps) {
 double calc_pi_mt(int num_steps) {
     double pi;
 
-    double step = 1.0 / (double) num_steps;
+    const double step = 1.0 / (double) num_steps;
     double sums[NUM_THREADS][PAD];
     int nThreads = NUM_THREADS;
     logger("Initial thread count prediction : %d", nThreads);
