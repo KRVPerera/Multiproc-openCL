@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.19)
 
 project(MultiprocOpenCL
         VERSION 0.1.0
@@ -15,16 +15,22 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wno-deprecated-declarations -pedantic -Wno-newline-eof -Wno-strict-prototypes -Wno-error=format= -Wno-format")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-deprecated-declarations -Wno-newline-eof -Wno-strict-prototypes -Wno-format")
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
-find_package(OpenMP)
+# set(OpenMP_C_FLAGS "-fopenmp")
+# set(OpenMP_C_LIB_NAMES "lomp") 
+
+# find_package(OpenMP COMPONENTS C REQUIRED)
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I/opt/homebrew/opt/libomp/include")
+set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/opt/homebrew/opt/libomp/lib -lomp")
 if (OPENMP_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+#     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
+# find_package(OpenMP COMPONENTS C REQUIRED)
 #
 #target_compile_definitions(catch-test PRIVATE CATCH_CONFIG_MAIN CATCH_CONFIG_FAST_COMPILE CATCH_CONFIG_DISABLE_MATCHERS)
 #target_precompile_headers(catch-test PRIVATE Catch2/single_include/catch2/catch.hpp)
@@ -32,6 +38,7 @@ endif()
 configure_file(config.h.in config.h)
 
 include_directories(include)
+# include_directories(/opt/homebrew/opt/libomp/include)
 include_directories(include/opencl)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
