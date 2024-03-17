@@ -17,6 +17,8 @@ CMakeLists.txt.user
 # Ignore .vscode folder
 .vscode
 
+.cache
+
 data/out/image_0_bw.png
 data/out/image_1_bw.png
 data/out/image_0_bw_blurred.png
