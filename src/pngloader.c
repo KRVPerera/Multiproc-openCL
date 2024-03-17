@@ -108,7 +108,7 @@ Image *grayScaleImage(const Image *input) {
 Image *grayScaleImage_MT(const Image *input) {
     Image *output = createEmptyImage(input->width, input->height);
 
-    #pragma omp parallel for
+    #pragma omp parallel for collapse(2)
     for (unsigned y = 0; y < input->height; y++) {
         for (unsigned x = 0; x < input->width; x++) {
             size_t index = 4 * input->width * y + 4 * x;

@@ -36,5 +36,7 @@ data/out/image_occulsion_filed_RIGHT.png
 data/out/image_occulsion_filed_LEFT_MT.png
 data/out/image_occulsion_filed_RIGHT_MT.png
 
-data/out/profile_data_0.txt
-data/out/profile_data_1.txt
+profile_data_0.txt
+profile_data_1.txt
+profile_data_0_MT.txt
+profile_data_1_MT.txt
