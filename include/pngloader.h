@@ -21,7 +21,7 @@ typedef struct Image {
  * @param height
  * @return
  */
-Image* createEmptyImage(unsigned width, unsigned height);
+Image* createEmptyImage(unsigned width, const unsigned height);
 
 /**
  * Scale down an image by a factor of 16
@@ -38,12 +38,12 @@ Image *resizeImage(Image *input);
  * @param y
  * @return
  */
-unsigned char *getNeighbourWindowWithMirroringUnsigned(Image *input, unsigned x, unsigned y);
+unsigned char *getNeighbourWindowWithMirroringUnsigned(const Image *input, const unsigned x, const unsigned y);
 
 
-float *getNeighboursZeroPaddingFloats(Image *input, unsigned x, unsigned y);
+float *getNeighboursZeroPaddingFloats(const Image *input, const unsigned x, const unsigned y);
 
-float *getNeighbourWindowWithMirroring(Image *input, unsigned x, unsigned y, int windowSize);
+float *getNeighbourWindowWithMirroring(const Image *input, const unsigned x, const unsigned y, const int windowSize);
 
 /**
  *
@@ -52,7 +52,7 @@ float *getNeighbourWindowWithMirroring(Image *input, unsigned x, unsigned y, int
  * @param size
  * @return
  */
-float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int size);
+float applyFilterToNeighboursFloat(const float *neighbours, const unsigned char *filter, const int size);
 
 
 /**
@@ -62,7 +62,7 @@ float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int
  * @param size
  * @return
  */
-float applyFilterForNonZeroFloat(float *neighbours, unsigned char *filter, int size);
+float applyFilterForNonZeroFloat(const float *neighbours, const unsigned char *filter, const int size);
 
 
 /**
@@ -73,14 +73,32 @@ float applyFilterForNonZeroFloat(float *neighbours, unsigned char *filter, int s
  * @param filterSize
  * @return
  */
-Image *applyFilter(Image *input, unsigned char* filter, float filterDenominator, int filterSize);
+Image *applyFilter(const Image *input, const unsigned char* filter, const float filterDenominator, const int filterSize);
+
+/**
+ * Apply a filter to an image
+ * @param input
+ * @param filter
+ * @param filterDenominator
+ * @param filterSize
+ * @return
+ */
+Image *applyFilter_MT(const Image *input, const unsigned char* filter, const float filterDenominator, const int filterSize);
+
 
 /**
  * Convert an image to grayscale
  * @param input
  * @param output
  */
-Image *grayScaleImage(Image *input);
+Image *grayScaleImage(const Image *input);
+
+/**
+ * Convert an image to grayscale
+ * @param input
+ * @param output
+ */
+Image *grayScaleImage_MT(const Image *input);
 
 /**
  * Save raw pixels to disk as a PNG file with a single function call

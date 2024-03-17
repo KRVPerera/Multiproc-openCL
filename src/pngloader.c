@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 // TODO: do we need to filter alpha?
-int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size) {
+int applyFilterToNeighbours(const unsigned char *neighbours, const unsigned char *filter, const int size) {
     int convolutionValue = 0;
     for (unsigned char index = 0; index < size * size; ++index) {
         convolutionValue += neighbours[index] * filter[index];
@@ -16,7 +16,7 @@ int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, in
     return convolutionValue;
 }
 
-float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int size) {
+float applyFilterToNeighboursFloat(const float *neighbours, const unsigned char *filter, const int size) {
     float convolutionValue = 0;
     for (unsigned char index = 0; index < size * size; ++index) {
         convolutionValue += neighbours[index] * (float) filter[index];
@@ -25,7 +25,7 @@ float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int
 }
 
 
-float applyFilterForNonZeroFloat(float *neighbours, unsigned char *filter, int size) {
+float applyFilterForNonZeroFloat(const float *neighbours, const unsigned char *filter, const int size) {
     float convolutionValue = 0;
     float prevNonZeroValue = 0;
 
@@ -66,7 +66,7 @@ Image *readImage(const char *filename) {
     return img;
 }
 
-Image *createEmptyImage(unsigned width, unsigned height) {
+Image *createEmptyImage(const unsigned width, const unsigned height) {
     Image *img = malloc(sizeof(Image));
     img->image = malloc(width * height * 4);
     img->width = width;
@@ -80,8 +80,35 @@ Image *createEmptyImage(unsigned width, unsigned height) {
  * @param input
  * @param output
  */
-Image *grayScaleImage(Image *input) {
+Image *grayScaleImage(const Image *input) {
     Image *output = createEmptyImage(input->width, input->height);
+    for (unsigned y = 0; y < input->height; y++) {
+        for (unsigned x = 0; x < input->width; x++) {
+            size_t index = 4 * input->width * y + 4 * x;
+            unsigned char r = input->image[index + 0];
+            unsigned char g = input->image[index + 1];
+            unsigned char b = input->image[index + 2];
+            unsigned char a = input->image[index + 3];
+            float gray = r * 0.2126 + g * 0.7152 + b * 0.0722;
+            unsigned char grayChar = (unsigned char) gray;
+            output->image[index + 0] = grayChar;
+            output->image[index + 1] = grayChar;
+            output->image[index + 2] = grayChar;
+            output->image[index + 3] = a;
+        }
+    }
+    return output;
+}
+
+/**
+ * Y=0.2126R + 0.7152G + 0.0722B
+ * @param input
+ * @param output
+ */
+Image *grayScaleImage_MT(const Image *input) {
+    Image *output = createEmptyImage(input->width, input->height);
+
+    #pragma omp parallel for
     for (unsigned y = 0; y < input->height; y++) {
         for (unsigned x = 0; x < input->width; x++) {
             size_t index = 4 * input->width * y + 4 * x;
@@ -107,7 +134,7 @@ Image *grayScaleImage(Image *input) {
  * @param y
  * @return
  */
-unsigned char *getNeighbourWindowWithMirroringUnsigned(Image *input, unsigned x, unsigned y) {
+unsigned char *getNeighbourWindowWithMirroringUnsigned(const Image *input, const unsigned x, const unsigned y) {
     unsigned char *neighbours = malloc(5 * 5 * sizeof(unsigned char));
     for (unsigned i = 0; i < 5; ++i) {
         int y1 = y - 2 + i;
@@ -133,7 +160,7 @@ unsigned char *getNeighbourWindowWithMirroringUnsigned(Image *input, unsigned x,
     return neighbours;
 }
 
-float *getNeighbourWindowWithMirroring(Image *input, unsigned x, unsigned y, int windowSize) {
+float *getNeighbourWindowWithMirroring(const Image *input, const unsigned x, const unsigned y, const int windowSize) {
     float *neighbours = malloc(windowSize * windowSize * sizeof(float));
     for (int i = 0; i < windowSize; ++i) {
         int y1 = y - windowSize / 2 + i;
@@ -159,7 +186,7 @@ float *getNeighbourWindowWithMirroring(Image *input, unsigned x, unsigned y, int
     return neighbours;
 }
 
-float *getNeighboursZeroPaddingFloats(Image *input, unsigned x, unsigned y) {
+float *getNeighboursZeroPaddingFloats(const Image *input, const unsigned x, const unsigned y) {
     float *neighbours = malloc(5 * 5 * sizeof(float));
     for (unsigned i = 0; i < 5; ++i) {
         int y1 = y - 2 + i;
@@ -191,8 +218,38 @@ float *getNeighboursZeroPaddingFloats(Image *input, unsigned x, unsigned y) {
  * @param filterSize
  * @return
  */
-Image *applyFilter(Image *input, unsigned char *filter, float filterDenominator, int filterSize) {
+Image *applyFilter(const Image *input, const unsigned char *filter, const float filterDenominator, const int filterSize) {
     Image *output = createEmptyImage(input->width, input->height);
+    for (unsigned y = 0; y < input->height; y++) {
+        size_t yIndex = 4 * input->width * y;
+        for (unsigned x = 0; x < input->width; x++) {
+            unsigned char *neighbours = getNeighbourWindowWithMirroringUnsigned(input, x, y);
+            float *neighboursFloat = getNeighboursZeroPaddingFloats(input, x, y);
+            float filterValueFloat = applyFilterToNeighboursFloat(neighboursFloat, filter, filterSize);
+            unsigned char filterOut = MIN(255, (filterValueFloat / filterDenominator));
+            size_t index = yIndex + 4 * x;
+            output->image[index + 0] = filterOut;
+            output->image[index + 1] = filterOut;
+            output->image[index + 2] = filterOut;
+            output->image[index + 3] = input->image[index + 3];
+            free(neighbours);
+        }
+    }
+    return output;
+}
+
+/**
+ * Apply a filter to an BW image
+ * @param input
+ * @param filter
+ * @param filterDenominator
+ * @param filterSize
+ * @return
+ */
+Image *applyFilter_MT(const Image *input,const unsigned char *filter, const float filterDenominator, const int filterSize) {
+    Image *output = createEmptyImage(input->width, input->height);
+
+    #pragma omp parallel for
     for (unsigned y = 0; y < input->height; y++) {
         size_t yIndex = 4 * input->width * y;
         for (unsigned x = 0; x < input->width; x++) {

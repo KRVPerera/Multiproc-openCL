@@ -14,7 +14,8 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wno-deprecated-declarations -pedantic -Wno-error=format= -Wno-format")
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -Wno-deprecated-declarations -pedantic -Wno-newline-eof -Wno-strict-prototypes -Wno-error=format= -Wno-format")
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 
 find_package(OpenMP)
@@ -40,13 +41,13 @@ add_library(img_loader STATIC src/pngloader.c include/pngloader.h)
 target_link_libraries(img_loader PUBLIC lodepng)
 
 add_library(logger STATIC src/logger.c include/logger.h)
-add_library(occlusion_mt STATIC src/occlusion_filling_mt.c include/occlusion_filling_mt.h)
+add_library(occlusion STATIC src/occlusion_filling.c include/occlusion_filling.h)
 
 add_library(learn_openmp STATIC src/calc_pi_mt.c include/calc_pi.h)
 
 add_executable(${PROJECT_NAME} main.c src/driver.c src/zncc_c_imp.c src/cross_checking.c src/occlusion_filling.c)
 #target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader utils opencl_flow_ex3_lib logger occlusion_mt learn_openmp)
+target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader utils opencl_flow_ex3_lib logger occlusion learn_openmp)
 
 
 add_test(
