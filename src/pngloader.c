@@ -274,8 +274,34 @@ Image *applyFilter_MT(const Image *input,const unsigned char *filter, const floa
  * @param input
  * @param output
  */
-Image *resizeImage(Image *input) {
+Image *resizeImage(const Image *input) {
     Image *output = createEmptyImage(input->width / IMAGE_SCALE, input->height / IMAGE_SCALE);
+    for (unsigned y = 0; y < input->height; y = y + IMAGE_SCALE) {
+        for (unsigned x = 0; x < input->width; x = x + IMAGE_SCALE) {
+            size_t index = 4 * input->width * y + 4 * x;
+            size_t outIndex = 4 * output->width * (y / IMAGE_SCALE) + 4 * (x / IMAGE_SCALE);
+            unsigned char r = input->image[index + 0];
+            unsigned char g = input->image[index + 1];
+            unsigned char b = input->image[index + 2];
+            unsigned char a = input->image[index + 3];
+            output->image[outIndex + 0] = r;
+            output->image[outIndex + 1] = g;
+            output->image[outIndex + 2] = b;
+            output->image[outIndex + 3] = a;
+        }
+    }
+    return output;
+}
+
+/**
+ * Scale down to 1/16 taking every 4th row and column
+ * @param input
+ * @param output
+ */
+Image *resizeImage_MT(const Image *input) {
+    Image *output = createEmptyImage(input->width / IMAGE_SCALE, input->height / IMAGE_SCALE);
+
+    #pragma omp parallel for collapse(2)
     for (unsigned y = 0; y < input->height; y = y + IMAGE_SCALE) {
         for (unsigned x = 0; x < input->width; x = x + IMAGE_SCALE) {
             size_t index = 4 * input->width * y + 4 * x;

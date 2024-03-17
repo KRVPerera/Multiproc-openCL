@@ -103,10 +103,10 @@ Image* getBWImage_MT(const char * imagePath, const char * outputPath, const char
     fprintf(fp, "Image Load Time : %f micro seconds\n", elapsed_time);
 
     GET_TIME(t0);
-    Image *smallImage = resizeImage(im);
+    Image *smallImage = resizeImage_MT(im);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    fprintf(fp, "Image Resize Time : %f micro seconds\n", elapsed_time);
+    fprintf(fp, "Image Resize Time MT : %f micro seconds\n", elapsed_time);
     freeImage(im);
 
     GET_TIME(t0);
