@@ -252,14 +252,14 @@ void fullFlow_MT() {
     freeImage(bwImage0);
 
     GET_TIME(t0);
-    Image* crossCheckLeft = CrossCheck(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD);
+    Image* crossCheckLeft = CrossCheck_MT(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     printf("Cross Check Time Left MT : %f micro seconds\n", elapsed_time);
     saveImage(OUTPUT_FILE_CROSS_CHECKING_LEFT_MT, crossCheckLeft);
 
     GET_TIME(t0);
-    Image* crossCheckRight = CrossCheck(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD);
+    Image* crossCheckRight = CrossCheck_MT(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     printf("Cross Check Time Right MT : %f micro seconds\n", elapsed_time);
