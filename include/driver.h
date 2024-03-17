@@ -19,6 +19,7 @@ void zncc_flow_driver(const char *imagePath, const char *outputPath);
 void createSampleTestPng();
 Image* getFilterdBWImage(const char * imagePath, const char * outputPath);
 void fullFlow();
+void fullFlow_MT();
 void postProcessFlow();
 
 #endif //MULTIPROCOPENCL_DRIVER_H

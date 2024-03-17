@@ -3,18 +3,15 @@
 #define KERNEL_GAUSSIAN_BLUR "gaussian_blur"
 
 #include <pngloader.h>
+#include <config.h>
 
-#define OUTPUT_1_FILE "output_1.png"
-#define OUTPUT_2_FILE "output_2.png"
-#define OUTPUT_3_FILE "output_3.png"
-
-#include <opencl_include.h>
+#include <opencl_flow_ex3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "config_im_to_g.h"
 
-cl_device_id create_device() {
+cl_device_id create_device(void) {
 
    cl_platform_id platform;
    cl_device_id device;
@@ -328,8 +325,8 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
     printf("Time taken to read the output image (gaussian blur) = %llu ns\n", read_time);
 }
 
-int main() {
-
+void openclFlowEx3(void) {
+    printf("OpenCL Flow Example 3 STARTED\n");
     cl_device_id device;
     cl_context context;
     cl_command_queue queue;
@@ -343,7 +340,7 @@ int main() {
     size_t width, height, new_width, new_height;
 
     /* Open input file and read image data */
-    Image *im0 = readImage(INPUT_FILE);
+    Image *im0 = readImage(INPUT_FILE_0);
     width = im0 -> width;
     height = im0 -> height;
     new_width = width / 4;
@@ -379,7 +376,7 @@ int main() {
     // /* Search for the named kernel */
     for(i=0; i<num_kernels; i++) {
         clGetKernelInfo(kernels[i], CL_KERNEL_FUNCTION_NAME,
-                sizeof(kernel_name), kernel_name, NULL);
+                        sizeof(kernel_name), kernel_name, NULL);
         if(strcmp(kernel_name, KERNEL_RESIZE_IMAGE) == 0) {
             kernel_resize_image = kernels[i];
             printf("Found resize_image kernel at index %u.\n", i);
@@ -423,5 +420,6 @@ int main() {
     clReleaseCommandQueue(queue);
     clReleaseProgram(program);
     clReleaseContext(context);
-    return 0;
+
+    printf("OpenCL Flow Example 3 ENDED\n");
 }

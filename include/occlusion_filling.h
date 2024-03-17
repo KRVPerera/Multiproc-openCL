@@ -1,0 +1,7 @@
+#ifndef MULTIPROCOPENCL_OCCULSION_FILLING_H
+#define MULTIPROCOPENCL_OCCULSION_FILLING_H
+
+Image *OcclusionFill(Image *image);
+Image *OcclusionFill_MT(Image *image);
+
+#endif //MULTIPROCOPENCL_OCCULSION_FILLING_H

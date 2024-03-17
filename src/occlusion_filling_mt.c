@@ -1,13 +1,14 @@
-#include <pngloader.h>
+#include "pngloader.h"
 #include <stdlib.h>
 
-unsigned char *getGaussianFilter();
+unsigned char *getGaussianFilter(void);
 
-Image *OcclusionFill(Image *image) {
+Image *OcclusionFill_MT(Image *image) {
     Image *occulsionFilledImage = createEmptyImage(image->width, image->height);
     unsigned char *gaussianFilter = getGaussianFilter();
     int height = image->height;
     int width = image->width;
+
 
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
