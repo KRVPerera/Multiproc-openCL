@@ -12,32 +12,46 @@
 #define INPUT_FILE_1 "@PROJECT_SOURCE_DIR@/data/sample/im1.png"
 
 #define OUTPUT_FILE_0_BW "@PROJECT_SOURCE_DIR@/data/out/image_0_bw.png"
+#define OUTPUT_FILE_0_BW_MT "@PROJECT_SOURCE_DIR@/data/out/image_0_bw_MT.png"
 #define OUTPUT_FILE_1_BW "@PROJECT_SOURCE_DIR@/data/out/image_1_bw.png"
+#define OUTPUT_FILE_1_BW_MT "@PROJECT_SOURCE_DIR@/data/out/image_1_bw_MT.png"
 
 #define OUTPUT_FILE_0_BW_FILTERED "@PROJECT_SOURCE_DIR@/data/out/image_0_bw_blurred.png"
+#define OUTPUT_FILE_0_BW_FILTERED_MT "@PROJECT_SOURCE_DIR@/data/out/image_0_bw_blurred_MT.png"
 #define OUTPUT_FILE_1_BW_FILTERED "@PROJECT_SOURCE_DIR@/data/out/image_1_bw_blurred.png"
+#define OUTPUT_FILE_1_BW_FILTERED_MT "@PROJECT_SOURCE_DIR@/data/out/image_1_bw_blurred_MT.png"
 
 #define OUTPUT_FILE_LEFT_DISPARITY "@PROJECT_SOURCE_DIR@/data/out/image_left_disparity.png"
+#define OUTPUT_FILE_LEFT_DISPARITY_MT "@PROJECT_SOURCE_DIR@/data/out/image_left_disparity_MT.png"
 #define OUTPUT_FILE_RIGHT_DISPARITY "@PROJECT_SOURCE_DIR@/data/out/image_right_disparity.png"
+#define OUTPUT_FILE_RIGHT_DISPARITY_MT "@PROJECT_SOURCE_DIR@/data/out/image_right_disparity_MT.png"
 
 #define OUTPUT_FILE_CROSS_CHECKING_LEFT "@PROJECT_SOURCE_DIR@/data/out/image_cross_checking_LEFT.png"
+#define OUTPUT_FILE_CROSS_CHECKING_LEFT_MT "@PROJECT_SOURCE_DIR@/data/out/image_cross_checking_LEFT_MT.png"
 #define OUTPUT_FILE_CROSS_CHECKING_RIGHT "@PROJECT_SOURCE_DIR@/data/out/image_cross_checking_RIGHT.png"
+#define OUTPUT_FILE_CROSS_CHECKING_RIGHT_MT "@PROJECT_SOURCE_DIR@/data/out/image_cross_checking_RIGHT_MT.png"
 
 #define OUTPUT_FILE_OCCULSION_FILLED_LEFT "@PROJECT_SOURCE_DIR@/data/out/image_occulsion_filed_LEFT.png"
 #define OUTPUT_FILE_OCCULSION_FILLED_RIGHT "@PROJECT_SOURCE_DIR@/data/out/image_occulsion_filed_RIGHT.png"
-
 #define OUTPUT_FILE_OCCULSION_FILLED_LEFT_MT "@PROJECT_SOURCE_DIR@/data/out/image_occulsion_filed_LEFT_MT.png"
 #define OUTPUT_FILE_OCCULSION_FILLED_RIGHT_MT "@PROJECT_SOURCE_DIR@/data/out/image_occulsion_filed_RIGHT_MT.png"
 
 #define OUTPUT_FILE_PROFILE_FILTERED_0 "@PROJECT_SOURCE_DIR@/data/out/profile_data_0.txt"
+#define OUTPUT_FILE_PROFILE_FILTERED_0_MT "@PROJECT_SOURCE_DIR@/data/out/profile_data_0_MT.txt"
 #define OUTPUT_FILE_PROFILE_FILTERED_1 "@PROJECT_SOURCE_DIR@/data/out/profile_data_1.txt"
+#define OUTPUT_FILE_PROFILE_FILTERED_1_MT "@PROJECT_SOURCE_DIR@/data/out/profile_data_1_MT.txt"
 
 #define OUTPUT_FILE_PROFILE_POST_0 "@PROJECT_SOURCE_DIR@/data/out/profile_data_post_0.txt"
+#define OUTPUT_FILE_PROFILE_POST_0_MT "@PROJECT_SOURCE_DIR@/data/out/profile_data_post_0_MT.txt"
 #define OUTPUT_FILE_PROFILE_POST_1 "@PROJECT_SOURCE_DIR@/data/out/profile_data_post_1.txt"
+#define OUTPUT_FILE_PROFILE_POST_1_MT "@PROJECT_SOURCE_DIR@/data/out/profile_data_post_1_MT.txt"
 
 #define OUTPUT_1_FILE "@PROJECT_SOURCE_DIR@/data/out/output_1.png"
+#define OUTPUT_1_FILE_MT "@PROJECT_SOURCE_DIR@/data/out/output_1_MT.png"
 #define OUTPUT_2_FILE "@PROJECT_SOURCE_DIR@/data/out/output_2.png"
+#define OUTPUT_2_FILE_MT "@PROJECT_SOURCE_DIR@/data/out/output_2_MT.png"
 #define OUTPUT_3_FILE "@PROJECT_SOURCE_DIR@/data/out/output_3.png"
+#define OUTPUT_3_FILE_MT "@PROJECT_SOURCE_DIR@/data/out/output_3_MT.png"
 
 #define CROSS_CHECKING_THRESHOLD 150
 #define ZNCC_WINDOW_SIZE 15

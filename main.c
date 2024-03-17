@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     if (!multithreadedMode && strcmp(argv[1], "opencl") == 0) {
         openclFlowEx3();
     } else if (multithreadedMode || strcmp(argv[1], "multithreaded") == 0) {
-        openmpTestCode();
+        //openmpTestCode();
         fullFlow_MT();
     } else if (!multithreadedMode && strcmp(argv[1], "singlethreaded") == 0) {
         fullFlow();

@@ -38,12 +38,12 @@ Image *resizeImage(Image *input);
  * @param y
  * @return
  */
-unsigned char *getNeighbourWindowWithMirroringUnsigned(Image *input, const unsigned x, const unsigned y);
+unsigned char *getNeighbourWindowWithMirroringUnsigned(const Image *input, const unsigned x, const unsigned y);
 
 
-float *getNeighboursZeroPaddingFloats(Image *input, const unsigned x, const unsigned y);
+float *getNeighboursZeroPaddingFloats(const Image *input, const unsigned x, const unsigned y);
 
-float *getNeighbourWindowWithMirroring(Image *input, const unsigned x, const unsigned y, const int windowSize);
+float *getNeighbourWindowWithMirroring(const Image *input, const unsigned x, const unsigned y, const int windowSize);
 
 /**
  *
@@ -52,7 +52,7 @@ float *getNeighbourWindowWithMirroring(Image *input, const unsigned x, const uns
  * @param size
  * @return
  */
-float applyFilterToNeighboursFloat(float *neighbours, const unsigned char *filter, const int size);
+float applyFilterToNeighboursFloat(const float *neighbours, const unsigned char *filter, const int size);
 
 
 /**
@@ -62,7 +62,7 @@ float applyFilterToNeighboursFloat(float *neighbours, const unsigned char *filte
  * @param size
  * @return
  */
-float applyFilterForNonZeroFloat(float *neighbours, const unsigned char *filter, const int size);
+float applyFilterForNonZeroFloat(const float *neighbours, const unsigned char *filter, const int size);
 
 
 /**
@@ -73,14 +73,32 @@ float applyFilterForNonZeroFloat(float *neighbours, const unsigned char *filter,
  * @param filterSize
  * @return
  */
-Image *applyFilter(Image *input, const unsigned char* filter, const float filterDenominator, const int filterSize);
+Image *applyFilter(const Image *input, const unsigned char* filter, const float filterDenominator, const int filterSize);
+
+/**
+ * Apply a filter to an image
+ * @param input
+ * @param filter
+ * @param filterDenominator
+ * @param filterSize
+ * @return
+ */
+Image *applyFilter_MT(const Image *input, const unsigned char* filter, const float filterDenominator, const int filterSize);
+
 
 /**
  * Convert an image to grayscale
  * @param input
  * @param output
  */
-Image *grayScaleImage(Image *input);
+Image *grayScaleImage(const Image *input);
+
+/**
+ * Convert an image to grayscale
+ * @param input
+ * @param output
+ */
+Image *grayScaleImage_MT(const Image *input);
 
 /**
  * Save raw pixels to disk as a PNG file with a single function call
