@@ -26,6 +26,9 @@
 #define OUTPUT_FILE_OCCULSION_FILLED_LEFT "@PROJECT_SOURCE_DIR@/data/out/image_occulsion_filed_LEFT.png"
 #define OUTPUT_FILE_OCCULSION_FILLED_RIGHT "@PROJECT_SOURCE_DIR@/data/out/image_occulsion_filed_RIGHT.png"
 
+#define OUTPUT_FILE_OCCULSION_FILLED_LEFT_MT "@PROJECT_SOURCE_DIR@/data/out/image_occulsion_filed_LEFT_MT.png"
+#define OUTPUT_FILE_OCCULSION_FILLED_RIGHT_MT "@PROJECT_SOURCE_DIR@/data/out/image_occulsion_filed_RIGHT_MT.png"
+
 #define OUTPUT_FILE_PROFILE_FILTERED_0 "@PROJECT_SOURCE_DIR@/data/out/profile_data_0.txt"
 #define OUTPUT_FILE_PROFILE_FILTERED_1 "@PROJECT_SOURCE_DIR@/data/out/profile_data_1.txt"
 

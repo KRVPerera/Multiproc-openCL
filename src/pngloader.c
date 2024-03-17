@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 // TODO: do we need to filter alpha?
-int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, int size) {
+int applyFilterToNeighbours(unsigned char *neighbours, const unsigned char *filter, const int size) {
     int convolutionValue = 0;
     for (unsigned char index = 0; index < size * size; ++index) {
         convolutionValue += neighbours[index] * filter[index];
@@ -16,7 +16,7 @@ int applyFilterToNeighbours(unsigned char *neighbours, unsigned char *filter, in
     return convolutionValue;
 }
 
-float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int size) {
+float applyFilterToNeighboursFloat(float *neighbours, const unsigned char *filter, const int size) {
     float convolutionValue = 0;
     for (unsigned char index = 0; index < size * size; ++index) {
         convolutionValue += neighbours[index] * (float) filter[index];
@@ -25,7 +25,7 @@ float applyFilterToNeighboursFloat(float *neighbours, unsigned char *filter, int
 }
 
 
-float applyFilterForNonZeroFloat(float *neighbours, unsigned char *filter, int size) {
+float applyFilterForNonZeroFloat(float *neighbours, const unsigned char *filter, const int size) {
     float convolutionValue = 0;
     float prevNonZeroValue = 0;
 
@@ -66,7 +66,7 @@ Image *readImage(const char *filename) {
     return img;
 }
 
-Image *createEmptyImage(unsigned width, unsigned height) {
+Image *createEmptyImage(const unsigned width, const unsigned height) {
     Image *img = malloc(sizeof(Image));
     img->image = malloc(width * height * 4);
     img->width = width;
@@ -107,7 +107,7 @@ Image *grayScaleImage(Image *input) {
  * @param y
  * @return
  */
-unsigned char *getNeighbourWindowWithMirroringUnsigned(Image *input, unsigned x, unsigned y) {
+unsigned char *getNeighbourWindowWithMirroringUnsigned(Image *input, const unsigned x, const unsigned y) {
     unsigned char *neighbours = malloc(5 * 5 * sizeof(unsigned char));
     for (unsigned i = 0; i < 5; ++i) {
         int y1 = y - 2 + i;
@@ -133,7 +133,7 @@ unsigned char *getNeighbourWindowWithMirroringUnsigned(Image *input, unsigned x,
     return neighbours;
 }
 
-float *getNeighbourWindowWithMirroring(Image *input, unsigned x, unsigned y, int windowSize) {
+float *getNeighbourWindowWithMirroring(Image *input, const unsigned x, const unsigned y, const int windowSize) {
     float *neighbours = malloc(windowSize * windowSize * sizeof(float));
     for (int i = 0; i < windowSize; ++i) {
         int y1 = y - windowSize / 2 + i;
@@ -159,7 +159,7 @@ float *getNeighbourWindowWithMirroring(Image *input, unsigned x, unsigned y, int
     return neighbours;
 }
 
-float *getNeighboursZeroPaddingFloats(Image *input, unsigned x, unsigned y) {
+float *getNeighboursZeroPaddingFloats(Image *input, const unsigned x, const unsigned y) {
     float *neighbours = malloc(5 * 5 * sizeof(float));
     for (unsigned i = 0; i < 5; ++i) {
         int y1 = y - 2 + i;
@@ -191,7 +191,7 @@ float *getNeighboursZeroPaddingFloats(Image *input, unsigned x, unsigned y) {
  * @param filterSize
  * @return
  */
-Image *applyFilter(Image *input, unsigned char *filter, float filterDenominator, int filterSize) {
+Image *applyFilter(Image *input,const unsigned char *filter, const float filterDenominator, const int filterSize) {
     Image *output = createEmptyImage(input->width, input->height);
     for (unsigned y = 0; y < input->height; y++) {
         size_t yIndex = 4 * input->width * y;

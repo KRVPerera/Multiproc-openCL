@@ -181,6 +181,70 @@ void fullFlow() {
     freeImage(right_disparity_image);
 }
 
+void fullFlow_MT() {
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+
+    Image* bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW, OUTPUT_FILE_PROFILE_FILTERED_0);
+    Image* bwImage1= getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, OUTPUT_FILE_PROFILE_FILTERED_1);
+
+    GET_TIME(t0);
+    Image* left_disparity_image = Get_zncc_c_imp_MT(bwImage0, bwImage1, 1);
+    GET_TIME(t1);
+    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Left Disparity Time : %f micro seconds\n", elapsed_time);
+
+    GET_TIME(t0);
+    Image* right_disparity_image = Get_zncc_c_imp_MT(bwImage1, bwImage0, -1);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Right Disparity Time : %f micro seconds\n", elapsed_time);
+
+    GET_TIME(t0);
+    Image* crossCheckLeft = CrossCheck(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Cross Check Time Left : %f micro seconds\n", elapsed_time);
+
+    GET_TIME(t0);
+    Image* crossCheckRight = CrossCheck(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Cross Check Time Right : %f micro seconds\n", elapsed_time);
+
+    GET_TIME(t0);
+    Image* occlusionFilledLeft_MT = OcclusionFill_MT(crossCheckLeft);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Occlusion Fill Time Left MT : %f micro seconds\n", elapsed_time);
+
+    GET_TIME(t0);
+    Image* occlusionFilledRight_MT = OcclusionFill_MT(crossCheckRight);
+    GET_TIME(t1);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Occlusion Fill Time Right : %f micro seconds\n", elapsed_time);
+
+    saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT_MT, occlusionFilledLeft_MT);
+    saveImage(OUTPUT_FILE_OCCULSION_FILLED_RIGHT_MT, occlusionFilledRight_MT);
+
+    saveImage(OUTPUT_FILE_CROSS_CHECKING_LEFT, crossCheckLeft);
+    saveImage(OUTPUT_FILE_CROSS_CHECKING_RIGHT, crossCheckRight);
+
+    saveImage(OUTPUT_FILE_LEFT_DISPARITY, left_disparity_image);
+    saveImage(OUTPUT_FILE_RIGHT_DISPARITY, right_disparity_image);
+
+    freeImage(bwImage0);
+    freeImage(bwImage1);
+    freeImage(crossCheckLeft);
+    freeImage(crossCheckRight);
+    freeImage(occlusionFilledLeft);
+    freeImage(occlusionFilledRight);
+    freeImage(occlusionFilledLeft_MT);
+    freeImage(occlusionFilledRight_MT);
+    freeImage(left_disparity_image);
+    freeImage(right_disparity_image);
+}
+
 void runZnccFlowForOneImage(const char * imagePath, const char * outputPath) {
     Image *im = readImage(imagePath);
     Image *smallImage = resizeImage(im);
