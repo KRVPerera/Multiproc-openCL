@@ -249,15 +249,14 @@ Image *applyFilter(const Image *input, const unsigned char *filter, const float 
 Image *applyFilter_MT(const Image *input,const unsigned char *filter, const float filterDenominator, const int filterSize) {
     Image *output = createEmptyImage(input->width, input->height);
 
-    #pragma omp parallel for
+    #pragma omp parallel for collapse(2)
     for (unsigned y = 0; y < input->height; y++) {
-        size_t yIndex = 4 * input->width * y;
         for (unsigned x = 0; x < input->width; x++) {
             unsigned char *neighbours = getNeighbourWindowWithMirroringUnsigned(input, x, y);
-            float *neighboursFloat = getNeighboursZeroPaddingFloats(input, x, y);
-            float filterValueFloat = applyFilterToNeighboursFloat(neighboursFloat, filter, filterSize);
-            unsigned char filterOut = MIN(255, (filterValueFloat / filterDenominator));
-            size_t index = yIndex + 4 * x;
+            const float *neighboursFloat = getNeighboursZeroPaddingFloats(input, x, y);
+            const float filterValueFloat = applyFilterToNeighboursFloat(neighboursFloat, filter, filterSize);
+            const unsigned char filterOut = MIN(255, (filterValueFloat / filterDenominator));
+            size_t index = 4 * input->width * y + 4 * x;
             output->image[index + 0] = filterOut;
             output->image[index + 1] = filterOut;
             output->image[index + 2] = filterOut;
