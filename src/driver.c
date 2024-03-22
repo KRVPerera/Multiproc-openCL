@@ -176,38 +176,50 @@ void fullFlow() {
     GET_TIME(t0);
     Image* left_disparity_image = Get_zncc_c_imp(bwImage0, bwImage1, 1);
     GET_TIME(t1);
-    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Left Disparity Time : %f micro seconds\n", elapsed_time);
+    float elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Left Disparity Time : %f micro seconds\n", elapsed_time_1);
 
     GET_TIME(t0);
     Image* right_disparity_image = Get_zncc_c_imp(bwImage1, bwImage0, -1);
     GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Right Disparity Time : %f micro seconds\n", elapsed_time);
+    float elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Right Disparity Time : %f micro seconds\n", elapsed_time_2);
+
+    // average disparity time
+    float avg_disparity_time = (elapsed_time_1 + elapsed_time_2) / 2;
+    printf("Average Disparity Time : %f micro seconds\n", avg_disparity_time);
 
     GET_TIME(t0);
     Image* crossCheckLeft = CrossCheck(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Cross Check Time Left : %f micro seconds\n", elapsed_time);
+    elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Cross Check Time Left : %f micro seconds\n", elapsed_time_1);
 
     GET_TIME(t0);
     Image* crossCheckRight = CrossCheck(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Cross Check Time Right : %f micro seconds\n", elapsed_time);
+    elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Cross Check Time Right : %f micro seconds\n", elapsed_time_2);
+
+    // average cross check time
+    float avg_cross_check_time = (elapsed_time_1 + elapsed_time_2) / 2;
+    printf("Average Cross Check Time : %f micro seconds\n", avg_cross_check_time);
 
     GET_TIME(t0);
     Image* occlusionFilledLeft = OcclusionFill(crossCheckLeft);
     GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Occlusion Fill Time Left : %f micro seconds\n", elapsed_time);
+    elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Occlusion Fill Time Left : %f micro seconds\n", elapsed_time_2);
 
     GET_TIME(t0);
     Image* occlusionFilledRight = OcclusionFill(crossCheckRight);
     GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Occlusion Fill Time Right : %f micro seconds\n", elapsed_time);
+    elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Occlusion Fill Time Right : %f micro seconds\n", elapsed_time_2);
+
+    // average occlusion fill time
+    float avg_occlusion_fill_time = (elapsed_time_1 + elapsed_time_2) / 2;
+    printf("Average Occlusion Fill Time : %f micro seconds\n", avg_occlusion_fill_time);
 
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT, occlusionFilledLeft);
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_RIGHT, occlusionFilledRight);
@@ -238,40 +250,48 @@ void fullFlow_MT() {
     GET_TIME(t0);
     Image* left_disparity_image = Get_zncc_c_imp_MT(bwImage0, bwImage1, 1);
     GET_TIME(t1);
-    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Left Disparity Time MT : %f micro seconds\n", elapsed_time);
+    float elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Left Disparity Time MT : %f micro seconds\n", elapsed_time_1);
     saveImage(OUTPUT_FILE_LEFT_DISPARITY_MT, left_disparity_image);
 
     GET_TIME(t0);
     Image* right_disparity_image = Get_zncc_c_imp_MT(bwImage1, bwImage0, -1);
     GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Right Disparity Time MT : %f micro seconds\n", elapsed_time);
+    float elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Right Disparity Time MT : %f micro seconds\n", elapsed_time_2);
     saveImage(OUTPUT_FILE_RIGHT_DISPARITY_MT, right_disparity_image);
     freeImage(bwImage1);
     freeImage(bwImage0);
 
+    // average disparity time
+    float avg_disparity_time = (elapsed_time_1 + elapsed_time_2) / 2;
+    printf("Average Disparity Time MT : %f micro seconds\n", avg_disparity_time);
+
     GET_TIME(t0);
     Image* crossCheckLeft = CrossCheck_MT(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Cross Check Time Left MT : %f micro seconds\n", elapsed_time);
+    elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Cross Check Time Left MT : %f micro seconds\n", elapsed_time_1);
     saveImage(OUTPUT_FILE_CROSS_CHECKING_LEFT_MT, crossCheckLeft);
 
     GET_TIME(t0);
     Image* crossCheckRight = CrossCheck_MT(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Cross Check Time Right MT : %f micro seconds\n", elapsed_time);
+    elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Cross Check Time Right MT : %f micro seconds\n", elapsed_time_2);
     saveImage(OUTPUT_FILE_CROSS_CHECKING_RIGHT_MT, crossCheckRight);
     freeImage(right_disparity_image);
     freeImage(left_disparity_image);
 
+    // average cross check time
+    float avg_cross_check_time = (elapsed_time_1 + elapsed_time_2) / 2;
+    printf("Average Cross Check Time MT : %f micro seconds\n", avg_cross_check_time);
+
     GET_TIME(t0);
     Image* occlusionFilledLeft = OcclusionFill_MT(crossCheckLeft);
     GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Occlusion Fill Time Left MT : %f micro seconds\n", elapsed_time);
+    elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Occlusion Fill Time Left MT : %f micro seconds\n", elapsed_time_1);
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT_MT, occlusionFilledLeft);
     freeImage(occlusionFilledLeft);
     freeImage(crossCheckLeft);
@@ -279,11 +299,15 @@ void fullFlow_MT() {
     GET_TIME(t0);
     Image* occlusionFilledRight = OcclusionFill_MT(crossCheckRight);
     GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Occlusion Fill Time Right MT : %f micro seconds\n", elapsed_time);
+    elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    printf("Occlusion Fill Time Right MT : %f micro seconds\n", elapsed_time_2);
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_RIGHT_MT, occlusionFilledRight);
     freeImage(occlusionFilledRight);
     freeImage(crossCheckRight);
+
+    // average occlusion fill time
+    float avg_occlusion_fill_time = (elapsed_time_1 + elapsed_time_2) / 2;
+    printf("Average Occlusion Fill Time MT : %f micro seconds\n", avg_occlusion_fill_time);
 }
 
 void runZnccFlowForOneImage(const char * imagePath, const char * outputPath) {
