@@ -21,17 +21,17 @@ Image *OcclusionFill(Image *image) {
                 float filterValueFloat = applyFilterForNonZeroFloat(neighboursFloat, gaussianFilter, 5);
                 unsigned char filterOut = MIN(255, (filterValueFloat / 273));
 
-//                occulsionFilledImage->image[index] = filterOut;
-//                occulsionFilledImage->image[index + 1] = filterOut;
-//                occulsionFilledImage->image[index + 2] = filterOut;
-                memset(&occulsionFilledImage->image[index], filterOut, 3);
+                occulsionFilledImage->image[index] = filterOut;
+                occulsionFilledImage->image[index + 1] = filterOut;
+                occulsionFilledImage->image[index + 2] = filterOut;
+//                memset(&occulsionFilledImage->image[index], filterOut, 3);
 
                 free(neighboursFloat);
             } else {
-//                occulsionFilledImage->image[index] = image->image[index];
-//                occulsionFilledImage->image[index + 1] = image->image[index + 1];
-//                occulsionFilledImage->image[index + 2] = image->image[index + 2];
-                memcpy(&occulsionFilledImage->image[index], &image->image[index], 3);
+                occulsionFilledImage->image[index] = image->image[index];
+                occulsionFilledImage->image[index + 1] = image->image[index + 1];
+                occulsionFilledImage->image[index + 2] = image->image[index + 2];
+//                memcpy(&occulsionFilledImage->image[index], &image->image[index], 3);
             }
         }
     }
@@ -56,17 +56,17 @@ Image *OcclusionFill_MT(Image *image) {
                 const float filterValueFloat = applyFilterForNonZeroFloat(neighboursFloat, gaussianFilter, 5);
                 const unsigned char filterOut = MIN(255, (filterValueFloat / 273));
 
-//                occulsionFilledImage->image[index] = filterOut;
-//                occulsionFilledImage->image[index + 1] = filterOut;
-//                occulsionFilledImage->image[index + 2] = filterOut;
-                memset(&occulsionFilledImage->image[index], filterOut, 3);
+                occulsionFilledImage->image[index] = filterOut;
+                occulsionFilledImage->image[index + 1] = filterOut;
+                occulsionFilledImage->image[index + 2] = filterOut;
+//                memset(&occulsionFilledImage->image[index], filterOut, 3);
 
                 free(neighboursFloat);
             } else {
-//                occulsionFilledImage->image[index] = image->image[index];
-//                occulsionFilledImage->image[index + 1] = image->image[index + 1];
-//                occulsionFilledImage->image[index + 2] = image->image[index + 2];
-                memcpy(&occulsionFilledImage->image[index], &image->image[index], 3);
+                occulsionFilledImage->image[index] = image->image[index];
+                occulsionFilledImage->image[index + 1] = image->image[index + 1];
+                occulsionFilledImage->image[index + 2] = image->image[index + 2];
+//                memcpy(&occulsionFilledImage->image[index], &image->image[index], 3);
             }
         }
     }

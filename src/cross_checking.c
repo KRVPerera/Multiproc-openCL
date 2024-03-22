@@ -13,15 +13,13 @@ Image* CrossCheck(const Image * image1, const Image* image2, const int threshold
             size_t index = 4 * i * width + 4 * j;
             crossCheckedImage->image[index + 3] = image1->image[index + 3]; // alpha channel
             if (abs(image1->image[index] - image2->image[index]) > threshold) {
-//                crossCheckedImage->image[index] = 0;
-//                crossCheckedImage->image[index + 1] = 0;
-//                crossCheckedImage->image[index + 2] = 0;
-                memset(crossCheckedImage->image + index, 0, 3 * sizeof(unsigned char));
+                crossCheckedImage->image[index] = 0;
+                crossCheckedImage->image[index + 1] = 0;
+                crossCheckedImage->image[index + 2] = 0;
             } else {
-//                crossCheckedImage->image[index] = image1->image[index];
-//                crossCheckedImage->image[index + 1] = image1->image[index + 1];
-//                crossCheckedImage->image[index + 2] = image1->image[index + 2];
-                memcpy(&crossCheckedImage->image[index], &image1->image[index], 3);
+                crossCheckedImage->image[index] = image1->image[index];
+                crossCheckedImage->image[index + 1] = image1->image[index + 1];
+                crossCheckedImage->image[index + 2] = image1->image[index + 2];
             }
         }
     }
@@ -41,15 +39,15 @@ Image* CrossCheck_MT(const Image * image1, const Image* image2, const int thresh
             crossCheckedImage->image[index + 3] = image1->image[index + 3]; // alpha channel
             const int diff = image1->image[index] - image2->image[index];
             if (abs(diff) > threshold) {
-//                crossCheckedImage->image[index] = 0;
-//                crossCheckedImage->image[index + 1] = 0;
-//                crossCheckedImage->image[index + 2] = 0;
-                memset(crossCheckedImage->image + index, 0, 3 * sizeof(unsigned char));
+                crossCheckedImage->image[index] = 0;
+                crossCheckedImage->image[index + 1] = 0;
+                crossCheckedImage->image[index + 2] = 0;
+//                memset(crossCheckedImage->image + index, 0, 3 * sizeof(unsigned char));
             } else {
-//                crossCheckedImage->image[index] = image1->image[index];
-//                crossCheckedImage->image[index + 1] = image1->image[index + 1];
-//                crossCheckedImage->image[index + 2] = image1->image[index + 2];
-                memcpy(&crossCheckedImage->image[index], &image1->image[index], 3);
+                crossCheckedImage->image[index] = image1->image[index];
+                crossCheckedImage->image[index + 1] = image1->image[index + 1];
+                crossCheckedImage->image[index + 2] = image1->image[index + 2];
+//                memcpy(&crossCheckedImage->image[index], &image1->image[index], 3);
             }
         }
     }
