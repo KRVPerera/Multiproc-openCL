@@ -3,6 +3,7 @@
 #include "config.h"
 #include "util.h"
 #include <math.h>
+#include <string.h>
 
 Image *Get_zncc_c_imp(const Image *image1, const Image *image2, const int direction) {
     Image *depth_image = createEmptyImage(image1->width, image1->height);
@@ -99,7 +100,7 @@ Image *Get_zncc_c_imp_MT(const Image *image1, const Image *image2, const int dir
             }
             free(image1Window);
 
-            float normalizedDisp = (bestDisp / MAX_DISP) * 255;
+            const float normalizedDisp = (bestDisp / MAX_DISP) * 255;
             depth_image->image[index] = (unsigned char) normalizedDisp;
             depth_image->image[index + 1] = (unsigned char) normalizedDisp;
             depth_image->image[index + 2] = (unsigned char) normalizedDisp;

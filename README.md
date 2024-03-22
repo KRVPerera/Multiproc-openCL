@@ -14,7 +14,7 @@ pre operations times are populated in `data/out/profile_data_X_MT.txt` or `data/
 | Resize      | 3.42               | 2.37              | 471.84                                |
 | Grayscale   | 4.43               | 0.90              | 205.32                                |
 | Blur        | 199.93             | 32.10             | 774.00                                |
-| Disparity   | 66960.61           | 11432.29          | -                                     |
+| Disparity   | 66960.61           | 11129.29          | -                                     |
 | Cross Check | 2.84               | 1.16              | -                                     |
 | Occulsion   | 4.36               | 1.46              | -                                     |
 
