@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
     int multithreadedMode = 0;
     if (argc != 2) {
-        logger("Incorrect number of arguments. Expected 1, got %d.", argc - 1);
+        logger("Incorrect number of arguments. Expected 1, got %d. Running `multithreaded` mode", argc - 1);
         multithreadedMode = 1;
     }
 
