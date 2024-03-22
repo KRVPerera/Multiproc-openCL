@@ -4,6 +4,7 @@
 #include "config.h"
 #include "util.h"
 #include <math.h>
+#include <string.h>
 
 Image *Get_zncc_c_imp(const Image *image1, const Image *image2, const int direction) {
     Image *depth_image = createEmptyImage(image1->width, image1->height);
@@ -69,6 +70,7 @@ Image *Get_zncc_c_imp_MT(const Image *image1, const Image *image2, const int dir
         for (int x = 0; x < width; ++x) {
             float bestDisp = 0;
             float max_zncc = 0;
+
             size_t index = 4 * y * width + 4 * x;
 
             float *image1Window = getNeighbourWindowWithMirroring(image1, x, y, ZNCC_WINDOW_SIZE);
