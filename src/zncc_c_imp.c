@@ -63,7 +63,7 @@ Image *Get_zncc_c_imp_MT(const Image *image1, const Image *image2, const int dir
     const int height = image1->height;
     const int width = image1->width;
 
-    #pragma omp parallel for shared(depth_image, image1, image2, direction) schedule(static, 4) collapse(2)
+    #pragma omp parallel for shared(depth_image, image1, image2, direction) schedule(static, 65) collapse(2)
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             float bestDisp = 0;
