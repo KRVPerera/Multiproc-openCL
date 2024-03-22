@@ -6,14 +6,11 @@
 #include <stdlib.h>
 #include <util.h>
 #include <driver.h>
-#include <string.h>
 #include <opencl_flow_ex3.h>
 
 #include "config.h"
 
-#include <stdio.h>
 #include <time.h>
-#include <stdarg.h>
 #include <logger.h>
 #include <omp.h>
 #include <unistd.h>
@@ -58,7 +55,7 @@ int main(int argc, char *argv[]) {
 
     int multithreadedMode = 0;
     if (argc != 2) {
-        logger("Incorrect number of arguments. Expected 1, got %d. Running `multithreaded` mode", argc - 1);
+        logger("Incorrect number of arguments. Expected 1, got %d. Running `mp - multithreaded` mode", argc - 1);
         multithreadedMode = 1;
     }
 
@@ -71,14 +68,15 @@ int main(int argc, char *argv[]) {
     GET_TIME(t0);
     if (!multithreadedMode && strcmp(argv[1], "opencl") == 0) {
         openclFlowEx3();
-    } else if (multithreadedMode || strcmp(argv[1], "multithreaded") == 0) {
-        //openmpTestCode();
+    } else if (multithreadedMode || strcmp(argv[1], "mp") == 0) {
         fullFlow_MT();
-    } else if (!multithreadedMode && strcmp(argv[1], "singlethreaded") == 0) {
+    } else if (!multithreadedMode && strcmp(argv[1], "single") == 0) {
         fullFlow();
+    } else if (!multithreadedMode && strcmp(argv[1], "test") == 0) {
+        openmpTestCode();
     } else {
-        logger("Invalid argument. Expected 'opencl', 'multithreaded', or 'singlethreaded'. Got '%s'.", argv[1]);
-        logger(" Running multithreaded mode.");
+        logger("Invalid argument. Expected 'opencl', 'mp', 'single' or 'test'. Got '%s'.", argv[1]);
+        logger(" Running mp - multithreaded mode.");
     }
     GET_TIME(t1);
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);

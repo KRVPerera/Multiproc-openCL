@@ -1,10 +1,8 @@
 #include "pngloader.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include "config.h"
 #include "util.h"
 #include <math.h>
-#include <string.h>
 
 Image *Get_zncc_c_imp(const Image *image1, const Image *image2, const int direction) {
     Image *depth_image = createEmptyImage(image1->width, image1->height);
