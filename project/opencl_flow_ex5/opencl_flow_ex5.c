@@ -119,7 +119,7 @@ void resize_image(cl_context context, cl_kernel kernel, cl_command_queue queue, 
     };
 
     /* Create output image object */
-    output_image = clCreateImage2D(context, CL_MEM_WRITE_ONLY, &output_format, new_width, new_height, 0, NULL, &err);
+    output_image = clCreateImage2D(context, CL_MEM_READ_WRITE, &output_format, new_width, new_height, 0, NULL, &err);
     if(err < 0) {
         perror("resize_image: Couldn't create the input image object");
         exit(1);
@@ -197,7 +197,7 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
     };
 
     /* Create output image object */
-    output_image = clCreateImage2D(context, CL_MEM_WRITE_ONLY, &output_format, width, height, 0, NULL, &err);
+    output_image = clCreateImage2D(context, CL_MEM_READ_WRITE, &output_format, width, height, 0, NULL, &err);
     if(err < 0) {
         perror("convert_image_to_gray: Couldn't create the input image object");
         exit(1);
@@ -250,7 +250,7 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
 void apply_zncc(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, const Image *im1, Image *output_im0) {
 
     /* Image data */
-    cl_mem input_image, input_image2, output_image;
+    cl_mem input_image, input_image1, output_image;
     cl_image_format input_format, input_format1, output_format;
     int err;
 
@@ -277,14 +277,14 @@ void apply_zncc(cl_context context, cl_kernel kernel, cl_command_queue queue, co
         exit(1);
     };
 
-    input_image2 = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format1, width, height, 0, (void*)im1 -> image, &err);
+    input_image1 = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format1, width, height, 0, (void*)im1 -> image, &err);
     if(err < 0) {
         printf("zncc: Couldn't create the input image 1 object");
         exit(1);
     };
 
     /* Create output image object */
-    output_image = clCreateImage2D(context, CL_MEM_WRITE_ONLY, &output_format, width, height, 0, NULL, &err);
+    output_image = clCreateImage2D(context, CL_MEM_READ_WRITE, &output_format, width, height, 0, NULL, &err);
     if(err < 0) {
         perror("zncc: Couldn't create the input image object");
         exit(1);
@@ -297,13 +297,13 @@ void apply_zncc(cl_context context, cl_kernel kernel, cl_command_queue queue, co
         exit(1);
     }
 
-    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_image2);
+    err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &input_image1);
     if(err < 0) {
         perror("zncc, Error: clSetKernelArg, inputImage");
         exit(1);
     }
 
-    err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &output_image);
+    err = clSetKernelArg(kernel, 2, sizeof(cl_mem), &output_image);
     if(err < 0) {
         perror("zncc, Error: clSetKernelArg, outputImage");
         exit(1);
@@ -313,7 +313,7 @@ void apply_zncc(cl_context context, cl_kernel kernel, cl_command_queue queue, co
     size_t globalWorkSize[2] = { width, height };
     err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &gaussian_event);
     if(err < 0) {
-        perror("zncc, Error: clEnqueueNDRangeKernel");
+        perror("zncc, Error: clEnqueueNDRangeKernel 316 ");
         exit(1);
     }
 
@@ -348,7 +348,7 @@ void openclFlowEx5(void) {
     cl_program program;
     cl_int err;
 
-    cl_kernel *kernels, kernel_resize_image, kernel_color_to_gray, kernel_gaussian_blur;
+    cl_kernel *kernels, kernel_resize_image, kernel_color_to_gray, kernel_zncc;
     char kernel_name[20];
     cl_uint i, num_kernels;
 
@@ -402,7 +402,7 @@ void openclFlowEx5(void) {
             kernel_color_to_gray = kernels[i];
             printf("Found color_to_gray kernel at index %u.\n", i);
         } else if(strcmp(kernel_name, KERNEL_ZNCC) == 0) {
-            kernel_gaussian_blur = kernels[i];
+            kernel_zncc = kernels[i];
             printf("Found zncc kernel at index %u.\n", i);
         }
     }
@@ -423,11 +423,12 @@ void openclFlowEx5(void) {
     resize_image(context, kernel_resize_image, queue, im1, output_2_resized_im0);
     /* Convert color image to gray scale image */
     convert_image_to_gray(context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0);
-//    /* Apply zncc kernel */
-//    apply_zncc(context, kernel_gaussian_blur, queue, output_2_bw_im0, output_right_disparity_im0);
 
     /* Apply zncc kernel */
-//    apply_zncc(context, kernel_gaussian_blur, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0);
+    apply_zncc(context, kernel_zncc, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0);
+
+    /* Apply zncc kernel */
+//    apply_zncc(context, kernel_zncc, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0);
 
     saveImage(OUTPUT_1_RESIZE_OPENCL_FILE, output_1_resized_im0);
     saveImage(OUTPUT_1_BW_OPENCL_FILE, output_1_bw_im0);
@@ -448,7 +449,7 @@ void openclFlowEx5(void) {
     freeImage(output_right_disparity_im0);
     clReleaseKernel(kernel_color_to_gray);
     clReleaseKernel(kernel_resize_image);
-    clReleaseKernel(kernel_gaussian_blur);
+    clReleaseKernel(kernel_zncc);
     clReleaseCommandQueue(queue);
     clReleaseProgram(program);
     clReleaseContext(context);
