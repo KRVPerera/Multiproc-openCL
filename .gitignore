@@ -43,6 +43,8 @@ data/out/output_RESIZE_OPENCL.png
 data/out/output_ZOOM_OPENCL.png
 data/out/output_ZNCC_OPENCL.png
 
+data/out/output_*.png
+
 profile_data_0.txt
 profile_data_1.txt
 profile_data_0_MT.txt
