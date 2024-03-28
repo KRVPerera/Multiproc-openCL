@@ -26,28 +26,42 @@ __kernel void color_to_gray(__read_only image2d_t inputImage, __write_only image
     write_imagef(outputImage, pos, (float4)(grayscaleValue, grayscaleValue, grayscaleValue, 1.0f));
 }
 
-__kernel void zncc(__read_only image2d_t inputImage, __write_only image2d_t outputImage) {
+__kernel void zncc(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
     const int width = get_global_size(0);
     const int height = get_global_size(1);
-
-    const float gassian_kernel[5][5] = {
-        {0.0030, 0.0133, 0.0219, 0.0133, 0.0030},
-        {0.0133, 0.0596, 0.0983, 0.0596, 0.0133},
-        {0.0219, 0.0983, 0.1621, 0.0983, 0.0219},
-        {0.0133, 0.0596, 0.0983, 0.0596, 0.0133},
-        {0.0030, 0.0133, 0.0219, 0.0133, 0.0030}
-    };
-    float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-    for (int i = -2; i <= 2; ++i) {
-        for (int j = -2; j <= 2; ++j) {
+    const int WINDOW_SIZE = 15;
+    const int WINDOW_HALF_SIZE = 7;
+    float4 sum = 0.0;
+    for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
+        for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
+            float bestDisp = 0;
+            float max_zncc = 0;
             const int2 offsetPos = pos + (int2)(i, j);
-            const float4 color = read_imagef(inputImage, sampler, offsetPos);
-            const float weight = gassian_kernel[i + 2][j + 2];
-            sum += weight * color;
+
+            const float4 color = read_imagef(inputImage1, sampler, offsetPos);
+            sum += color;
         }
     }
+
+    const float4 image1Mean = sum / (WINDOW_SIZE * WINDOW_SIZE);
+    float4 sum2 = 0.0;
+    const int MAX_DISP = 65;
+    for (int d = 0; d < MAX_DISP; ++d) {
+        for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
+            for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
+                const int2 offsetPos = pos + (int2)(i, j);
+
+                const float4 color = read_imagef(inputImage2, sampler, offsetPos);
+                sum2 += color;
+            }
+        }
+
+
+
+    }
+
     const float4 result = sum;
     write_imagef(outputImage, pos, result);
 }

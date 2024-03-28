@@ -405,9 +405,9 @@ void openclFlowEx3(void) {
     /* Apply gaussian blur with 5 x 5 kernel */
     apply_gaussian_blur(context, kernel_gaussian_blur, queue, output_2_im0, output_3_im0);
 
-    saveImage(OUTPUT_1_OPENCL_FILE, output_1_im0);
-    saveImage(OUTPUT_2_OPENCL_FILE, output_2_im0);
-    saveImage(OUTPUT_3_OPENCL_FILE, output_3_im0);
+    saveImage(OUTPUT_1_RESIZE_OPENCL_FILE, output_1_im0);
+    saveImage(OUTPUT_1_BW_OPENCL_FILE, output_2_im0);
+    saveImage(OUTPUT_1_BLUR_OPENCL_FILE, output_3_im0);
 
     /* Deallocate resources */
     freeImage(im0);
