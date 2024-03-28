@@ -61,7 +61,7 @@ add_library(learn_openmp STATIC src/calc_pi_mt.c include/calc_pi.h)
 
 add_executable(${PROJECT_NAME} main.c src/driver.c src/zncc_c_imp.c src/cross_checking.c src/occlusion_filling.c)
 #target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader utils opencl_flow_ex3_lib logger occlusion learn_openmp)
+target_link_libraries(${PROJECT_NAME} OpenCL::OpenCL img_loader utils opencl_flow_ex3_lib opencl_flow_ex5_lib logger occlusion learn_openmp)
 
 
 add_test(

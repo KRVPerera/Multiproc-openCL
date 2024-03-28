@@ -35,6 +35,12 @@ data/out/image_occulsion_filed_LEFT.png
 data/out/image_occulsion_filed_RIGHT.png
 data/out/image_occulsion_filed_LEFT_MT.png
 data/out/image_occulsion_filed_RIGHT_MT.png
+data/out/output_1_OPENCL.png
+data/out/output_2_OPENCL.png
+data/out/output_3_OPENCL.png
+data/out/output_BW_OPENCL.png
+data/out/output_RESIZE_OPENCL.png
+data/out/output_ZOOM_OPENCL.png
 
 profile_data_0.txt
 profile_data_1.txt

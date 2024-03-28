@@ -7,6 +7,7 @@
 #include <util.h>
 #include <driver.h>
 #include <opencl_flow_ex3.h>
+#include <opencl_flow_ex5.h>
 
 #include "config.h"
 
@@ -67,7 +68,7 @@ int main(int argc, char *argv[]) {
     unsigned long sec, nsec;
     GET_TIME(t0);
     if (!multithreadedMode && strcmp(argv[1], "opencl") == 0) {
-        openclFlowEx3();
+        openclFlowEx5();
     } else if (multithreadedMode || strcmp(argv[1], "mp") == 0) {
         fullFlow_MT();
     } else if (!multithreadedMode && strcmp(argv[1], "single") == 0) {

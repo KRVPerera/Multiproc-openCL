@@ -1,11 +1,11 @@
 #define KERNEL_RESIZE_IMAGE "resize_image"
 #define KERNEL_COLOR_TO_GRAY "color_to_gray"
-#define KERNEL_GAUSSIAN_BLUR "gaussian_blur"
+#define KERNEL_ZNCC "zncc"
 
 #include <pngloader.h>
 #include <config.h>
 
-#include <opencl_flow_ex3.h>
+#include <opencl_flow_ex5.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -247,7 +247,7 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
     printf("Time taken to read the output image (gray scaling) = %llu ns\n", read_time);
 }
 
-void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0) {
+void apply_zncc(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0) {
 
     /* Image data */
     cl_mem input_image, output_image;
@@ -270,27 +270,27 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
     /* Create input image object */
     input_image = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format, width, height, 0, (void*)im0 -> image, &err);
     if(err < 0) {
-        printf("apply_gaussian_blur: Couldn't create the input image object");
+        printf("zncc: Couldn't create the input image object");
         exit(1);
     };
 
     /* Create output image object */
     output_image = clCreateImage2D(context, CL_MEM_WRITE_ONLY, &output_format, width, height, 0, NULL, &err);
     if(err < 0) {
-        perror("apply_gaussian_blur: Couldn't create the input image object");
+        perror("zncc: Couldn't create the input image object");
         exit(1);
     };
 
     // Set kernel arguments
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_image);
     if(err < 0) {
-        perror("apply_gaussian_blur, Error: clSetKernelArg, inputImage");
+        perror("zncc, Error: clSetKernelArg, inputImage");
         exit(1);
     }
 
     err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &output_image);
     if(err < 0) {
-        perror("apply_gaussian_blur, Error: clSetKernelArg, outputImage");
+        perror("zncc, Error: clSetKernelArg, outputImage");
         exit(1);
     }
 
@@ -298,7 +298,7 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
     size_t globalWorkSize[2] = { width, height };
     err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &gaussian_event);
     if(err < 0) {
-        perror("apply_gaussian_blur, Error: clEnqueueNDRangeKernel");
+        perror("zncc, Error: clEnqueueNDRangeKernel");
         exit(1);
     }
 
@@ -306,7 +306,7 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
     err = clEnqueueReadImage(queue, output_image, CL_TRUE, (size_t[3]){0, 0, 0}, (size_t[3]){width, height, 1},
                              0, 0, (void*)output_im0 -> image, 0, NULL, &gaussian_read_event);
     if(err < 0) {
-        perror("apply_gaussian_blur, Error: clEnqueueReadImage");
+        perror("zncc, Error: clEnqueueReadImage");
         exit(1);
     }
 
@@ -321,12 +321,12 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
     clReleaseEvent(gaussian_read_event);
     clReleaseEvent(gaussian_event);
 
-    printf("Time taken to do the gaussian blur = %llu ns\n", time_to_gaussian_blur);
-    printf("Time taken to read the output image (gaussian blur) = %llu ns\n", read_time);
+    printf("Time taken to do the zncc = %llu ns\n", time_to_gaussian_blur);
+    printf("Time taken to read the output image (zncc) = %llu ns\n", read_time);
 }
 
-void openclFlowEx3(void) {
-    printf("OpenCL Flow Example 3 STARTED\n");
+void openclFlowEx5(void) {
+    printf("OpenCL Flow Example 5 STARTED\n");
     cl_device_id device;
     cl_context context;
     cl_command_queue queue;
@@ -383,9 +383,9 @@ void openclFlowEx3(void) {
         } else if(strcmp(kernel_name, KERNEL_COLOR_TO_GRAY) == 0) {
             kernel_color_to_gray = kernels[i];
             printf("Found color_to_gray kernel at index %u.\n", i);
-        } else if(strcmp(kernel_name, KERNEL_GAUSSIAN_BLUR) == 0) {
+        } else if(strcmp(kernel_name, KERNEL_ZNCC) == 0) {
             kernel_gaussian_blur = kernels[i];
-            printf("Found gaussian_blur kernel at index %u.\n", i);
+            printf("Found zncc kernel at index %u.\n", i);
         }
     }
     // cl_command_queue_properties props[3] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
@@ -402,8 +402,8 @@ void openclFlowEx3(void) {
     /* Convert color image to gray scale image */
     convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_im0, output_2_im0);
 
-    /* Apply gaussian blur with 5 x 5 kernel */
-    apply_gaussian_blur(context, kernel_gaussian_blur, queue, output_2_im0, output_3_im0);
+    /* Apply zncc kernel */
+    apply_zncc(context, kernel_gaussian_blur, queue, output_2_im0, output_3_im0);
 
     saveImage(OUTPUT_1_OPENCL_FILE, output_1_im0);
     saveImage(OUTPUT_2_OPENCL_FILE, output_2_im0);
