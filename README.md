@@ -1,6 +1,25 @@
 # Multiproc-openCL
 This repository is for the learning purpose of GPGPU with OpenCL.
 
+## Performance comparison
+- values are not averaged and are taken from the first run. They are not checked to be within 95% confidence interval. 
+We are currently working on it.
+
+pre operations times are populated in `data/out/profile_data_X_MT.txt` or `data/out/profile_data_X.txt` where X is the image number.
+
+| Operation   | Single Thread (μs) | Multi Thread (μs) | OpenCL without memory copy times (ns) |
+|-------------|--------------------|-------------------|---------------------------------------|
+ | Image Read  | 642.76             | -                 | -                                     |
+| Image Save  | 93.01              | -                 | -                                     |
+| Resize      | 3.42               | 2.37              | 471.84                                |
+| Grayscale   | 4.43               | 0.90              | 205.32                                |
+| Blur        | 199.93             | 32.10             | 774.00                                |
+| Disparity   | 66960.61           | 11129.29          | -                                     |
+| Cross Check | 2.84               | 1.16              | -                                     |
+| Occulsion   | 4.36               | 1.46              | -                                     |
+
+
+
 ## Folder structure
 
 - learning
@@ -35,24 +54,36 @@ This repository is for the learning purpose of GPGPU with OpenCL.
 - clone the repository
 - create a build folder inside the repository
 
-### To run the c implemenation
+### To Build
 
-- run the following commands
 ```bash
+  mkdir build
+  cd build
   cmake ..
-  make
-  ./MultiprocOpenCL
+  make -j
 ```
 - Output images will be saved in `data/out` folder
 
-Main program currently use images from `data/sample` folder.
+### Run C single thread implementation
+- After building the project run.
+
+`
+./Multiproc-openCL single
+`
+
+### Run C multithreaded implementation
+- After building the project run.
+
+`
+./Multiproc-openCL mp
+`
 
 ### Run opencl implementation
 - After building the project run.
 
-- `ctest -R image_to_grayscale`
-
-- Check the outputs at `build\project\opencl_flow_ex3`
+`
+./Multiproc-openCL opencl
+`
 
 ## Outputs
 

@@ -10,7 +10,7 @@ long requiredSampleSize(float sd, float mean) {
     return N;
 }
 
-float Average(float *times, int numSamples) {
+float Average(const float *times, const int numSamples) {
     float sum = 0;
     for (int i = 0; i < numSamples; ++i) {
         sum += times[i];

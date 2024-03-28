@@ -28,7 +28,14 @@ Image* createEmptyImage(unsigned width, const unsigned height);
  * @param input
  * @return
  */
-Image *resizeImage(Image *input);
+Image *resizeImage(const Image *input);
+
+/**
+ * Scale down an image by a factor of 16
+ * @param input
+ * @return
+ */
+Image *resizeImage_MT(const Image *input);
 
 
 /**

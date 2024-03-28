@@ -1,4 +1,5 @@
 add_subdirectory(opencl_flow_ex3)
+add_subdirectory(opencl_flow_ex5)
 add_subdirectory(matAdd)
 add_subdirectory(matMul)
 add_subdirectory(kernel_search)

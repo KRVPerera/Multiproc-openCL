@@ -19,22 +19,8 @@ CMakeLists.txt.user
 
 .cache
 
-data/out/image_0_bw.png
-data/out/image_1_bw.png
-data/out/image_0_bw_blurred.png
-data/out/image_1_bw_blurred.png
-data/out/image_left_disparity.png
-data/out/image_left_disparity_MT.png
-data/out/image_right_disparity.png
-data/out/image_right_disparity_MT.png
-data/out/image_cross_checking_LEFT.png
-data/out/image_cross_checking_LEFT_MT.png
-data/out/image_cross_checking_RIGHT.png
-data/out/image_cross_checking_RIGHT_MT.png
-data/out/image_occulsion_filed_LEFT.png
-data/out/image_occulsion_filed_RIGHT.png
-data/out/image_occulsion_filed_LEFT_MT.png
-data/out/image_occulsion_filed_RIGHT_MT.png
+data/out/image_*.png
+data/out/output_*.png
 
 profile_data_0.txt
 profile_data_1.txt
