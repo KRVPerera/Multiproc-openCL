@@ -16,6 +16,7 @@
 #include <omp.h>
 #include <unistd.h>
 #include <calc_pi.h>
+#include <string.h>
 
 void openmpTestCode(void) {
     logger("Running multithreaded mode.");
