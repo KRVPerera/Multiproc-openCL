@@ -2,8 +2,6 @@ __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_T
 
 __kernel void resize_image(__read_only image2d_t inputImage, __write_only image2d_t outputImage) {
     const int2 output_cord = (int2)(get_global_id(0), get_global_id(1));
-    const int new_width = get_global_size(0);
-    const int new_height = get_global_size(1);
 
     // Read the color pixel from the input image
     int2 input_image_cord = (int2)(output_cord.x * 4, output_cord.y * 4);
@@ -29,59 +27,63 @@ __kernel void color_to_gray(__read_only image2d_t inputImage, __write_only image
 __kernel void zncc(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
+    const float4 current_color = read_imagef(inputImage1, sampler, pos);
+
     const int width = get_global_size(0);
     const int height = get_global_size(1);
     const int WINDOW_SIZE = 15;
     const int WINDOW_HALF_SIZE = 7;
-    float4 sum = 0.0;
+    float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+
+    float4 image1Window[WINDOW_SIZE * WINDOW_SIZE];
+
     for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
         for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
-            float bestDisp = 0;
-            float max_zncc = 0;
+            int flatIndex = (i + WINDOW_HALF_SIZE) * WINDOW_SIZE + (j + WINDOW_HALF_SIZE);    
             const int2 offsetPos = pos + (int2)(i, j);
             const float4 color = read_imagef(inputImage1, sampler, offsetPos);
+            image1Window[flatIndex] = color;
             sum += color;
         }
     }
     const float4 image1Mean = sum / (WINDOW_SIZE * WINDOW_SIZE);
 
-    float4 sum2 = 0.0;
     const int MAX_DISP = 65;
-    for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
-        for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
-            const int2 offsetPos = pos + (int2)(i, j);
-            const float4 color = read_imagef(inputImage2, sampler, offsetPos);
-            sum2 += color;
-        }
-    }
-    const float4 image2Mean = sum2 / (WINDOW_SIZE * WINDOW_SIZE);
 
-    float4 bestDisp = 0;
-    float4 max_zncc = 0;
+    float bestDisp = 0.0f;
+    float4 max_zncc = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
     for (int d = 0; d < MAX_DISP; ++d) {
 
-        float4 diffMultiSum = 0;
-        float4 squaredSum2 = 0;
-        float4 squaredSum1 = 0;
+        float4 sum2 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+        float4 image2Window[WINDOW_SIZE * WINDOW_SIZE];
 
         for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
-                for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
-                const int2 offsetPos = pos + (int2)(i, j);
-                const float4 colorIm1 = read_imagef(inputImage1, sampler, offsetPos);
+            for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
 
+                int flatIndex2 = (i + WINDOW_HALF_SIZE) * WINDOW_SIZE + (j + WINDOW_HALF_SIZE);   
                 const int2 offsetPosImage2 = pos + (int2)(i - d, j);
                 const float4 colorIm2 = read_imagef(inputImage2, sampler, offsetPosImage2);
-
-                const float4 firstDiff = colorIm1 - image1Mean;
-                const float4 firstDiffSquared = firstDiff * firstDiff;
-                const float4 secondDiff = colorIm2 - image2Mean;
-                const float4 secondDiffSquared = secondDiff * secondDiff;
-                const float4 diffMultiplied = firstDiff * secondDiff;
-                diffMultiSum += diffMultiplied;
-                squaredSum1 += firstDiffSquared;
-                squaredSum2 += secondDiffSquared;
+                image2Window[flatIndex2] = colorIm2;
+                sum2 += colorIm2;
             }
         }
+        const float4 image2Mean = sum2 / (WINDOW_SIZE * WINDOW_SIZE);
+
+        float4 diffMultiSum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+        float4 squaredSum2 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+        float4 squaredSum1 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+
+        for (int i = 0; i < WINDOW_SIZE * WINDOW_SIZE; ++i) {
+            const float4 firstDiff = image1Window[i] - image1Mean;
+            const float4 firstDiffSquared = firstDiff * firstDiff;
+            const float4 secondDiff = image2Window[i] - image2Mean;
+            const float4 secondDiffSquared = secondDiff * secondDiff;
+            const float4 diffMultiplied = firstDiff * secondDiff;
+            diffMultiSum += diffMultiplied;
+            squaredSum1 += firstDiffSquared;
+            squaredSum2 += secondDiffSquared;
+        }
+
         float4 zncc = diffMultiSum / (sqrt(squaredSum1) * sqrt(squaredSum2));
         if (zncc.x > max_zncc.x) {
             bestDisp = abs(d);
@@ -89,8 +91,13 @@ __kernel void zncc(__read_only image2d_t inputImage1, __read_only image2d_t inpu
         }
     }
 
-    const float4 normalizedDisp = (bestDisp / MAX_DISP) * 255;
+    const float normalizedDisp = (bestDisp / MAX_DISP);
+   // printf("normalizedDisp: %f\n", normalizedDisp);
 
-    const float4 result = normalizedDisp;
+    float4 result = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+    result.x = normalizedDisp;
+    result.y = normalizedDisp;
+    result.z = normalizedDisp;
+    result.w = 1.0f;
     write_imagef(outputImage, pos, result);
 }
