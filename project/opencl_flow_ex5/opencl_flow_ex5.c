@@ -2,6 +2,8 @@
 #define KERNEL_COLOR_TO_GRAY "color_to_gray"
 #define KERNEL_ZNCC_LEFT "left_disparity"
 #define KERNEL_ZNCC_RIGHT "right_disparity"
+#define KERNEL_CROSS_CHECK "crosscheck"
+#define KERNEL_OCCLUSION_FILL "occlusion_fill"
 
 #include <pngloader.h>
 #include <config.h>
@@ -341,6 +343,177 @@ void apply_zncc(cl_context context, cl_kernel kernel, cl_command_queue queue, co
     printf("Time taken to read the output image (zncc) = %llu ns\n", read_time);
 }
 
+void apply_crosscheck(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, const Image *im1, Image *output_im0) {
+
+    /* Image data */
+    cl_mem input_image, input_image1, output_image;
+    cl_image_format input_format, input_format1, output_format;
+    int err;
+
+    cl_ulong read_time, time_to_crosscheck;
+    
+    cl_event crosscheck_read_event, crosscheck_event;
+
+    const size_t width = im0 -> width;
+    const size_t height = im0 -> height;
+
+    input_format.image_channel_order = CL_RGBA;
+    input_format.image_channel_data_type = CL_UNORM_INT8;
+
+    input_format1.image_channel_order = CL_RGBA;
+    input_format1.image_channel_data_type = CL_UNORM_INT8;
+
+    output_format.image_channel_order = CL_RGBA;
+    output_format.image_channel_data_type = CL_UNORM_INT8;
+
+    /* Create input image object */
+    input_image = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format, width, height, 0, (void*)im0 -> image, &err);
+    if(err < 0) {
+        printf("crosscheck: Couldn't create the input image 0 object");
+        exit(1);
+    };
+
+    input_image1 = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format1, width, height, 0, (void*)im1 -> image, &err);
+    if(err < 0) {
+        printf("crosscheck: Couldn't create the input image 1 object");
+        exit(1);
+    };
+
+    /* Create output image object */
+    output_image = clCreateImage2D(context, CL_MEM_READ_WRITE, &output_format, width, height, 0, NULL, &err);
+    if(err < 0) {
+        perror("crosscheck: Couldn't create the input image object");
+        exit(1);
+    };
+
+    // Set kernel arguments
+    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_image);
+    if(err < 0) {
+        perror("crosscheck, Error: clSetKernelArg, inputImage");
+        exit(1);
+    }
+
+    err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &input_image1);
+    if(err < 0) {
+        perror("crosscheck, Error: clSetKernelArg, inputImage");
+        exit(1);
+    }
+
+    err = clSetKernelArg(kernel, 2, sizeof(cl_mem), &output_image);
+    if(err < 0) {
+        perror("crosscheck, Error: clSetKernelArg, outputImage");
+        exit(1);
+    }
+
+    // Execute the OpenCL kernel
+    size_t globalWorkSize[2] = { width, height };
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &crosscheck_event);
+    if(err < 0) {
+        perror("crosscheck, Error: clEnqueueNDRangeKernel");
+        exit(1);
+    }
+
+    // Read the output image back to the host
+    err = clEnqueueReadImage(queue, output_image, CL_TRUE, (size_t[3]){0, 0, 0}, (size_t[3]){width, height, 1},
+                             0, 0, (void*)output_im0 -> image, 0, NULL, &crosscheck_read_event);
+    if(err < 0) {
+        perror("crosscheck, Error: clEnqueueReadImage");
+        exit(1);
+    }
+
+    clFinish(queue);
+
+    output_im0 -> width = width;
+    output_im0 -> height = height;
+
+    time_to_crosscheck = getExecutionTime(crosscheck_event);
+    read_time = getExecutionTime(crosscheck_read_event);
+
+    clReleaseEvent(crosscheck_read_event);
+    clReleaseEvent(crosscheck_event);
+
+    printf("Time taken to do the crosscheck = %llu ns\n", time_to_crosscheck);
+    printf("Time taken to read the output image (crosscheck) = %llu ns\n", read_time);
+}
+
+void apply_occlusion_fill(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0) {
+
+    /* Image data */
+    cl_mem input_image, output_image;
+    cl_image_format input_format, output_format;
+    int err;
+
+    cl_ulong read_time, time_to_occlustion_fill;
+    
+    cl_event occlustion_fill_read_event, occlustion_fill_event;
+
+    const size_t width = im0 -> width;
+    const size_t height = im0 -> height;
+
+    input_format.image_channel_order = CL_RGBA;
+    input_format.image_channel_data_type = CL_UNORM_INT8;
+
+    output_format.image_channel_order = CL_RGBA;
+    output_format.image_channel_data_type = CL_UNORM_INT8;
+
+    /* Create input image object */
+    input_image = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format, width, height, 0, (void*)im0 -> image, &err);
+    if(err < 0) {
+        printf("occlustion_fill: Couldn't create the input image 0 object");
+        exit(1);
+    };
+
+    /* Create output image object */
+    output_image = clCreateImage2D(context, CL_MEM_READ_WRITE, &output_format, width, height, 0, NULL, &err);
+    if(err < 0) {
+        perror("occlustion_fill: Couldn't create the input image object");
+        exit(1);
+    };
+
+    // Set kernel arguments
+    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_image);
+    if(err < 0) {
+        perror("occlustion_fill, Error: clSetKernelArg, inputImage");
+        exit(1);
+    }
+
+    err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &output_image);
+    if(err < 0) {
+        perror("occlustion_fill, Error: clSetKernelArg, outputImage");
+        exit(1);
+    }
+
+    // Execute the OpenCL kernel
+    size_t globalWorkSize[2] = { width, height };
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &occlustion_fill_event);
+    if(err < 0) {
+        perror("occlustion_fill, Error: clEnqueueNDRangeKernel");
+        exit(1);
+    }
+
+    // Read the output image back to the host
+    err = clEnqueueReadImage(queue, output_image, CL_TRUE, (size_t[3]){0, 0, 0}, (size_t[3]){width, height, 1},
+                             0, 0, (void*)output_im0 -> image, 0, NULL, &occlustion_fill_read_event);
+    if(err < 0) {
+        perror("occlustion_fill, Error: clEnqueueReadImage");
+        exit(1);
+    }
+
+    clFinish(queue);
+
+    output_im0 -> width = width;
+    output_im0 -> height = height;
+
+    time_to_occlustion_fill = getExecutionTime(occlustion_fill_event);
+    read_time = getExecutionTime(occlustion_fill_read_event);
+
+    clReleaseEvent(occlustion_fill_read_event);
+    clReleaseEvent(occlustion_fill_event);
+
+    printf("Time taken to do the occlustion_fill = %llu ns\n", time_to_occlustion_fill);
+    printf("Time taken to read the output image (occlustion_fill) = %llu ns\n", read_time);
+}
+
 void openclFlowEx5(void) {
     printf("OpenCL Flow Example 5 STARTED\n");
     cl_device_id device;
@@ -349,7 +522,7 @@ void openclFlowEx5(void) {
     cl_program program;
     cl_int err;
 
-    cl_kernel *kernels, kernel_resize_image, kernel_color_to_gray, kernel_zncc_left, kernel_zncc_right;
+    cl_kernel *kernels, kernel_resize_image, kernel_color_to_gray, kernel_zncc_left, kernel_zncc_right, kernel_cross_check, kernel_occlusion_fill;
     char kernel_name[20];
     cl_uint i, num_kernels;
 
@@ -368,6 +541,8 @@ void openclFlowEx5(void) {
     Image *output_2_resized_im0 = createEmptyImage(new_width, new_height);
     Image *output_2_bw_im0 = createEmptyImage(new_width, new_height);
     Image *output_right_disparity_im0 = createEmptyImage(new_width, new_height);
+    Image *left_crosscheck_im0 = createEmptyImage(new_width, new_height);
+    Image *output_left_occlusion_im0 = createEmptyImage(new_width, new_height);
 
     device = create_device();
 
@@ -408,6 +583,12 @@ void openclFlowEx5(void) {
         } else if(strcmp(kernel_name, KERNEL_ZNCC_RIGHT) == 0) {
             kernel_zncc_right = kernels[i];
             printf("Found zncc_right kernel at index %u.\n", i);
+        } else if(strcmp(kernel_name, KERNEL_CROSS_CHECK) == 0) {
+            kernel_cross_check = kernels[i];
+            printf("Found cross_check kernel at index %u.\n", i);
+        } else if(strcmp(kernel_name, KERNEL_OCCLUSION_FILL) == 0) {
+            kernel_occlusion_fill = kernels[i];
+            printf("Found occlustion kernel at index %u.\n", i);
         }
     }
     // cl_command_queue_properties props[3] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
@@ -434,6 +615,12 @@ void openclFlowEx5(void) {
     /* Apply zncc kernel */
     apply_zncc(context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0);
 
+    /* Apply left crosscheck kernel */
+    apply_crosscheck(context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0);
+
+    /* Apply left occlustion fill kernel */
+    apply_occlusion_fill(context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0);
+
     saveImage(OUTPUT_1_RESIZE_OPENCL_FILE, output_1_resized_im0);
     saveImage(OUTPUT_1_BW_OPENCL_FILE, output_1_bw_im0);
     saveImage(OUTPUT_1_LEFT_DISPARITY_OPENCL_FILE, output_left_disparity_im0);
@@ -441,6 +628,10 @@ void openclFlowEx5(void) {
     saveImage(OUTPUT_2_RESIZE_OPENCL_FILE, output_2_resized_im0);
     saveImage(OUTPUT_2_BW_OPENCL_FILE, output_2_bw_im0);
     saveImage(OUTPUT_2_LEFT_DISPARITY_OPENCL_FILE, output_right_disparity_im0);
+
+    saveImage(OUTPUT_3_CROSSCHECK_LEFT_OPENCL_FILE, left_crosscheck_im0);
+
+    saveImage(OUTPUT_4_OCCLUSTION_LEFT_OPENCL_FILE, output_left_occlusion_im0);
 
     /* Deallocate resources */
     freeImage(im0);
@@ -455,6 +646,8 @@ void openclFlowEx5(void) {
     clReleaseKernel(kernel_resize_image);
     clReleaseKernel(kernel_zncc_left);
     clReleaseKernel(kernel_zncc_right);
+    clReleaseKernel(kernel_cross_check);
+    clReleaseKernel(kernel_occlusion_fill);
     clReleaseCommandQueue(queue);
     clReleaseProgram(program);
     clReleaseContext(context);

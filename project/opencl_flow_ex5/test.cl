@@ -27,8 +27,6 @@ __kernel void color_to_gray(__read_only image2d_t inputImage, __write_only image
 __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
-    const int width = get_global_size(0);
-    const int height = get_global_size(1);
     const int WINDOW_SIZE = 15;
     const int WINDOW_HALF_SIZE = 7;
     float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
@@ -103,8 +101,6 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
 __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
-    const int width = get_global_size(0);
-    const int height = get_global_size(1);
     const int WINDOW_SIZE = 15;
     const int WINDOW_HALF_SIZE = 7;
     float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
@@ -174,4 +170,72 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
     result.z = normalizedDisp;
     result.w = 1.0f;
     write_imagef(outputImage, pos, result);
+}
+
+__kernel void crosscheck(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
+    const int2 pos = (int2)(get_global_id(0), get_global_id(1));
+
+    const float threshold = 0.588f;
+
+    const float4 image1Pixel = read_imagef(inputImage1, sampler, pos);
+    const float4 image2Pixel = read_imagef(inputImage2, sampler, pos);
+
+    float4 crosscheck_output = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
+
+    if (fabs(image1Pixel.x - image2Pixel.x) <= threshold) {
+        crosscheck_output.x = image1Pixel.x;
+        crosscheck_output.y = image1Pixel.y;
+        crosscheck_output.z = image1Pixel.z;
+    }
+
+    write_imagef(outputImage, pos, crosscheck_output);
+}
+
+__kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only image2d_t outputImage) {
+    const int2 pos = (int2)(get_global_id(0), get_global_id(1));
+
+    const float4 imagePixel = read_imagef(inputImage, sampler, pos);
+    float4 occlusion_output = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
+
+    const float gassian_kernel[5][5] = {
+        {0.0030, 0.0133, 0.0219, 0.0133, 0.0030},
+        {0.0133, 0.0596, 0.0983, 0.0596, 0.0133},
+        {0.0219, 0.0983, 0.1621, 0.0983, 0.0219},
+        {0.0133, 0.0596, 0.0983, 0.0596, 0.0133},
+        {0.0030, 0.0133, 0.0219, 0.0133, 0.0030}
+    };
+
+    if (imagePixel.x == 0 && imagePixel.y == 0 && imagePixel.z == 0) {
+
+        float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+        float prevNonZeroValue = 0.0f;
+
+        for (int i = -2; i <= 2; ++i) {
+            for (int j = -2; j <= 2; ++j) {
+
+                const int2 offsetPos = pos + (int2)(i, j);
+                float4 color = read_imagef(inputImage, sampler, offsetPos);
+                if (color.x != 0) {
+                    prevNonZeroValue = color.x;
+                } else {
+                    color.x = prevNonZeroValue;
+                    color.y = prevNonZeroValue;
+                    color.z = prevNonZeroValue;
+                }
+
+                const float weight = gassian_kernel[i + 2][j + 2];
+                sum += weight * color;
+            }
+        }
+        occlusion_output.x = sum.x;
+        occlusion_output.y = sum.y;
+        occlusion_output.z = sum.z;
+
+    } else {
+        occlusion_output.x = imagePixel.x;
+        occlusion_output.y = imagePixel.y;
+        occlusion_output.z = imagePixel.z;
+    }
+
+    write_imagef(outputImage, pos, occlusion_output);
 }
