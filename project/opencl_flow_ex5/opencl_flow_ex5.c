@@ -1,6 +1,7 @@
 #define KERNEL_RESIZE_IMAGE "resize_image"
 #define KERNEL_COLOR_TO_GRAY "color_to_gray"
-#define KERNEL_ZNCC "zncc"
+#define KERNEL_ZNCC_LEFT "left_disparity"
+#define KERNEL_ZNCC_RIGHT "right_disparity"
 
 #include <pngloader.h>
 #include <config.h>
@@ -348,7 +349,7 @@ void openclFlowEx5(void) {
     cl_program program;
     cl_int err;
 
-    cl_kernel *kernels, kernel_resize_image, kernel_color_to_gray, kernel_zncc;
+    cl_kernel *kernels, kernel_resize_image, kernel_color_to_gray, kernel_zncc_left, kernel_zncc_right;
     char kernel_name[20];
     cl_uint i, num_kernels;
 
@@ -401,9 +402,12 @@ void openclFlowEx5(void) {
         } else if(strcmp(kernel_name, KERNEL_COLOR_TO_GRAY) == 0) {
             kernel_color_to_gray = kernels[i];
             printf("Found color_to_gray kernel at index %u.\n", i);
-        } else if(strcmp(kernel_name, KERNEL_ZNCC) == 0) {
-            kernel_zncc = kernels[i];
-            printf("Found zncc kernel at index %u.\n", i);
+        } else if(strcmp(kernel_name, KERNEL_ZNCC_LEFT) == 0) {
+            kernel_zncc_left = kernels[i];
+            printf("Found zncc_left kernel at index %u.\n", i);
+        } else if(strcmp(kernel_name, KERNEL_ZNCC_RIGHT) == 0) {
+            kernel_zncc_right = kernels[i];
+            printf("Found zncc_right kernel at index %u.\n", i);
         }
     }
     // cl_command_queue_properties props[3] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
@@ -425,10 +429,10 @@ void openclFlowEx5(void) {
     convert_image_to_gray(context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0);
 
     /* Apply zncc kernel */
-    apply_zncc(context, kernel_zncc, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0);
+    apply_zncc(context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0);
 
     /* Apply zncc kernel */
-    // apply_zncc(context, kernel_zncc, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0);
+    apply_zncc(context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0);
 
     saveImage(OUTPUT_1_RESIZE_OPENCL_FILE, output_1_resized_im0);
     saveImage(OUTPUT_1_BW_OPENCL_FILE, output_1_bw_im0);
@@ -449,7 +453,8 @@ void openclFlowEx5(void) {
     freeImage(output_right_disparity_im0);
     clReleaseKernel(kernel_color_to_gray);
     clReleaseKernel(kernel_resize_image);
-    clReleaseKernel(kernel_zncc);
+    clReleaseKernel(kernel_zncc_left);
+    clReleaseKernel(kernel_zncc_right);
     clReleaseCommandQueue(queue);
     clReleaseProgram(program);
     clReleaseContext(context);
