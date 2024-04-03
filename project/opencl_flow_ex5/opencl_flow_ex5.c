@@ -428,7 +428,7 @@ void openclFlowEx5(void) {
     apply_zncc(context, kernel_zncc, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0);
 
     /* Apply zncc kernel */
-    apply_zncc(context, kernel_zncc, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0);
+    // apply_zncc(context, kernel_zncc, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0);
 
     saveImage(OUTPUT_1_RESIZE_OPENCL_FILE, output_1_resized_im0);
     saveImage(OUTPUT_1_BW_OPENCL_FILE, output_1_bw_im0);
@@ -454,5 +454,5 @@ void openclFlowEx5(void) {
     clReleaseProgram(program);
     clReleaseContext(context);
 
-    printf("OpenCL Flow Example 3 ENDED\n");
+    printf("OpenCL Flow Example 5 ENDED\n");
 }
