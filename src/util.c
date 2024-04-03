@@ -43,5 +43,5 @@ float elapsed_time_microsec(struct timespec *begin, struct timespec *end,
         *nsec = end->tv_nsec - begin->tv_nsec;
         *sec = end->tv_sec - begin->tv_sec;
     }
-    return (float) (*sec) * 1000 + ((float) (*nsec)) * 1E-6;
+    return (float) (*sec) * 1000 + ((float) (*nsec)) * 1E-3;
 }
