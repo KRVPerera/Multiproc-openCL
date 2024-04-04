@@ -24,11 +24,12 @@ __kernel void color_to_gray(__read_only image2d_t inputImage, __write_only image
     write_imagef(outputImage, pos, (float4)(grayscaleValue, grayscaleValue, grayscaleValue, 1.0f));
 }
 
+#define WINDOW_SIZE 15
+#define WINDOW_HALF_SIZE 7
+
 __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
-    const int WINDOW_SIZE = 15;
-    const int WINDOW_HALF_SIZE = 7;
     float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
 
     float4 image1Window[WINDOW_SIZE * WINDOW_SIZE];
@@ -101,8 +102,6 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
 __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
-    const int WINDOW_SIZE = 15;
-    const int WINDOW_HALF_SIZE = 7;
     float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
 
     float4 image1Window[WINDOW_SIZE * WINDOW_SIZE];
@@ -209,6 +208,17 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
 
         float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
         float prevNonZeroValue = 0.0f;
+
+        for (int i = -2; i <= 2; ++i) {
+            for (int j = -2; j <= 2; ++j) {
+                const int2 offsetPos = pos + (int2)(i, j);
+                float4 color = read_imagef(inputImage, sampler, offsetPos);
+                if (color.x != 0) {
+                    prevNonZeroValue = color.x;
+                    break;
+                }
+            }
+        }
 
         for (int i = -2; i <= 2; ++i) {
             for (int j = -2; j <= 2; ++j) {
