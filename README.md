@@ -7,16 +7,16 @@ We are currently working on it.
 
 pre operations times are populated in `data/out/profile_data_X_MT.txt` or `data/out/profile_data_X.txt` where X is the image number.
 
-| Operation   | Single Thread (μs) | Multi Thread (μs) | Speedup | OpenCL without memory copy times (μs) |
-|-------------|--------------------|-------------------|---------|---------------------------------------|
-| Image Read  | 558094.500         | -                 | -                                     |
-| Image Save  | 79159.695          | -                 | -                                     |
-| Resize      | 3889.900           | 2670.600          |         | 1029.800                              |
-| Grayscale   | 4911.400           | 1168.300          |         | 226.210                               |
-| Blur        | 192531.391         | 33329.398         |         | 1151.520                              |
-| Disparity   | 587603.438         | 168107.750        |         | 163.880                               |
-| Cross Check | 3536.050           | 1220.300          |         | 520.560                               |
-| Occulsion   | 5636.250           | 1218.000          |         | 709.610                               |
+| Operation   | Single Thread (μs) | Multi Thread (μs) | Speedup | OpenCL without memory copy times (μs) | Speedup |
+|-------------|--------------------|-------------------|---------|---------------------------------------|---------|
+| Image Read  | 558094.500         | -                 | -       |                                       |
+| Image Save  | 79159.695          | -                 | -       |                                       |
+| Resize      | 3889.900           | 2670.600          | 31%     | 1029.800                              |
+| Grayscale   | 4911.400           | 1168.300          | 76%     | 226.210                               |
+| Blur        | 192531.391         | 33329.398         | 83%     | 1151.520                              |
+| Disparity   | 587603.438         | 168107.750        | 71%     | 163.880                               |
+| Cross Check | 3536.050           | 1220.300          | 65%     | 520.560                               |
+| Occulsion   | 5636.250           | 1218.000          | 78%     | 709.610                               |
 
 
 

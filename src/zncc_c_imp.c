@@ -63,12 +63,12 @@ Image *Get_zncc_c_imp_MT(const Image *image1, const Image *image2, const int dir
 
     const int height = image1->height;
     const int width = image1->width;
-    float bestDisp = 0;
-    float max_zncc = 0;
-    #pragma omp parallel for shared(depth_image) collapse(2) schedule(static, 65) private(bestDisp, max_zncc)
+
+    #pragma omp parallel for shared(depth_image) collapse(2) schedule(static, 65)
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-
+            float bestDisp = 0;
+            float max_zncc = 0;
             const size_t index = 4 * y * width + 4 * x;
 
             float * const image1Window = getNeighbourWindowWithMirroring(image1, x, y, ZNCC_WINDOW_SIZE);
