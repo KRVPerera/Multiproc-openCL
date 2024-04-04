@@ -215,6 +215,7 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
                 float4 color = read_imagef(inputImage, sampler, offsetPos);
                 if (color.x != 0) {
                     prevNonZeroValue = color.x;
+                    break;
                 }
             }
         }
