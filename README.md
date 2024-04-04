@@ -9,14 +9,14 @@ pre operations times are populated in `data/out/profile_data_X_MT.txt` or `data/
 
 | Operation   | Single Thread (μs) | Multi Thread (μs) | OpenCL without memory copy times (ns) |
 |-------------|--------------------|-------------------|---------------------------------------|
- | Image Read  | 642.76             | -                 | -                                     |
-| Image Save  | 93.01              | -                 | -                                     |
-| Resize      | 3.42               | 2.37              | 471.84                                |
-| Grayscale   | 4.43               | 0.90              | 205.32                                |
-| Blur        | 199.93             | 32.10             | 774.00                                |
-| Disparity   | 66960.61           | 11129.29          | -                                     |
-| Cross Check | 2.84               | 1.16              | -                                     |
-| Occulsion   | 4.36               | 1.46              | -                                     |
+| Image Read  | 558094.500         | -                 | -                                     |
+| Image Save  | 79159.695          | -                 | -                                     |
+| Resize      | 3889.900           | 2670.600          | 471.84                                |
+| Grayscale   | 4911.400           | 1168.300          | 205.32                                |
+| Blur        | 192531.391         | 33329.398         | 774.00                                |
+| Disparity   | 587603.438         | 595170.561        | -                                     |
+| Cross Check | 3536.050           | 1220.300          | -                                     |
+| Occulsion   | 5636.250           | 1218.000          | -                                     |
 
 
 
