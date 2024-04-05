@@ -77,7 +77,8 @@ int main(int argc, char *argv[]) {
     } else {
         logger("Invalid argument. Expected 'opencl', 'mp', 'single' or 'test'. Got '%s'.", argv[1]);
         logger(" Running mp - multithreaded mode.");
-    }GET_TIME(t1);
+    }
+    GET_TIME(t1);
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     logger("Total time of the program : %f micro seconds", elapsed_time);
     logger("Stopping Multiprocessor Programming project!");

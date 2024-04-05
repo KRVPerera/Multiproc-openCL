@@ -3,6 +3,25 @@
 
 #include <time.h>
 
+typedef enum Mode {
+    OPENMP,
+    OPENCL,
+    MULTIPROCESS,
+    UNKNOWN
+} Mode;
+
+struct TimesForStages {
+    Mode mode;
+    char* stageName;
+    float *times;
+    int numSamples;
+};
+
+typedef struct AllStages {
+    struct TimesForStages *stages;
+    int numStages;
+} AllStages;
+
 #define GET_TIME(x); if(clock_gettime(CLOCK_MONOTONIC, &(x)) < 0) \
 {perror("clock_gettime(): "); exit(EXIT_FAILURE);}
 

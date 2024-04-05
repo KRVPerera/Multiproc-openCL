@@ -7,6 +7,7 @@
 #include <cross_checking.h>
 #include <zncc_c_imp.h>
 #include <occlusion_filling.h>
+#include <logger.h>
 
 // TODO: since the filter is syymetrical we may want to keep only wanted values
 // TODO: we may want to use x and y componets of the filter separately
@@ -43,7 +44,6 @@ void closefile(FILE *fp) {
 }
 
 
-
 Image* getBWImage(const char * imagePath, const char * outputPath, const char * profilePath) {
     struct timespec t0, t1;
     unsigned long sec, nsec;
@@ -54,18 +54,21 @@ Image* getBWImage(const char * imagePath, const char * outputPath, const char * 
     GET_TIME(t1);
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     fprintf(fp, "Image Load Time : %f micro seconds\n", elapsed_time);
+    logger("Image Load Time : %f micro seconds", elapsed_time);
 
     GET_TIME(t0);
     Image *smallImage = resizeImage(im);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     fprintf(fp, "Image Resize Time : %f micro seconds\n", elapsed_time);
+    logger("Image Resize Time : %f micro seconds", elapsed_time);
 
     GET_TIME(t0);
     Image* grayIm = grayScaleImage(smallImage);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     fprintf(fp, "Image GrayScale Time : %f micro seconds\n", elapsed_time);
+    logger("Image GrayScale Time : %f micro seconds", elapsed_time);
 
     unsigned char* gaussianFilter = getGaussianFilter();
     GET_TIME(t0);
@@ -73,6 +76,7 @@ Image* getBWImage(const char * imagePath, const char * outputPath, const char * 
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     fprintf(fp, "Image Filter Time : %f micro seconds\n", elapsed_time);
+    logger("Image Filter Time : %f micro seconds", elapsed_time);
 
     saveImage(OUTPUT_FILE_0_BW_FILTERED, filteredImage);
 
@@ -81,6 +85,7 @@ Image* getBWImage(const char * imagePath, const char * outputPath, const char * 
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     fprintf(fp, "Image Save Time : %f micro seconds\n", elapsed_time);
+    logger("Image Save Time : %f micro seconds", elapsed_time);
 
     freeImage(im);
     freeImage(smallImage);
@@ -169,6 +174,8 @@ void postProcessFlow() {
 void fullFlow() {
     struct timespec t0, t1;
     unsigned long sec, nsec;
+
+    AllStages allStages;
 
     Image* bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW, OUTPUT_FILE_PROFILE_FILTERED_0);
     Image* bwImage1= getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, OUTPUT_FILE_PROFILE_FILTERED_1);
