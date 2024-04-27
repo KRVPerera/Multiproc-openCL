@@ -43,36 +43,69 @@ void closefile(FILE *fp) {
 }
 
 
-
-Image* getBWImage(const char * imagePath, const char * outputPath, const char * profilePath) {
+Image* getBWImage(const char * imagePath, const char * outputPath) {
     struct timespec t0, t1;
     unsigned long sec, nsec;
-    FILE *fp = openfile(profilePath);
 
-    GET_TIME(t0);
-    Image *im = readImage(imagePath);
-    GET_TIME(t1);
-    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    fprintf(fp, "Image Load Time : %f micro seconds\n", elapsed_time);
+    // first try running readImage 10 times to get average time
+    int numberOfSamples = 10;
+
+    // allocate memory for 10 samples
+    float *times = (float *) malloc(sizeof(float) * 10);
+    int isAverageOkay = 0;
+    float elapsed_time;
+    Image *im;
+
+    while (!isAverageOkay) {
+        for (int i = 0; i < numberOfSamples; i++) {
+            GET_TIME(t0);
+            im = readImage(imagePath);
+            GET_TIME(t1);
+            elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+            times[i] = elapsed_time;
+            if (i < numberOfSamples - 1) {
+                freeImage(im);
+            }
+        }
+        // get the average time for `readImage` function
+        float mean = Average(times, numberOfSamples);
+        float sd = standardDeviation(times, numberOfSamples);
+
+        // get required sample size for 95% confidence with 5% error margin
+        int req_n = requiredSampleSize(sd, mean);
+        // if required sample size is greater than 10, then run the function again with desired sample size
+        if (req_n > 10) {
+            printf("Required sample size for 95 percent confidence with 5 percent error margin : %d\n", req_n);
+            printf("Running readImage function for %d times\n", req_n);
+            numberOfSamples = req_n;
+            free(times);
+            freeImage(im);
+            times = (float *) malloc(sizeof(float) * numberOfSamples);
+        } else {
+            isAverageOkay = 1;
+            elapsed_time = mean;
+        }
+    }
+    printf("Image Load Time : %f micro seconds\n", elapsed_time);
 
     GET_TIME(t0);
     Image *smallImage = resizeImage(im);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    fprintf(fp, "Image Resize Time : %f micro seconds\n", elapsed_time);
+    printf("Image Resize Time : %f micro seconds\n", elapsed_time);
 
     GET_TIME(t0);
     Image* grayIm = grayScaleImage(smallImage);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    fprintf(fp, "Image GrayScale Time : %f micro seconds\n", elapsed_time);
+    printf("Image GrayScale Time : %f micro seconds\n", elapsed_time);
 
     unsigned char* gaussianFilter = getGaussianFilter();
     GET_TIME(t0);
     Image* filteredImage = applyFilter(grayIm, gaussianFilter, 273, 5);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    fprintf(fp, "Image Filter Time : %f micro seconds\n", elapsed_time);
+    printf("Image Filter Time : %f micro seconds\n", elapsed_time);
 
     saveImage(OUTPUT_FILE_0_BW_FILTERED, filteredImage);
 
@@ -80,14 +113,14 @@ Image* getBWImage(const char * imagePath, const char * outputPath, const char * 
     saveImage(outputPath, grayIm);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    fprintf(fp, "Image Save Time : %f micro seconds\n", elapsed_time);
+    printf("Image Save Time : %f micro seconds\n", elapsed_time);
 
     freeImage(im);
     freeImage(smallImage);
     free(gaussianFilter);
     free(filteredImage);
+    free(times);
 
-    closefile(fp);
     return grayIm;
 }
 
@@ -170,8 +203,8 @@ void fullFlow() {
     struct timespec t0, t1;
     unsigned long sec, nsec;
 
-    Image* bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW, OUTPUT_FILE_PROFILE_FILTERED_0);
-    Image* bwImage1= getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, OUTPUT_FILE_PROFILE_FILTERED_1);
+    Image* bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW);
+    Image* bwImage1= getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW);
 
     GET_TIME(t0);
     Image* left_disparity_image = Get_zncc_c_imp(bwImage0, bwImage1, 1);
