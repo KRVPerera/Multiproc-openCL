@@ -127,13 +127,6 @@ Image *grayScaleImage_MT(const Image *input) {
     return output;
 }
 
-/**
- * collect 25 neighbours of a pixel
- * @param input input image is a BW image
- * @param x
- * @param y
- * @return
- */
 unsigned char *getNeighbourWindowWithMirroringUnsigned(const Image *input, const unsigned x, const unsigned y) {
     unsigned char *neighbours = malloc(5 * 5 * sizeof(unsigned char));
     for (unsigned i = 0; i < 5; ++i) {

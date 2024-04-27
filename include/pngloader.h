@@ -39,7 +39,7 @@ Image *resizeImage_MT(const Image *input);
 
 
 /**
- *
+ * Get the 25 (5x5) neighbours of a pixel in an image
  * @param input
  * @param x
  * @param y
