@@ -3,8 +3,7 @@
 
 #include <time.h>
 
-#define GET_TIME(x); if(clock_gettime(CLOCK_MONOTONIC, &(x)) < 0) \
-{perror("clock_gettime(): "); exit(EXIT_FAILURE);}
+#define GET_TIME(x) if(clock_gettime(CLOCK_MONOTONIC, &(x)) < 0) {perror("clock_gettime(): "); exit(EXIT_FAILURE);}
 
 /**
  * Calculate the elapsed time between two timespec structs

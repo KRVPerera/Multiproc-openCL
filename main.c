@@ -52,10 +52,15 @@ void openmpTestCode(void) {
 int main(int argc, char *argv[]) {
     logger("[MultiProc] : Starting Multiprocessor Programming project!");
 
+    int benchmark = 0;
     int multithreadedMode = 0;
-    if (argc != 2) {
+    if (argc < 2) {
         logger("Incorrect number of arguments. Expected 1, got %d. Running `mp - multithreaded` mode", argc - 1);
         multithreadedMode = 1;
+    }
+
+    if (argc == 3 && strcmp(argv[2], "-benchmark") == 0) {
+        benchmark = 1;
     }
 
     logger("Data folder %s", PROJECT_DATA_DIR);
@@ -71,7 +76,7 @@ int main(int argc, char *argv[]) {
     } else if (multithreadedMode || strcmp(argv[1], "mp") == 0) {
         fullFlow_MT();
     } else if (!multithreadedMode && strcmp(argv[1], "single") == 0) {
-        fullFlow();
+        fullFlow(benchmark);
     } else if (!multithreadedMode && strcmp(argv[1], "test") == 0) {
         openmpTestCode();
     } else {
