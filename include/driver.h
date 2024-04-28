@@ -6,13 +6,6 @@
 #define MULTIPROCOPENCL_DRIVER_H
 #include <pngloader.h>
 
-typedef struct ProfileInformation {
-    float znccTime;
-    float filterTime;
-    float disparityTime;
-    float crossCheckTime;
-    float occlusionTime;
-} ProfileInformation;
 
 void runZnccFlowForOneImage(const char * imagePath, const char * outputPath);
 void zncc_flow_driver(const char *imagePath, const char *outputPath);
