@@ -85,73 +85,107 @@ Image *getBWImageSingleRuns(const char *imagePath, const char *outputPath) {
 }
 
 Image *getBWImage(const char *imagePath, const char *outputPath, int benchmarking) {
+
+    if (!benchmarking) {
+        return getBWImageSingleRuns(imagePath, outputPath);
+    }
+
     struct timespec t0, t1;
     unsigned long sec, nsec;
 
     float elapsed_time;
     Image *im;
 
-    if (benchmarking) {
-        // first try running readImage 10 times to get average time
-        int numberOfSamples = 10;
-        // allocate memory for 10 samples
-        float *times = (float *) malloc(sizeof(float) * 10);
-        int isAverageOkay = 0;
-        printf("Running readImage function for %d times\n", numberOfSamples);
-        while (!isAverageOkay) {
-            for (int i = 0; i < numberOfSamples; i++) {
-                GET_TIME(t0)
-                im = readImage(imagePath);
-                GET_TIME(t1)
-                elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-                times[i] = elapsed_time;
-                if (i < numberOfSamples - 1) {
-                    freeImage(im);
-                }
-            }
-            // get the average time for `readImage` function
-            float mean = Average(times, numberOfSamples);
-            float sd = standardDeviation(times, numberOfSamples);
-
-            // get required sample size for 95% confidence with 5% error margin
-            int req_n = requiredSampleSize(sd, mean);
-            // if required sample size is greater than 10, then run the function again with desired sample size
-            if (req_n > 10) {
-                printf("Required sample size for 95 percent confidence with 5 percent error margin : %d\n", req_n);
-                printf("Running readImage function for %d times\n", req_n);
-                numberOfSamples = req_n;
-                free(times);
+    // first try running readImage 10 times to get average time
+    int numberOfSamples = 10;
+    // allocate memory for 10 samples
+    float *times = (float *) malloc(sizeof(float) * 10);
+    int isAverageOkay = 0;
+    printf("Running `readImage` function for %d times\n", numberOfSamples);
+    while (!isAverageOkay) {
+        for (int i = 0; i < numberOfSamples; i++) {
+            GET_TIME(t0)
+            im = readImage(imagePath);
+            GET_TIME(t1)
+            elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+            times[i] = elapsed_time;
+            if (i < numberOfSamples - 1) {
                 freeImage(im);
-                times = (float *) malloc(sizeof(float) * numberOfSamples);
-            } else {
-                isAverageOkay = 1;
-                elapsed_time = mean;
             }
         }
-        free(times);
-        printf("Image Load Time : %f micro seconds\n", elapsed_time);
-    } else {
-        getBWImageSingleRuns(imagePath, outputPath);
-    }
+        // get the average time for `readImage` function
+        float mean = Average(times, numberOfSamples);
+        float sd = standardDeviation(times, numberOfSamples);
 
-    GET_TIME(t0)
-    Image *smallImage = resizeImage(im);
-    GET_TIME(t1)
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image Resize Time : %f micro seconds\n", elapsed_time);
+        // get required sample size for 95% confidence with 5% error margin
+        int req_n = requiredSampleSize(sd, mean);
+        // if required sample size is greater than 10, then run the function again with desired sample size
+        if (req_n > numberOfSamples) {
+            printf("Required sample size for 95 percent confidence with 5 percent error margin : %d\n", req_n);
+            printf("Running `readImage` function for %d times\n", req_n);
+            numberOfSamples = req_n;
+            free(times);
+            freeImage(im);
+            times = (float *) malloc(sizeof(float) * numberOfSamples);
+        } else {
+            isAverageOkay = 1;
+            elapsed_time = mean;
+        }
+    }
+    free(times);
+    printf("Image Load Time \t: %f micro seconds\n", elapsed_time);
+
+    isAverageOkay = 0;
+    numberOfSamples = 10;
+    Image *smallImage;
+    times = (float *) malloc(sizeof(float) * numberOfSamples);
+    printf("Running `resizeImage` function for %d times\n", numberOfSamples);
+
+    while (!isAverageOkay) {
+        for (int i = 0; i < numberOfSamples; i++) {
+            GET_TIME(t0)
+            smallImage = resizeImage(im);
+            GET_TIME(t1)
+            elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+            times[i] = elapsed_time;
+            if (i < numberOfSamples - 1) {
+                freeImage(smallImage);
+            }
+        }
+        // get the average time for `readImage` function
+        float mean = Average(times, numberOfSamples);
+        float sd = standardDeviation(times, numberOfSamples);
+
+        // get required sample size for 95% confidence with 5% error margin
+        int req_n = requiredSampleSize(sd, mean);
+        // if required sample size is greater than 10, then run the function again with desired sample size
+        if (req_n > numberOfSamples) {
+            printf("Required sample size for 95 percent confidence with 5 percent error margin : %d\n", req_n);
+            printf("Running `resizeImage` function for %d times\n", req_n);
+            numberOfSamples = req_n;
+            free(times);
+            freeImage(smallImage);
+            times = (float *) malloc(sizeof(float) * numberOfSamples);
+        } else {
+            isAverageOkay = 1;
+            elapsed_time = mean;
+        }
+    }
+    free(times);
+    printf("Image Resize Time \t: %f micro seconds\n", elapsed_time);
 
     GET_TIME(t0)
     Image *grayIm = grayScaleImage(smallImage);
     GET_TIME(t1)
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image GrayScale Time : %f micro seconds\n", elapsed_time);
+    printf("Image GrayScale Time \t: %f micro seconds\n", elapsed_time);
 
     unsigned char *gaussianFilter = getGaussianFilter();
     GET_TIME(t0)
     Image *filteredImage = applyFilter(grayIm, gaussianFilter, 273, 5);
     GET_TIME(t1)
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image Filter Time : %f micro seconds\n", elapsed_time);
+    printf("Image Filter Time \t: %f micro seconds\n", elapsed_time);
 
     saveImage(OUTPUT_FILE_0_BW_FILTERED, filteredImage);
 
@@ -159,7 +193,7 @@ Image *getBWImage(const char *imagePath, const char *outputPath, int benchmarkin
     saveImage(outputPath, grayIm);
     GET_TIME(t1)
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image Save Time : %f micro seconds\n", elapsed_time);
+    printf("Image Save Time \t: %f micro seconds\n", elapsed_time);
 
     freeImage(im);
     freeImage(smallImage);
