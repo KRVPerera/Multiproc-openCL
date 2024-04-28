@@ -2,23 +2,24 @@
 // Created by ruksh on 21/02/2024.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <util.h>
 #include <driver.h>
 #include <opencl_flow_ex3.h>
 #include <opencl_flow_ex5.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <util.h>
 
 #include "config.h"
 
-#include <time.h>
+#include <calc_pi.h>
 #include <logger.h>
 #include <omp.h>
-#include <unistd.h>
-#include <calc_pi.h>
 #include <string.h>
+#include <time.h>
+#include <unistd.h>
 
-void openmpTestCode(void) {
+void openmpTestCode(void)
+{
     logger("Running multithreaded mode.");
     int maxthreads = omp_get_max_threads();
 
@@ -35,21 +36,24 @@ void openmpTestCode(void) {
 
     int num_steps = 1000000000;
     struct timespec t0, t1;
-    unsigned long sec, nsec;GET_TIME(t0);
-    double pi = calc_pi(num_steps);GET_TIME(t1);
+    unsigned long sec, nsec;
+    GET_TIME(t0);
+    double pi = calc_pi(num_steps);
+    GET_TIME(t1);
     logger("Pi: %f", pi);
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     logger("calc_pi(%d) time : %f micro seconds", num_steps, elapsed_time);
 
     GET_TIME(t0);
-    pi = calc_pi_mt(num_steps);GET_TIME(t1);
+    pi = calc_pi_mt(num_steps);
+    GET_TIME(t1);
     logger("MT Pi: %f", pi);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     logger("calc_pi_mt(%d) time : %f micro seconds", num_steps, elapsed_time);
-
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     logger("[MultiProc] : Starting Multiprocessor Programming project!");
 
     int benchmark = 0;
@@ -59,16 +63,15 @@ int main(int argc, char *argv[]) {
         multithreadedMode = 1;
     }
 
-    if (argc == 3 && strcmp(argv[2], "-benchmark") == 0) {
-        benchmark = 1;
-    }
+    if (argc == 3 && strcmp(argv[2], "-benchmark") == 0) { benchmark = 1; }
 
     logger("Data folder %s", PROJECT_DATA_DIR);
 
     time_t t;
-    srand((unsigned) time(&t));
+    srand((unsigned)time(&t));
     struct timespec t0, t1;
-    unsigned long sec, nsec;GET_TIME(t0);
+    unsigned long sec, nsec;
+    GET_TIME(t0);
     if (!multithreadedMode && strcmp(argv[1], "opencl") == 0) {
         openclFlowEx5();
     } else if (!multithreadedMode && strcmp(argv[1], "opencl_old") == 0) {
@@ -82,11 +85,10 @@ int main(int argc, char *argv[]) {
     } else {
         logger("Invalid argument. Expected 'opencl', 'mp', 'single' or 'test'. Got '%s'.", argv[1]);
         logger(" Running mp - multithreaded mode.");
-    }GET_TIME(t1);
+    }
+    GET_TIME(t1);
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     logger("Total time of the program : %f micro seconds", elapsed_time);
     logger("Stopping Multiprocessor Programming project!");
     return 0;
 }
-
-
