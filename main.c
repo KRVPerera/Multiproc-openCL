@@ -54,7 +54,7 @@ void openmpTestCode(void)
 
 int main(int argc, char *argv[])
 {
-    logger("[MultiProc] : Starting Multiprocessor Programming project!");
+    logger("Starting Multiprocessor Programming project!");
 
     int benchmark = 0;
     int multithreadedMode = 0;
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
         multithreadedMode = 1;
     }
 
-    if (argc == 3 && strcmp(argv[2], "-benchmark") == 0) { benchmark = 1; }
+    if (argc > 2 && strcmp(argv[2], "-benchmark") == 0) { benchmark = 1; }
 
     logger("Data folder %s", PROJECT_DATA_DIR);
 
@@ -71,24 +71,28 @@ int main(int argc, char *argv[])
     srand((unsigned)time(&t));
     struct timespec t0, t1;
     unsigned long sec, nsec;
-    GET_TIME(t0);
-    if (!multithreadedMode && strcmp(argv[1], "opencl") == 0) {
-        openclFlowEx5();
-    } else if (!multithreadedMode && strcmp(argv[1], "opencl_old") == 0) {
-        openclFlowEx3();
-    } else if (multithreadedMode || strcmp(argv[1], "mp") == 0) {
+    // get starting time
+    GET_TIME(t0)
+
+    if (multithreadedMode || strcmp(argv[1], "mp") == 0) {
         fullFlow_MT();
-    } else if (!multithreadedMode && strcmp(argv[1], "single") == 0) {
+    } else if (strcmp(argv[1], "opencl") == 0) {
+        openclFlowEx5();
+    } else if (strcmp(argv[1], "opencl_old") == 0) {
+        openclFlowEx3();
+    } else if (strcmp(argv[1], "single") == 0) {
         fullFlow(benchmark);
-    } else if (!multithreadedMode && strcmp(argv[1], "test") == 0) {
+    } else if (strcmp(argv[1], "test") == 0) {
         openmpTestCode();
     } else {
         logger("Invalid argument. Expected 'opencl', 'mp', 'single' or 'test'. Got '%s'.", argv[1]);
         logger(" Running mp - multithreaded mode.");
     }
-    GET_TIME(t1);
-    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Total time of the program : %f micro seconds", elapsed_time);
+
+    // get program end time
+    GET_TIME(t1)
+
+    logger("Total time of the program : %f micro seconds", elapsed_time_microsec(&t0, &t1, &sec, &nsec));
     logger("Stopping Multiprocessor Programming project!");
     return 0;
 }
