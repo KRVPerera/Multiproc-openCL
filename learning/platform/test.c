@@ -54,6 +54,7 @@ int main() {
         cl_uint work_item_dim, compute_units, char_vector_width, global_mem_size, global_mem_cache, buffer_size, local_mem_size;
         cl_bool image_support;
         size_t time_res;
+        cl_device_fp_config flag;
 
         if (num_devices == 0) {
             printf("no device found!");
@@ -119,6 +120,28 @@ int main() {
             printf("Maximum supported 2D Image Height: %zu\n", max_height);
 
             printf("\n");
+
+            printf("=======================================\n");
+            printf("\n");
+
+            err = clGetDeviceInfo(devices[i], CL_DEVICE_SINGLE_FP_CONFIG, sizeof(flag), &flag, NULL);
+            if(err < 0) {
+                perror("Couldn't read device FP information");
+                exit(1);
+            }
+            printf("Float Processing Features:\n");
+            if(flag & CL_FP_INF_NAN)
+            printf("INF and NaN values supported.\n");
+            if(flag & CL_FP_DENORM)
+            printf("Denormalized numbers supported.\n");
+            if(flag & CL_FP_ROUND_TO_NEAREST)
+            printf("Round To Nearest Even mode supported.\n");
+            if(flag & CL_FP_ROUND_TO_INF)
+            printf("Round To Infinity mode supported.\n");
+            if(flag & CL_FP_ROUND_TO_ZERO)
+            printf("Round To Zero mode supported.\n");
+            if(flag & CL_FP_FMA)
+            printf("Floating-point multiply-and-add operation supported.\n");
         }
 
         free(devices);
