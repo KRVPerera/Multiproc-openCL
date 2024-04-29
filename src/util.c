@@ -8,56 +8,87 @@
 
 ProcessTime *createProcessTime(int numSamples)
 {
-  ProcessTime *processTime = (ProcessTime *)malloc(sizeof(ProcessTime));
-  processTime->elapsedTimes = (float *)malloc(sizeof(float) * numSamples);
-  return processTime;
+    ProcessTime *processTime = (ProcessTime *)malloc(sizeof(ProcessTime));
+    processTime->elapsedTimes = (float *)malloc(sizeof(float) * numSamples);
+    return processTime;
+}
+
+ProfileInformation *createProfileInformation(int initialSamples)
+{
+    ProfileInformation *profileInformation = (ProfileInformation *)malloc(sizeof(ProfileInformation));
+    profileInformation->readImage = createProcessTime(initialSamples);
+    profileInformation->resizeImage = createProcessTime(initialSamples);
+    profileInformation->grayScaleImage = createProcessTime(initialSamples);
+    profileInformation->applyFilter = createProcessTime(initialSamples);
+    profileInformation->saveImage = createProcessTime(initialSamples);
+    profileInformation->filter = createProcessTime(initialSamples);
+    profileInformation->leftDisparity = createProcessTime(initialSamples);
+    profileInformation->rightDisparity = createProcessTime(initialSamples);
+    profileInformation->crossCheck = createProcessTime(initialSamples);
+    profileInformation->occlusion = createProcessTime(initialSamples);
+    return profileInformation;
+}
+
+void freeProfileInformation(ProfileInformation *profileInformation)
+{
+    freeProcessTime(profileInformation->readImage);
+    freeProcessTime(profileInformation->resizeImage);
+    freeProcessTime(profileInformation->grayScaleImage);
+    freeProcessTime(profileInformation->applyFilter);
+    freeProcessTime(profileInformation->saveImage);
+    freeProcessTime(profileInformation->filter);
+    freeProcessTime(profileInformation->leftDisparity);
+    freeProcessTime(profileInformation->rightDisparity);
+    freeProcessTime(profileInformation->crossCheck);
+    freeProcessTime(profileInformation->occlusion);
+    free(profileInformation);
 }
 
 void freeProcessTime(ProcessTime *processTime)
 {
-  free(processTime->elapsedTimes);
-  free(processTime);
+    free(processTime->elapsedTimes);
+    free(processTime);
 }
 
 void increaseSampleSize(ProcessTime *processTime, int numSamples)
 {
-  processTime->elapsedTimes = (float *)realloc(processTime->elapsedTimes, sizeof(float) * numSamples);
+    processTime->elapsedTimes = (float *)realloc(processTime->elapsedTimes, sizeof(float) * numSamples);
 }
 
 long requiredSampleSize(float sd, float mean)
 {
-  long N = (long)ceil(((float)100 * 1.960 * sd) / (5 * mean));
-  return N;
+    long N = (long)ceil(((float)100 * 1.960 * sd) / (5 * mean));
+    return N;
 }
 
 float Average(const float *times, const int numSamples)
 {
-  float sum = 0;
-  for (int i = 0; i < numSamples; ++i) { sum += times[i]; }
-  return (double)sum / numSamples;
+    float sum = 0;
+    for (int i = 0; i < numSamples; ++i) { sum += times[i]; }
+    return (double)sum / numSamples;
 }
 
 float standardDeviation(float times[], int numSamples)
 {
-  float u = Average(times, numSamples);
-  float variance = 0;
-  for (int i = 0; i < numSamples; ++i) { variance += pow(times[i] - u, 2); }
-  variance = variance / numSamples;
-  return sqrt(variance);
+    float u = Average(times, numSamples);
+    float variance = 0;
+    for (int i = 0; i < numSamples; ++i) { variance += pow(times[i] - u, 2); }
+    variance = variance / numSamples;
+    return sqrt(variance);
 }
 
 float elapsed_time_microsec(struct timespec *begin, struct timespec *end, unsigned long *sec, unsigned long *nsec)
 {
 
-  // make sure end time is after the begin
-  assert(end->tv_sec > begin->tv_sec || (end->tv_sec == begin->tv_sec && end->tv_nsec >= begin->tv_nsec));
+    // make sure end time is after the begin
+    assert(end->tv_sec > begin->tv_sec || (end->tv_sec == begin->tv_sec && end->tv_nsec >= begin->tv_nsec));
 
-  if (end->tv_nsec < begin->tv_nsec) {
-    *nsec = 1000000000 - (begin->tv_nsec - end->tv_nsec);
-    *sec = end->tv_sec - begin->tv_sec - 1;
-  } else {
-    *nsec = end->tv_nsec - begin->tv_nsec;
-    *sec = end->tv_sec - begin->tv_sec;
-  }
-  return (float)(*sec) * 1000000 + ((float)(*nsec)) * 1E-3;
+    if (end->tv_nsec < begin->tv_nsec) {
+        *nsec = 1000000000 - (begin->tv_nsec - end->tv_nsec);
+        *sec = end->tv_sec - begin->tv_sec - 1;
+    } else {
+        *nsec = end->tv_nsec - begin->tv_nsec;
+        *sec = end->tv_sec - begin->tv_sec;
+    }
+    return (float)(*sec) * 1000000 + ((float)(*nsec)) * 1E-3;
 }

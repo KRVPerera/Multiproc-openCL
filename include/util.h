@@ -5,6 +5,58 @@
 
 #define GET_TIME(x) if(clock_gettime(CLOCK_MONOTONIC, &(x)) < 0) {perror("clock_gettime(): "); exit(EXIT_FAILURE);}
 
+typedef struct ProcessTime {
+  float *elapsedTimes;
+  float averageElapsedTime;
+  int numSamples;
+} ProcessTime;
+
+typedef struct ProfileInformation {
+  ProcessTime * readImage;
+  ProcessTime * resizeImage;
+  ProcessTime * grayScaleImage;
+  ProcessTime * applyFilter;
+  ProcessTime * saveImage;
+  ProcessTime * filter;
+  ProcessTime * leftDisparity;
+  ProcessTime * rightDisparity;
+  ProcessTime * crossCheck;
+  ProcessTime * occlusion;
+} ProfileInformation;
+
+
+/**
+ * Create a new ProfileInformation struct
+ * @param initialSamples
+ * @return
+ */
+ProfileInformation *createProfileInformation(int initialSamples);
+
+/**
+ * Free the memory allocated for a ProfileInformation struct
+ * @param profileInformation
+ */
+void freeProfileInformation(ProfileInformation *profileInformation);
+
+/**
+ * Create a new ProcessTime struct
+ * @param numSamples
+ * @return
+ */
+ProcessTime *createProcessTime(int numSamples);
+
+/**
+ * Free the memory allocated for a ProcessTime struct
+ * @param processTime
+ */
+void freeProcessTime(ProcessTime *processTime);
+
+/** Increase sample size of ProcessTime struct
+ * @param processTime
+ * @param numSamples
+ */
+void increaseSampleSize(ProcessTime *processTime, int numSamples);
+
 /**
  * Calculate the elapsed time between two timespec structs
  * @param begin
