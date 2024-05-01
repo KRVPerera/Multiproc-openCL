@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <util.h>
 #include <zncc_c_imp.h>
+#include <logger.h>
 
 Image *resizeImageDriver(Image *pImage, int benchmarking, ProfileInformation *pInformation);
 // TODO: since the filter is syymetrical we may want to keep only wanted values
@@ -117,7 +118,7 @@ void resizeImageDriverTimes(Image *inputImage, ProfileInformation *profileInform
 Image *readImageDriver(const char *filename, int benchmark, ProfileInformation *profileInformation)
 {
     if (!benchmark) {
-        printf("Running `readImage`\n");
+        logger("Running `readImage`");
         return readImage(filename);
     }
 
@@ -129,7 +130,7 @@ Image *readImageDriver(const char *filename, int benchmark, ProfileInformation *
     if (!checkTimes(profileInformation->readImage)) {
         readImageDriverTimes(filename, profileInformation);
     }
-    printf("Image Load Time \t: %f\n", profileInformation->readImage->averageElapsedTime);
+    logger("Image Load Time \t: %f", profileInformation->readImage->averageElapsedTime);
 
     // read image one more time to return the image
     return readImage(filename);
@@ -138,7 +139,7 @@ Image *readImageDriver(const char *filename, int benchmark, ProfileInformation *
 Image *resizeImageDriver(Image *pImage, int benchmarking, ProfileInformation *pInformation)
 {
     if (!benchmarking) {
-        printf("Running `resizeImage`\n");
+        logger("Running `resizeImage`\n");
         return resizeImage(pImage);
     }
 
@@ -148,7 +149,7 @@ Image *resizeImageDriver(Image *pImage, int benchmarking, ProfileInformation *pI
         resizeImageDriverTimes(pImage, pInformation);
     }
 
-    printf("Image Resize Time \t: %f\n", pInformation->resizeImage->averageElapsedTime);
+    logger("Image Resize Time \t: %f", pInformation->resizeImage->averageElapsedTime);
 
     // run the function one more time to return the image
     return resizeImage(pImage);
@@ -175,14 +176,14 @@ Image *getBWImage(const char *imagePath, const char *outputPath, int benchmarkin
     Image *grayIm = grayScaleImage(smallImage);
     GET_TIME(t1)
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image GrayScale Time \t: %f micro seconds\n", elapsed_time);
+    logger("Image GrayScale Time \t: %f micro seconds\n", elapsed_time);
 
     unsigned char *gaussianFilter = getGaussianFilter();
     GET_TIME(t0)
     Image *filteredImage = applyFilter(grayIm, gaussianFilter, 273, 5);
     GET_TIME(t1)
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image Filter Time \t: %f micro seconds\n", elapsed_time);
+    logger("Image Filter Time \t: %f micro seconds\n", elapsed_time);
 
     saveImage(OUTPUT_FILE_0_BW_FILTERED, filteredImage);
 
@@ -190,7 +191,7 @@ Image *getBWImage(const char *imagePath, const char *outputPath, int benchmarkin
     saveImage(outputPath, grayIm);
     GET_TIME(t1)
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image Save Time \t: %f micro seconds\n", elapsed_time);
+    logger("Image Save Time \t: %f micro seconds\n", elapsed_time);
 
     freeImage(im);
     freeImage(smallImage);
@@ -210,20 +211,20 @@ Image *getBWImage_MT(const char *imagePath, const char *outputPath)
     Image *im = readImage(imagePath);
     GET_TIME(t1)
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image Load Time : %f micro seconds\n", elapsed_time);
+    logger("Image Load Time : %f micro seconds\n", elapsed_time);
 
     GET_TIME(t0);
     Image *smallImage = resizeImage_MT(im);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image Resize Time MT : %f micro seconds\n", elapsed_time);
+    logger("Image Resize Time MT : %f micro seconds\n", elapsed_time);
     freeImage(im);
 
     GET_TIME(t0);
     Image *grayIm = grayScaleImage_MT(smallImage);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image GrayScale Time MT : %f micro seconds\n", elapsed_time);
+    logger("Image GrayScale Time MT : %f micro seconds\n", elapsed_time);
     freeImage(smallImage);
 
     unsigned char *gaussianFilter = getGaussianFilter();
@@ -231,7 +232,7 @@ Image *getBWImage_MT(const char *imagePath, const char *outputPath)
     Image *filteredImage = applyFilter_MT(grayIm, gaussianFilter, 273, 5);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image Filter Time : %f micro seconds\n", elapsed_time);
+    logger("Image Filter Time : %f micro seconds\n", elapsed_time);
     saveImage(OUTPUT_FILE_0_BW_FILTERED, filteredImage);
     free(filteredImage);
 
@@ -239,7 +240,7 @@ Image *getBWImage_MT(const char *imagePath, const char *outputPath)
     saveImage(outputPath, grayIm);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Image Save Time : %f micro seconds\n", elapsed_time);
+    logger("Image Save Time : %f micro seconds\n", elapsed_time);
 
     free(gaussianFilter);
 
@@ -257,13 +258,13 @@ void postProcessFlow()
     Image *crossCheckLeft = CrossCheck(bwImage0, bwImage1, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);
     float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Cross Check Time Left : %f micro seconds\n", elapsed_time);
+    logger("Cross Check Time Left : %f micro seconds\n", elapsed_time);
 
     GET_TIME(t0);
     Image *occlusionFilledLeft = OcclusionFill(crossCheckLeft);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Occlusion Fill Time Left : %f micro seconds\n", elapsed_time);
+    logger("Occlusion Fill Time Left : %f micro seconds\n", elapsed_time);
 
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT, occlusionFilledLeft);
 
@@ -293,49 +294,49 @@ void fullFlow(int benchmarking)
     Image *left_disparity_image = Get_zncc_c_imp(bwImage0, bwImage1, 1);
     GET_TIME(t1)
     float elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Left Disparity Time : %f micro seconds\n", elapsed_time_1);
+    logger("Left Disparity Time : %f micro seconds\n", elapsed_time_1);
 
     GET_TIME(t0)
     Image *right_disparity_image = Get_zncc_c_imp(bwImage1, bwImage0, -1);
     GET_TIME(t1)
     float elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Right Disparity Time : %f micro seconds\n", elapsed_time_2);
+    logger("Right Disparity Time : %f micro seconds\n", elapsed_time_2);
 
     // average disparity time
     float avg_disparity_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    printf("Average Disparity Time : %f micro seconds\n", avg_disparity_time);
+    logger("Average Disparity Time : %f micro seconds\n", avg_disparity_time);
 
     GET_TIME(t0)
     Image *crossCheckLeft = CrossCheck(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1)
     elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Cross Check Time Left : %f micro seconds\n", elapsed_time_1);
+    logger("Cross Check Time Left : %f micro seconds\n", elapsed_time_1);
 
     GET_TIME(t0)
     Image *crossCheckRight = CrossCheck(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1)
     elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Cross Check Time Right : %f micro seconds\n", elapsed_time_2);
+    logger("Cross Check Time Right : %f micro seconds\n", elapsed_time_2);
 
     // average cross check time
     float avg_cross_check_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    printf("Average Cross Check Time : %f micro seconds\n", avg_cross_check_time);
+    logger("Average Cross Check Time : %f micro seconds\n", avg_cross_check_time);
 
     GET_TIME(t0);
     Image *occlusionFilledLeft = OcclusionFill(crossCheckLeft);
     GET_TIME(t1);
     elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Occlusion Fill Time Left : %f micro seconds\n", elapsed_time_2);
+    logger("Occlusion Fill Time Left : %f micro seconds\n", elapsed_time_2);
 
     GET_TIME(t0);
     Image *occlusionFilledRight = OcclusionFill(crossCheckRight);
     GET_TIME(t1);
     elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Occlusion Fill Time Right : %f micro seconds\n", elapsed_time_2);
+    logger("Occlusion Fill Time Right : %f micro seconds\n", elapsed_time_2);
 
     // average occlusion fill time
     float avg_occlusion_fill_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    printf("Average Occlusion Fill Time : %f micro seconds\n", avg_occlusion_fill_time);
+    logger("Average Occlusion Fill Time : %f micro seconds\n", avg_occlusion_fill_time);
 
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT, occlusionFilledLeft);
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_RIGHT, occlusionFilledRight);
@@ -369,47 +370,47 @@ void fullFlow_MT()
     Image *left_disparity_image = Get_zncc_c_imp_MT(bwImage0, bwImage1, 1);
     GET_TIME(t1);
     float elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Left Disparity Time MT : %f micro seconds\n", elapsed_time_1);
+    logger("Left Disparity Time MT : %f micro seconds\n", elapsed_time_1);
     saveImage(OUTPUT_FILE_LEFT_DISPARITY_MT, left_disparity_image);
 
     GET_TIME(t0);
     Image *right_disparity_image = Get_zncc_c_imp_MT(bwImage1, bwImage0, -1);
     GET_TIME(t1);
     float elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Right Disparity Time MT : %f micro seconds\n", elapsed_time_2);
+    logger("Right Disparity Time MT : %f micro seconds\n", elapsed_time_2);
     saveImage(OUTPUT_FILE_RIGHT_DISPARITY_MT, right_disparity_image);
     freeImage(bwImage1);
     freeImage(bwImage0);
 
     // average disparity time
     float avg_disparity_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    printf("Average Disparity Time MT : %f micro seconds\n", avg_disparity_time);
+    logger("Average Disparity Time MT : %f micro seconds\n", avg_disparity_time);
 
     GET_TIME(t0);
     Image *crossCheckLeft = CrossCheck_MT(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);
     elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Cross Check Time Left MT : %f micro seconds\n", elapsed_time_1);
+    logger("Cross Check Time Left MT : %f micro seconds\n", elapsed_time_1);
     saveImage(OUTPUT_FILE_CROSS_CHECKING_LEFT_MT, crossCheckLeft);
 
     GET_TIME(t0);
     Image *crossCheckRight = CrossCheck_MT(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD);
     GET_TIME(t1);
     elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Cross Check Time Right MT : %f micro seconds\n", elapsed_time_2);
+    logger("Cross Check Time Right MT : %f micro seconds\n", elapsed_time_2);
     saveImage(OUTPUT_FILE_CROSS_CHECKING_RIGHT_MT, crossCheckRight);
     freeImage(right_disparity_image);
     freeImage(left_disparity_image);
 
     // average cross check time
     float avg_cross_check_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    printf("Average Cross Check Time MT : %f micro seconds\n", avg_cross_check_time);
+    logger("Average Cross Check Time MT : %f micro seconds\n", avg_cross_check_time);
 
     GET_TIME(t0);
     Image *occlusionFilledLeft = OcclusionFill_MT(crossCheckLeft);
     GET_TIME(t1);
     elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Occlusion Fill Time Left MT : %f micro seconds\n", elapsed_time_1);
+    logger("Occlusion Fill Time Left MT : %f micro seconds\n", elapsed_time_1);
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT_MT, occlusionFilledLeft);
     freeImage(occlusionFilledLeft);
     freeImage(crossCheckLeft);
@@ -418,14 +419,14 @@ void fullFlow_MT()
     Image *occlusionFilledRight = OcclusionFill_MT(crossCheckRight);
     GET_TIME(t1);
     elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf("Occlusion Fill Time Right MT : %f micro seconds\n", elapsed_time_2);
+    logger("Occlusion Fill Time Right MT : %f micro seconds\n", elapsed_time_2);
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_RIGHT_MT, occlusionFilledRight);
     freeImage(occlusionFilledRight);
     freeImage(crossCheckRight);
 
     // average occlusion fill time
     float avg_occlusion_fill_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    printf("Average Occlusion Fill Time MT : %f micro seconds\n", avg_occlusion_fill_time);
+    logger("Average Occlusion Fill Time MT : %f micro seconds\n", avg_occlusion_fill_time);
 }
 
 void runZnccFlowForOneImage(const char *imagePath, const char *outputPath)
@@ -453,24 +454,24 @@ void zncc_flow_driver(const char *imagePath, const char *outputPath)
     float mean, sd;
     int req_n;
     float times[10];
-    printf("Running ZNCC flow for 10 times\n");
+    logger("Running ZNCC flow for 10 times\n");
     for (int i = 0; i < 10; ++i) {
-        printf("Running ZNCC flow iteration : %d,\t time : ", i + 1);
+        logger("Running ZNCC flow iteration : %d,\t time : ", i + 1);
         GET_TIME(t0);
         runZnccFlowForOneImage(imagePath, outputPath);
         GET_TIME(t1);
         float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-        printf("\t%f micro seconds\n", elapsed_time);
+        logger("\t%f micro seconds\n", elapsed_time);
         times[i] = elapsed_time;
     }
     mean = Average(times, 10);
     sd = standardDeviation(times, 10);
     req_n = requiredSampleSize(sd, mean);
-    printf("Average time : %f micro seconds\n", mean);
-    printf("Required sample size for 95 percent confidence with 5 percent error margin : %d\n", req_n);
+    logger("Average time : %f micro seconds\n", mean);
+    logger("Required sample size for 95 percent confidence with 5 percent error margin : %d\n", req_n);
 
     if (req_n > 10) {
-        printf("Running ZNCC flow for %d times\n", req_n);
+        logger("Running ZNCC flow for %d times\n", req_n);
         float *times_2 = (float *)malloc(sizeof(float) * req_n);
         for (int i = 0; i < req_n; ++i) {
             GET_TIME(t0);
@@ -481,9 +482,9 @@ void zncc_flow_driver(const char *imagePath, const char *outputPath)
         mean = Average(times_2, req_n);
         sd = standardDeviation(times_2, req_n);
         req_n = requiredSampleSize(sd, mean);
-        printf("Average time : %f micro seconds\n", mean);
-        printf("Required sample size for 95 percent confidence with 5 percent error margin : %d\n", req_n);
+        logger("Average time : %f micro seconds\n", mean);
+        logger("Required sample size for 95 percent confidence with 5 percent error margin : %d\n", req_n);
     } else {
-        printf("Sample size is less than 10, so the confidence interval may be accurate\n");
+        logger("Sample size is less than 10, so the confidence interval may be accurate\n");
     }
 }
