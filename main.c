@@ -25,8 +25,8 @@ void openmpTestCode(void)
 
     printf("Max threads: %d\n", maxthreads);
 
-    //    #pragma omp parallel num_threads(5)
-    #pragma omp parallel
+//    #pragma omp parallel num_threads(5)
+#pragma omp parallel
     {
         int id = omp_get_thread_num();
         printf("Hello %d\n", id);
@@ -63,7 +63,9 @@ int main(int argc, char *argv[])
         multithreadedMode = 1;
     }
 
-    if (argc > 2 && strcmp(argv[2], "-benchmark") == 0) { benchmark = 1; }
+    if (argc > 2 && strcmp(argv[2], "-benchmark") == 0) {
+        benchmark = 1;
+    }
 
     logger("Data folder %s", PROJECT_DATA_DIR);
 

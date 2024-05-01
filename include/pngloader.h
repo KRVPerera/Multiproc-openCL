@@ -5,6 +5,8 @@
 #ifndef MULTIPROCOPENCL_PNGLOADER_H
 #define MULTIPROCOPENCL_PNGLOADER_H
 
+#include <util.h>
+
 #define IMAGE_SCALE 4
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 

@@ -1,4 +1,5 @@
 #include "config.h"
+#include <assert.h>
 #include <cross_checking.h>
 #include <occlusion_filling.h>
 #include <pngloader.h>
@@ -7,6 +8,7 @@
 #include <util.h>
 #include <zncc_c_imp.h>
 
+Image *resizeImageDriver(Image *pImage, int benchmarking, ProfileInformation *pInformation);
 // TODO: since the filter is syymetrical we may want to keep only wanted values
 // TODO: we may want to use x and y componets of the filter separately
 unsigned char *getGaussianFilter()
@@ -47,17 +49,6 @@ unsigned char *getMeanFilter()
     return filter;
 }
 
-// open text file to write line by line
-FILE *openfile(const char *filename)
-{
-    FILE *fp = fopen(filename, "w");
-
-    if (fp == NULL) { printf("Error opening file! : %s\n", filename); }
-    return fp;
-}
-
-void closefile(FILE *fp) { fclose(fp); }
-
 Image *getBWImageSingleRuns(const char *imagePath, const char *outputPath)
 {
     Image *im = readImage(imagePath);
@@ -81,91 +72,105 @@ Image *getBWImageSingleRuns(const char *imagePath, const char *outputPath)
     return grayIm;
 }
 
-Image *getBWImage(const char *imagePath, const char *outputPath, int benchmarking, ProfileInformation * profileInformation)
+void readImageDriverTimes(const char *filename, ProfileInformation *profileInformation)
+{
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+
+    int sampleCount = profileInformation->readImage->numSamples;
+    for (int i = 0; i < sampleCount; i++) {
+        float elapsed_time;
+        GET_TIME(t0)
+        Image *im = readImage(filename);
+        GET_TIME(t1)
+        elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+        profileInformation->readImage->elapsedTimes[i] = elapsed_time;
+        freeImage(im);
+    }
+}
+
+void resizeImageDriverTimes(Image *inputImage, ProfileInformation *profileInformation)
+{
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+
+    int sampleCount = profileInformation->resizeImage->numSamples;
+    for (int i = 0; i < sampleCount; i++) {
+        float elapsed_time;
+        GET_TIME(t0)
+        Image *im = resizeImage(inputImage);
+        GET_TIME(t1)
+        elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+        profileInformation->resizeImage->elapsedTimes[i] = elapsed_time;
+        freeImage(im);
+    }
+}
+
+/**
+ * Profile information for the image processing
+ *
+ * @param filename
+ * @param benchmark
+ * @param profileInformation
+ * @return
+ */
+Image *readImageDriver(const char *filename, int benchmark, ProfileInformation *profileInformation)
+{
+    if (!benchmark) {
+        return readImage(filename);
+    }
+
+    // run ones with default sample size
+    readImageDriverTimes(filename, profileInformation);
+
+    // check integrity of the average elapsed time if not increase sample size
+    // and keep running until the average is correct
+    if (!checkTimes(profileInformation->readImage)) {
+        readImageDriverTimes(filename, profileInformation);
+    }
+    printf("Image Load Time \t: %f\n", profileInformation->readImage->averageElapsedTime);
+
+    // read image one more time to return the image
+    return readImage(filename);
+}
+
+Image *resizeImageDriver(Image *pImage, int benchmarking, ProfileInformation *pInformation)
+{
+    if (!benchmarking) {
+        return resizeImage(pImage);
+    }
+
+    resizeImageDriverTimes(pImage, pInformation);
+
+    if (!checkTimes(pInformation->resizeImage)) {
+        resizeImageDriverTimes(pImage, pInformation);
+    }
+
+    printf("Image Resize Time \t: %f\n", pInformation->resizeImage->averageElapsedTime);
+
+    // run the function one more time to return the image
+    return resizeImage(pImage);
+}
+
+Image *getBWImage(const char *imagePath, const char *outputPath, int benchmarking, ProfileInformation *profileInformation)
 {
 
-    if (!benchmarking) { return getBWImageSingleRuns(imagePath, outputPath); }
+    if (!benchmarking) {
+        assert(profileInformation == NULL);
+        return getBWImageSingleRuns(imagePath, outputPath);
+    }
+
+    assert(profileInformation != NULL);
 
     struct timespec t0, t1;
     unsigned long sec, nsec;
 
     float elapsed_time;
-    Image *im;
+    printf("Running `readImage`\n");
+    Image *im = readImageDriver(imagePath, benchmarking, profileInformation);
 
-    // first try running readImage 10 times to get average time
-    int numberOfSamples = 10;
-    // allocate memory for 10 samples
-    float *times = (float *)malloc(sizeof(float) * 10);
-
-    int isAverageOkay = 0;
-    printf("Running `readImage` function for %d times\n", numberOfSamples);
-    while (!isAverageOkay) {
-        for (int i = 0; i < numberOfSamples; i++) {
-            GET_TIME(t0)
-            im = readImage(imagePath);
-            GET_TIME(t1)
-            elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-            times[i] = elapsed_time;
-            if (i < numberOfSamples - 1) { freeImage(im); }
-        }
-        // get the average time for `readImage` function
-        float mean = Average(times, numberOfSamples);
-        float sd = standardDeviation(times, numberOfSamples);
-
-        // get required sample size for 95% confidence with 5% error margin
-        int req_n = requiredSampleSize(sd, mean);
-        // if required sample size is greater than 10, then run the function again with desired sample size
-        if (req_n > numberOfSamples) {
-            printf("Required sample size for 95 percent confidence with 5 percent error margin : %d\n", req_n);
-            printf("Running `readImage` function for %d times\n", req_n);
-            numberOfSamples = req_n;
-            free(times);
-            freeImage(im);
-            times = (float *)malloc(sizeof(float) * numberOfSamples);
-        } else {
-            isAverageOkay = 1;
-            elapsed_time = mean;
-        }
-    }
-    free(times);
-    printf("Image Load Time \t: %f micro seconds\n", elapsed_time);
-
-    isAverageOkay = 0;
-    numberOfSamples = 10;
-    Image *smallImage;
-    times = (float *)malloc(sizeof(float) * numberOfSamples);
-    printf("Running `resizeImage` function for %d times\n", numberOfSamples);
-
-    while (!isAverageOkay) {
-        for (int i = 0; i < numberOfSamples; i++) {
-            GET_TIME(t0)
-            smallImage = resizeImage(im);
-            GET_TIME(t1)
-            elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-            times[i] = elapsed_time;
-            if (i < numberOfSamples - 1) { freeImage(smallImage); }
-        }
-        // get the average time for `resizeImage` function
-        float mean = Average(times, numberOfSamples);
-        float sd = standardDeviation(times, numberOfSamples);
-
-        // get required sample size for 95% confidence with 5% error margin
-        int req_n = requiredSampleSize(sd, mean);
-        // if required sample size is greater than 10, then run the function again with desired sample size
-        if (req_n > numberOfSamples) {
-            printf("Required sample size for 95 percent confidence with 5 percent error margin : %d\n", req_n);
-            printf("Running `resizeImage` function for %d times\n", req_n);
-            numberOfSamples = req_n;
-            free(times);
-            freeImage(smallImage);
-            times = (float *)malloc(sizeof(float) * numberOfSamples);
-        } else {
-            isAverageOkay = 1;
-            elapsed_time = mean;
-        }
-    }
-    free(times);
-    printf("Image Resize Time \t: %f micro seconds\n", elapsed_time);
+    printf("Running `resizeImage` function\n");
+    Image *smallImage = resizeImageDriver(im, benchmarking, profileInformation);
 
     GET_TIME(t0)
     Image *grayIm = grayScaleImage(smallImage);
@@ -196,7 +201,8 @@ Image *getBWImage(const char *imagePath, const char *outputPath, int benchmarkin
     return grayIm;
 }
 
-Image *getBWImage_MT(const char *imagePath, const char *outputPath, const char *profilePath)
+
+Image *getBWImage_MT(const char *imagePath, const char *outputPath)
 {
     struct timespec t0, t1;
     unsigned long sec, nsec;
@@ -211,14 +217,14 @@ Image *getBWImage_MT(const char *imagePath, const char *outputPath, const char *
     Image *smallImage = resizeImage_MT(im);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf( "Image Resize Time MT : %f micro seconds\n", elapsed_time);
+    printf("Image Resize Time MT : %f micro seconds\n", elapsed_time);
     freeImage(im);
 
     GET_TIME(t0);
     Image *grayIm = grayScaleImage_MT(smallImage);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf( "Image GrayScale Time MT : %f micro seconds\n", elapsed_time);
+    printf("Image GrayScale Time MT : %f micro seconds\n", elapsed_time);
     freeImage(smallImage);
 
     unsigned char *gaussianFilter = getGaussianFilter();
@@ -226,7 +232,7 @@ Image *getBWImage_MT(const char *imagePath, const char *outputPath, const char *
     Image *filteredImage = applyFilter_MT(grayIm, gaussianFilter, 273, 5);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf( "Image Filter Time : %f micro seconds\n", elapsed_time);
+    printf("Image Filter Time : %f micro seconds\n", elapsed_time);
     saveImage(OUTPUT_FILE_0_BW_FILTERED, filteredImage);
     free(filteredImage);
 
@@ -234,7 +240,7 @@ Image *getBWImage_MT(const char *imagePath, const char *outputPath, const char *
     saveImage(outputPath, grayIm);
     GET_TIME(t1);
     elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    printf( "Image Save Time : %f micro seconds\n", elapsed_time);
+    printf("Image Save Time : %f micro seconds\n", elapsed_time);
 
     free(gaussianFilter);
 
@@ -274,12 +280,15 @@ void postProcessFlow()
 void fullFlow(int benchmarking)
 {
     ProfileInformation *profileInformation = NULL;
-    if (benchmarking) { profileInformation = createProfileInformation(10); }
+    if (benchmarking) {
+        profileInformation = createProfileInformation(10);
+    }
     struct timespec t0, t1;
     unsigned long sec, nsec;
 
+    // profileing done only on first gray scale image generation
     Image *bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW, benchmarking, profileInformation);
-    Image *bwImage1 = getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, !benchmarking, profileInformation);
+    Image *bwImage1 = getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, benchmarking, NULL);
 
     GET_TIME(t0)
     Image *left_disparity_image = Get_zncc_c_imp(bwImage0, bwImage1, 1);
@@ -354,8 +363,8 @@ void fullFlow_MT()
     struct timespec t0, t1;
     unsigned long sec, nsec;
 
-    Image *bwImage0 = getBWImage_MT(INPUT_FILE_0, OUTPUT_FILE_0_BW, OUTPUT_FILE_PROFILE_FILTERED_0_MT);
-    Image *bwImage1 = getBWImage_MT(INPUT_FILE_1, OUTPUT_FILE_1_BW, OUTPUT_FILE_PROFILE_FILTERED_1_MT);
+    Image *bwImage0 = getBWImage_MT(INPUT_FILE_0, OUTPUT_FILE_0_BW);
+    Image *bwImage1 = getBWImage_MT(INPUT_FILE_1, OUTPUT_FILE_1_BW);
 
     GET_TIME(t0);
     Image *left_disparity_image = Get_zncc_c_imp_MT(bwImage0, bwImage1, 1);

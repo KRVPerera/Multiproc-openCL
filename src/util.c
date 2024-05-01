@@ -50,6 +50,20 @@ void freeProcessTime(ProcessTime *processTime)
     free(processTime);
 }
 
+int checkTimes(ProcessTime *processTime)
+{
+    int numberOfSamples = processTime->numSamples;
+    float mean = Average(processTime->elapsedTimes, numberOfSamples);
+    float sd = standardDeviation(processTime->elapsedTimes, numberOfSamples);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > numberOfSamples) {
+        increaseSampleSize(processTime, req_n);
+        return 0;
+    }
+    processTime->averageElapsedTime = mean;
+    return 1;
+}
+
 void increaseSampleSize(ProcessTime *processTime, int numSamples)
 {
     processTime->elapsedTimes = (float *)realloc(processTime->elapsedTimes, sizeof(float) * numSamples);

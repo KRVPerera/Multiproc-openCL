@@ -24,6 +24,14 @@ typedef struct ProfileInformation {
   ProcessTime * occlusion;
 } ProfileInformation;
 
+/**
+ * Check if the number of samples is sufficient for the given standard deviation and mean
+ * TODO: function does two things,
+ *  - check if the number of samples is sufficient
+ *  - increase the sample size if necessary
+ * @param processTime
+ */
+int checkTimes(ProcessTime *processTime);
 
 /**
  * Create a new ProfileInformation struct
