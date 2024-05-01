@@ -117,6 +117,7 @@ void resizeImageDriverTimes(Image *inputImage, ProfileInformation *profileInform
 Image *readImageDriver(const char *filename, int benchmark, ProfileInformation *profileInformation)
 {
     if (!benchmark) {
+        printf("Running `readImage`\n");
         return readImage(filename);
     }
 
@@ -137,6 +138,7 @@ Image *readImageDriver(const char *filename, int benchmark, ProfileInformation *
 Image *resizeImageDriver(Image *pImage, int benchmarking, ProfileInformation *pInformation)
 {
     if (!benchmarking) {
+        printf("Running `resizeImage`\n");
         return resizeImage(pImage);
     }
 
@@ -154,7 +156,6 @@ Image *resizeImageDriver(Image *pImage, int benchmarking, ProfileInformation *pI
 
 Image *getBWImage(const char *imagePath, const char *outputPath, int benchmarking, ProfileInformation *profileInformation)
 {
-
     if (!benchmarking) {
         assert(profileInformation == NULL);
         return getBWImageSingleRuns(imagePath, outputPath);
@@ -162,16 +163,14 @@ Image *getBWImage(const char *imagePath, const char *outputPath, int benchmarkin
 
     assert(profileInformation != NULL);
 
-    struct timespec t0, t1;
-    unsigned long sec, nsec;
-
-    float elapsed_time;
-    printf("Running `readImage`\n");
     Image *im = readImageDriver(imagePath, benchmarking, profileInformation);
 
-    printf("Running `resizeImage` function\n");
     Image *smallImage = resizeImageDriver(im, benchmarking, profileInformation);
 
+
+    float elapsed_time;
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
     GET_TIME(t0)
     Image *grayIm = grayScaleImage(smallImage);
     GET_TIME(t1)

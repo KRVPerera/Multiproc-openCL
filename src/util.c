@@ -10,6 +10,8 @@ ProcessTime *createProcessTime(int numSamples)
 {
     ProcessTime *processTime = (ProcessTime *)malloc(sizeof(ProcessTime));
     processTime->elapsedTimes = (float *)malloc(sizeof(float) * numSamples);
+    processTime->numSamples = numSamples;
+    processTime->averageElapsedTime = 0;
     return processTime;
 }
 
