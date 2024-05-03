@@ -250,7 +250,10 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
     printf("Time taken to read the output image (gray scaling) = %llu ns\n", read_time);
 }
 
-void apply_zncc(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, const Image *im1, Image *output_im0) {
+void apply_zncc(cl_device_id device, cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, const Image *im1, Image *output_im0) {
+
+    size_t wg_size, wg_multiple;
+    cl_ulong private_usage, local_usage;
 
     /* Image data */
     cl_mem input_image, input_image1, output_image;
@@ -311,6 +314,22 @@ void apply_zncc(cl_context context, cl_kernel kernel, cl_command_queue queue, co
         perror("zncc, Error: clSetKernelArg, outputImage");
         exit(1);
     }
+
+    // clSetKernelArg(kernel, 3, sizeof(float), NULL);
+
+    /* Access kernel/work-group properties */
+    err = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(wg_size), &wg_size, NULL);
+    err |= clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(wg_multiple), &wg_multiple, NULL);
+    err |= clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(local_usage), &local_usage, NULL);
+    err |= clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_PRIVATE_MEM_SIZE, sizeof(private_usage), &private_usage, NULL);
+    if(err < 0) {
+        perror("Couldn't obtain kernel work-group size information");
+        exit(1);
+    };
+
+    printf("The maximum work-group size is %zu and the work-group multiple is %zu.\n\n", wg_size, wg_multiple);
+    printf("The kernel uses %zu bytes of local memory. It uses %zu bytes of private memory.\n", 
+         local_usage, private_usage);
 
     // Execute the OpenCL kernel
     size_t globalWorkSize[2] = { width, height };
@@ -610,10 +629,10 @@ void openclFlowEx5(void) {
     convert_image_to_gray(context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0);
 
     /* Apply zncc kernel */
-    apply_zncc(context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0);
+    apply_zncc(device, context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0);
 
     /* Apply zncc kernel */
-    apply_zncc(context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0);
+    apply_zncc(device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0);
 
     /* Apply left crosscheck kernel */
     apply_crosscheck(context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0);
