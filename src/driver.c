@@ -326,7 +326,7 @@ Image *resizeImageDriver(Image *inputImage, BENCHMARK_MODE benchmarkMode, Profil
 
     resizeImageDriverTimes(inputImage, pInformation);
 
-    if (!checkTimes(pInformation->resizeImage)) {
+    while (!checkTimes(pInformation->resizeImage)) {
         resizeImageDriverTimes(inputImage, pInformation);
     }
 

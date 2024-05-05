@@ -102,12 +102,14 @@ void freeProcessTime(ProcessTime *processTime)
 int checkTimes(ProcessTime *processTime)
 {
     processTime->averageCalculated = false;
+    processTime->averageElapsedTime = 0;
     int numberOfSamples = processTime->numSamples;
     float mean = Average(processTime->elapsedTimes, numberOfSamples);
     float sd = standardDeviation(processTime->elapsedTimes, numberOfSamples);
     int req_n = requiredSampleSize(sd, mean);
     if (req_n > numberOfSamples) {
         increaseSampleSize(processTime, req_n);
+        logger("Increasing sample size to %d", req_n);
         processTime->averageCalculated = false;
         return 0;
     }
@@ -119,6 +121,7 @@ int checkTimes(ProcessTime *processTime)
 void increaseSampleSize(ProcessTime *processTime, int numSamples)
 {
     processTime->elapsedTimes = (float *)realloc(processTime->elapsedTimes, sizeof(float) * numSamples);
+    processTime->numSamples = numSamples;
 }
 
 long requiredSampleSize(float sd, float mean)
