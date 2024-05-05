@@ -179,6 +179,23 @@ void CrossCheckDriverTimes(Image *pImage, Image *pImage1, int threshold, Profile
     }
 }
 
+void OcclusionFillDriverTimes(Image *pImage, ProfileInformation *pInformation)
+{
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+
+    int sampleCount = pInformation->occlusion->numSamples;
+    for (int i = 0; i < sampleCount; i++) {
+        float elapsed_time;
+        GET_TIME(t0)
+        Image *im = OcclusionFill(pImage);
+        GET_TIME(t1)
+        elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+        pInformation->occlusion->elapsedTimes[i] = elapsed_time;
+        freeImage(im);
+    }
+}
+
 void znccCImpDriverTimes(Image *imageLeft, Image *imageRight, int direction, ProfileInformation *pInformation)
 {
     struct timespec t0, t1;
@@ -319,6 +336,27 @@ Image *CrossCheckDriver(Image *pImage, Image *pImage1, int cross_check_threshold
     return CrossCheck(pImage, pImage1, cross_check_threshold);
 }
 
+Image *OcclusionFillDriver(Image *pImage, BENCHMARK_MODE benchmarkMode, ProfileInformation *pInformation)
+{
+
+    if (benchmarkMode == DO_NOT_BENCHMARK) {
+        logger("Running `OcclusionFill`");
+        return OcclusionFill(pImage);
+    }
+    assert(pInformation != NULL);
+
+    OcclusionFillDriverTimes(pImage, pInformation);
+
+    if (!checkTimes(pInformation->occlusion)) {
+        OcclusionFillDriverTimes(pImage, pInformation);
+    }
+
+    logger("Occulsion Fill Time : %.3f ms", pInformation->occlusion->averageElapsedTime);
+
+    // run the function one more time to return the image
+    return OcclusionFill(pImage);
+}
+
 Image *applyFilterDriver(const Image *inputImage,
   const unsigned char *filter,
   const float filterDenominator,
@@ -351,8 +389,15 @@ Image *znccCImpDriver(Image *pImage, Image *pImage1, int direction, BENCHMARK_MO
         return Get_zncc_c_imp(pImage, pImage1, direction);
     }
     assert(pInformation != NULL);
+
     logger("Running `ZNCC algorithm` in benchmark mode. Please wait...");
-    reinitProcessTime(pInformation->zncc_left, 3);
+    if (direction == 1) {
+        reinitProcessTime(&pInformation->zncc_left, 3);
+        assert(pInformation->zncc_left->numSamples == 3);
+    } else {
+        reinitProcessTime(&pInformation->zncc_right, 3);
+        assert(pInformation->zncc_right->numSamples == 3);
+    }
     znccCImpDriverTimes(pImage, pImage1, direction, pInformation);
 
     if (direction == 1 && !checkTimes(pInformation->zncc_left)) {
@@ -475,6 +520,19 @@ void postProcessFlow()
     freeImage(occlusionFilledLeft);
 }
 
+void printSummary(ProfileInformation *pInformation)
+{
+    logger("Summary of the benchmarking results");
+    logger("Image Load Time \t: %.3f ms", pInformation->readImage->averageElapsedTime);
+    logger("Image Resize Time \t: %.3f ms", pInformation->resizeImage->averageElapsedTime);
+    logger("Image Grayscale Time \t: %.3f ms", pInformation->grayScaleImage->averageElapsedTime);
+    logger("Image applyFilter Time : %.3f ms", pInformation->applyFilter->averageElapsedTime);
+    logger("Left Disparity Time \t: %.3f ms", pInformation->zncc_left->averageElapsedTime);
+    logger("Right Disparity Time \t: %.3f ms", pInformation->zncc_right->averageElapsedTime);
+    logger("Cross Check Time \t: %.3f ms", pInformation->crossCheck->averageElapsedTime);
+    logger("Occlusion Fill Time \t: %.3f ms", pInformation->occlusion->averageElapsedTime);
+}
+
 void fullFlow(BENCHMARK_MODE benchmarking)
 {
     ProfileInformation *profileInformation = NULL;
@@ -484,39 +542,22 @@ void fullFlow(BENCHMARK_MODE benchmarking)
         logger("Average time will be reported with 95 percent confidence");
         profileInformation = createProfileInformation(10);
     }
-    struct timespec t0, t1;
-    unsigned long sec, nsec;
 
-    // profileing done only on first gray scale image generation
+    // profiling done only on first gray scale image generation
     Image *bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW, benchmarking, profileInformation);
     Image *bwImage1 = getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, DO_NOT_BENCHMARK, NULL);
 
-    // profileing done only on first disparity image generation
+    // profiling done only on first disparity image generation
     Image *left_disparity_image = znccCImpDriver(bwImage0, bwImage1, 1, benchmarking, profileInformation);
     Image *right_disparity_image = znccCImpDriver(bwImage1, bwImage0, -1, DO_NOT_BENCHMARK, NULL);
 
-    // profileing done only on first cross check image generation
+    // profiling done only on first cross check image generation
     Image *crossCheckLeft = CrossCheckDriver(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD, benchmarking, profileInformation);
     Image *crossCheckRight = CrossCheckDriver(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD, DO_NOT_BENCHMARK, NULL);
 
-    float elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Cross Check Time Right : %f micro seconds\n", elapsed_time_2);
-
-    GET_TIME(t0);
-    Image *occlusionFilledLeft = OcclusionFill(crossCheckLeft);
-    GET_TIME(t1);
-    float elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Occlusion Fill Time Left : %f micro seconds\n", elapsed_time_2);
-
-    GET_TIME(t0);
-    Image *occlusionFilledRight = OcclusionFill(crossCheckRight);
-    GET_TIME(t1);
-    elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Occlusion Fill Time Right : %f micro seconds\n", elapsed_time_2);
-
-    // average occlusion fill time
-    float avg_occlusion_fill_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    logger("Average Occlusion Fill Time : %f micro seconds\n", avg_occlusion_fill_time);
+    // profiling done only on first occlusion filled image generation
+    Image *occlusionFilledLeft = OcclusionFillDriver(crossCheckLeft, benchmarking, profileInformation);
+    Image *occlusionFilledRight = OcclusionFillDriver(crossCheckRight, DO_NOT_BENCHMARK, NULL);
 
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT, occlusionFilledLeft);
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_RIGHT, occlusionFilledRight);
@@ -526,6 +567,8 @@ void fullFlow(BENCHMARK_MODE benchmarking)
 
     saveImage(OUTPUT_FILE_LEFT_DISPARITY, left_disparity_image);
     saveImage(OUTPUT_FILE_RIGHT_DISPARITY, right_disparity_image);
+
+    printSummary(profileInformation);
 
     freeImage(bwImage0);
     freeImage(bwImage1);
