@@ -305,7 +305,7 @@ Image *readImageDriver(const char *filename, BENCHMARK_MODE benchmark, ProfileIn
 
     // check integrity of the average elapsed time if not increase sample size
     // and keep running until the average is correct
-    if (!checkTimes(pInformation->readImage)) {
+    while (!checkTimes(pInformation->readImage)) {
         readImageDriverTimes(filename, pInformation);
     }
     logger("Image Load Time \t: %.3f ms", pInformation->readImage->averageElapsedTime);
@@ -352,7 +352,7 @@ Image *grayScaleImageDriver(Image *inputImage, BENCHMARK_MODE benchmarkMode, Pro
 
     grayScaleImageDriverTimes(inputImage, pInformation);
 
-    if (!checkTimes(pInformation->grayScaleImage)) {
+    while (!checkTimes(pInformation->grayScaleImage)) {
         grayScaleImageDriverTimes(inputImage, pInformation);
     }
 
@@ -376,7 +376,7 @@ void saveImageDriver(const char *fileName, Image *inputImage, BENCHMARK_MODE ben
 
     saveImageTimes(fileName, inputImage, pInformation);
 
-    if (!checkTimes(pInformation->saveImage)) {
+    while (!checkTimes(pInformation->saveImage)) {
         saveImageTimes(fileName, inputImage, pInformation);
     }
 
@@ -400,7 +400,7 @@ Image *CrossCheckDriver(Image *pImage, Image *pImage1, int cross_check_threshold
 
     CrossCheckDriverTimes(pImage, pImage1, cross_check_threshold, pInformation);
 
-    if (!checkTimes(pInformation->crossCheck)) {
+    while (!checkTimes(pInformation->crossCheck)) {
         CrossCheckDriverTimes(pImage, pImage1, cross_check_threshold, pInformation);
     }
 
@@ -427,7 +427,7 @@ Image *OcclusionFillDriver(Image *pImage, BENCHMARK_MODE benchmarkMode, ProfileI
 
     OcclusionFillDriverTimes(pImage, pInformation);
 
-    if (!checkTimes(pInformation->occlusion)) {
+    while (!checkTimes(pInformation->occlusion)) {
         OcclusionFillDriverTimes(pImage, pInformation);
     }
 
@@ -445,7 +445,7 @@ Image *
 {
     applyFilterDriverTimes(inputImage, filter, filterDenominator, filterSize, pInformation);
 
-    if (!checkTimes(pInformation->applyFilter)) {
+    while (!checkTimes(pInformation->applyFilter)) {
         applyFilterDriverTimes(inputImage, filter, filterDenominator, filterSize, pInformation);
     }
 
