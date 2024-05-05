@@ -78,8 +78,8 @@ int main(int argc, char *argv[])
     // get starting time
     GET_TIME(t0)
 
-    if (multithreadedMode || strcmp(argv[1], "mp") == 0) {
-//        fullFlow_MT(benchmark);
+    if (multithreadedMode || (strcmp(argv[1], "mp") == 0)) {
+        multithreadedMode = true;
         fullFlow(benchmark, multithreadedMode);
     } else if (strcmp(argv[1], "opencl") == 0) {
         openclFlowEx5();

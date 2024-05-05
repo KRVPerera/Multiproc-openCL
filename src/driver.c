@@ -460,10 +460,11 @@ Image *
 Image *znccCImpDriver(Image *pImage, Image *pImage1, int direction, BENCHMARK_MODE benchmark, ProfileInformation *pInformation)
 {
     if (benchmark == DO_NOT_BENCHMARK) {
-        logger("Running `Get_zncc_c_imp`");
         if (pInformation->multiThreaded) {
+            logger("Running `Get_zncc_c_imp_MT`");
             return Get_zncc_c_imp_MT(pImage, pImage1, direction);
         }
+        logger("Running `Get_zncc_c_imp`");
         return Get_zncc_c_imp(pImage, pImage1, direction);
     }
 
@@ -521,84 +522,6 @@ Image *getBWImage(const char *imagePath, const char *outputPath, BENCHMARK_MODE 
     free(filteredImage);
 
     return grayIm;
-}
-
-Image *getBWImage_MT(const char *imagePath, const char *outputPath, BENCHMARK_MODE benchmarking, ProfileInformation *profileInformation)
-{
-    if (benchmarking == DO_NOT_BENCHMARK) {
-        assert(profileInformation == NULL);
-        return getBWImageSingleRuns_MT(imagePath, outputPath);
-    }
-    struct timespec t0, t1;
-    unsigned long sec, nsec;
-
-    GET_TIME(t0)
-    Image *im = readImage(imagePath);
-    GET_TIME(t1)
-    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Image Load Time : %f micro seconds\n", elapsed_time);
-
-    GET_TIME(t0);
-    Image *smallImage = resizeImage_MT(im);
-    GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Image Resize Time MT : %f micro seconds\n", elapsed_time);
-    freeImage(im);
-
-    GET_TIME(t0);
-    Image *grayIm = grayScaleImage_MT(smallImage);
-    GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Image GrayScale Time MT : %f micro seconds\n", elapsed_time);
-    freeImage(smallImage);
-
-    unsigned char *gaussianFilter = getGaussianFilter();
-    GET_TIME(t0);
-    Image *filteredImage = applyFilter_MT(grayIm, gaussianFilter, 273, 5);
-    GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Image Filter Time : %f micro seconds\n", elapsed_time);
-    saveImage(OUTPUT_FILE_0_BW_FILTERED, filteredImage);
-    free(filteredImage);
-
-    GET_TIME(t0);
-    saveImage(outputPath, grayIm);
-    GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Image Save Time : %f micro seconds\n", elapsed_time);
-
-    free(gaussianFilter);
-
-    return grayIm;
-}
-
-void postProcessFlow()
-{
-    struct timespec t0, t1;
-    unsigned long sec, nsec;
-    Image *bwImage0 = readImage(OUTPUT_FILE_LEFT_DISPARITY);
-    Image *bwImage1 = readImage(OUTPUT_FILE_RIGHT_DISPARITY);
-
-    GET_TIME(t0);
-    Image *crossCheckLeft = CrossCheck(bwImage0, bwImage1, CROSS_CHECKING_THRESHOLD);
-    GET_TIME(t1);
-    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Cross Check Time Left : %f micro seconds\n", elapsed_time);
-
-    GET_TIME(t0);
-    Image *occlusionFilledLeft = OcclusionFill(crossCheckLeft);
-    GET_TIME(t1);
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Occlusion Fill Time Left : %f micro seconds\n", elapsed_time);
-
-    saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT, occlusionFilledLeft);
-
-    saveImage(OUTPUT_FILE_CROSS_CHECKING_LEFT, crossCheckLeft);
-
-    freeImage(bwImage0);
-    freeImage(bwImage1);
-    freeImage(crossCheckLeft);
-    freeImage(occlusionFilledLeft);
 }
 
 void fullFlow(BENCHMARK_MODE benchmarkMode, bool multiThreadedMode)
