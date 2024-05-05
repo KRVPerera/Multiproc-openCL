@@ -2,6 +2,7 @@
 // Created by ruksh on 21/02/2024.
 //
 
+#include <assert.h>
 #include <lodepng.h>
 #include <pngloader.h>
 #include <stdio.h>
@@ -344,9 +345,7 @@ void handleImageLoad(Image *imgI)
 }
 
 void freeImage(Image *img)
-{
-    if (img == NULL)
-        return;
+{   assert(img != NULL);
     if (img->image != NULL)
         free(img->image);
     img->image = NULL;

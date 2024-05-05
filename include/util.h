@@ -23,7 +23,6 @@ typedef struct ProfileInformation {
   ProcessTime * grayScaleImage;
   ProcessTime * applyFilter;
   ProcessTime * saveImage;
-  ProcessTime * filter;
   ProcessTime * zncc_left;
   ProcessTime * zncc_right;
   ProcessTime * crossCheck;

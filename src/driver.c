@@ -569,6 +569,7 @@ void fullFlow(BENCHMARK_MODE benchmarkMode, bool multiThreadedMode)
 
     printSummary(profileInformation);
 
+    logger("Cleaning up the memory");
     freeImage(bwImage0);
     freeImage(bwImage1);
     freeImage(crossCheckLeft);
