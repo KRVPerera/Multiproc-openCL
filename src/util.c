@@ -24,11 +24,17 @@ ProfileInformation *createProfileInformation(int initialSamples)
     profileInformation->applyFilter = createProcessTime(initialSamples);
     profileInformation->saveImage = createProcessTime(initialSamples);
     profileInformation->filter = createProcessTime(initialSamples);
-    profileInformation->leftDisparity = createProcessTime(initialSamples);
-    profileInformation->rightDisparity = createProcessTime(initialSamples);
+    profileInformation->zncc_left = createProcessTime(initialSamples);
+    profileInformation->zncc_right = createProcessTime(initialSamples);
     profileInformation->crossCheck = createProcessTime(initialSamples);
     profileInformation->occlusion = createProcessTime(initialSamples);
     return profileInformation;
+}
+
+void reinitProcessTime(ProcessTime *processTime)
+{
+    freeProcessTime(processTime);
+    processTime = createProcessTime(10);
 }
 
 void freeProfileInformation(ProfileInformation *profileInformation)
@@ -39,8 +45,8 @@ void freeProfileInformation(ProfileInformation *profileInformation)
     freeProcessTime(profileInformation->applyFilter);
     freeProcessTime(profileInformation->saveImage);
     freeProcessTime(profileInformation->filter);
-    freeProcessTime(profileInformation->leftDisparity);
-    freeProcessTime(profileInformation->rightDisparity);
+    freeProcessTime(profileInformation->zncc_left);
+    freeProcessTime(profileInformation->zncc_right);
     freeProcessTime(profileInformation->crossCheck);
     freeProcessTime(profileInformation->occlusion);
     free(profileInformation);

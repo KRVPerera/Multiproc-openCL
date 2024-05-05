@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 {
     logger("Starting Multiprocessor Programming project!");
 
-    int benchmark = 0;
+    BENCHMARK_MODE benchmark = DO_NOT_BENCHMARK;
     int multithreadedMode = 0;
     if (argc < 2) {
         logger("Incorrect number of arguments. Expected 1, got %d. Running `mp - multithreaded` mode", argc - 1);
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     }
 
     if (argc > 2 && strcmp(argv[2], "-benchmark") == 0) {
-        benchmark = 1;
+        benchmark = BENCHMARK;
     }
 
     logger("Data folder %s", PROJECT_DATA_DIR);

@@ -18,8 +18,8 @@ typedef struct ProfileInformation {
   ProcessTime * applyFilter;
   ProcessTime * saveImage;
   ProcessTime * filter;
-  ProcessTime * leftDisparity;
-  ProcessTime * rightDisparity;
+  ProcessTime * zncc_left;
+  ProcessTime * zncc_right;
   ProcessTime * crossCheck;
   ProcessTime * occlusion;
 } ProfileInformation;
@@ -52,6 +52,13 @@ void freeProfileInformation(ProfileInformation *profileInformation);
  * @return
  */
 ProcessTime *createProcessTime(int numSamples);
+
+
+/**
+ * Reinitialize a ProcessTime struct
+ * @param processTime
+ */
+void reinitProcessTime(ProcessTime *processTime);
 
 /**
  * Free the memory allocated for a ProcessTime struct

@@ -1,15 +1,16 @@
+#include "driver.h"
 #include "config.h"
 #include <assert.h>
 #include <cross_checking.h>
+#include <logger.h>
 #include <occlusion_filling.h>
 #include <pngloader.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <util.h>
 #include <zncc_c_imp.h>
-#include <logger.h>
 
-Image *resizeImageDriver(Image *pImage, int benchmarking, ProfileInformation *pInformation);
+
 // TODO: since the filter is syymetrical we may want to keep only wanted values
 // TODO: we may want to use x and y componets of the filter separately
 unsigned char *getGaussianFilter()
@@ -107,6 +108,88 @@ void resizeImageDriverTimes(Image *inputImage, ProfileInformation *profileInform
     }
 }
 
+void grayScaleImageDriverTimes(Image *inputImage, ProfileInformation *profileInformation)
+{
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+
+    int sampleCount = profileInformation->grayScaleImage->numSamples;
+    for (int i = 0; i < sampleCount; i++) {
+        float elapsed_time;
+        GET_TIME(t0)
+        Image *im = grayScaleImage(inputImage);
+        GET_TIME(t1)
+        elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+        profileInformation->grayScaleImage->elapsedTimes[i] = elapsed_time;
+        freeImage(im);
+    }
+}
+
+void applyFilterDriverTimes(const Image *inputImage,
+  const unsigned char *filter,
+  const float filterDenominator,
+  const int filterSize,
+  ProfileInformation *profileInformation)
+{
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+
+    int sampleCount = profileInformation->applyFilter->numSamples;
+    for (int i = 0; i < sampleCount; i++) {
+        float elapsed_time;
+        GET_TIME(t0)
+        Image *im = applyFilter(inputImage, filter, filterDenominator, filterSize);
+        GET_TIME(t1)
+        elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+        profileInformation->applyFilter->elapsedTimes[i] = elapsed_time;
+        freeImage(im);
+    }
+}
+
+
+void saveImageTimes(const char *name, Image *inputImage, ProfileInformation *pInformation)
+{
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+
+    int sampleCount = pInformation->saveImage->numSamples;
+    for (int i = 0; i < sampleCount; i++) {
+        float elapsed_time;
+        GET_TIME(t0)
+        saveImage(name, inputImage);
+        GET_TIME(t1)
+        elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+        pInformation->saveImage->elapsedTimes[i] = elapsed_time;
+    }
+}
+
+void znccCImpDriverTimes(Image *imageLeft, Image *imageRight, int direction, ProfileInformation *pInformation)
+{
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+
+    int sampleCount;
+    if (direction == 1) {
+        sampleCount = pInformation->zncc_left->numSamples;
+    } else {
+        sampleCount = pInformation->zncc_right->numSamples;
+    }
+
+    for (int i = 0; i < sampleCount; i++) {
+        float elapsed_time;
+        GET_TIME(t0)
+        Image *im = Get_zncc_c_imp(imageLeft, imageRight, direction);
+        GET_TIME(t1)
+        elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+        if (direction == 1) {
+            pInformation->zncc_left->elapsedTimes[i] = elapsed_time;
+        } else {
+            pInformation->zncc_right->elapsedTimes[i] = elapsed_time;
+        }
+        freeImage(im);
+    }
+}
+
 /**
  * Profile information for the image processing
  *
@@ -115,7 +198,7 @@ void resizeImageDriverTimes(Image *inputImage, ProfileInformation *profileInform
  * @param profileInformation
  * @return
  */
-Image *readImageDriver(const char *filename, int benchmark, ProfileInformation *profileInformation)
+Image *readImageDriver(const char *filename, BENCHMARK_MODE benchmark, ProfileInformation *profileInformation)
 {
     if (!benchmark) {
         logger("Running `readImage`");
@@ -130,34 +213,122 @@ Image *readImageDriver(const char *filename, int benchmark, ProfileInformation *
     if (!checkTimes(profileInformation->readImage)) {
         readImageDriverTimes(filename, profileInformation);
     }
-    logger("Image Load Time \t: %f", profileInformation->readImage->averageElapsedTime);
+    logger("Image Load Time \t: %.3f ms", profileInformation->readImage->averageElapsedTime);
 
     // read image one more time to return the image
     return readImage(filename);
 }
 
-Image *resizeImageDriver(Image *pImage, int benchmarking, ProfileInformation *pInformation)
+Image *resizeImageDriver(Image *inputImage, BENCHMARK_MODE benchmarkMode, ProfileInformation *pInformation)
 {
-    if (!benchmarking) {
-        logger("Running `resizeImage`\n");
-        return resizeImage(pImage);
+    if (benchmarkMode == DO_NOT_BENCHMARK) {
+        logger("Running `resizeImage`");
+        return resizeImage(inputImage);
     }
 
-    resizeImageDriverTimes(pImage, pInformation);
+    resizeImageDriverTimes(inputImage, pInformation);
 
     if (!checkTimes(pInformation->resizeImage)) {
-        resizeImageDriverTimes(pImage, pInformation);
+        resizeImageDriverTimes(inputImage, pInformation);
     }
 
-    logger("Image Resize Time \t: %f", pInformation->resizeImage->averageElapsedTime);
+    logger("Image Resize Time \t: %.3f ms", pInformation->resizeImage->averageElapsedTime);
 
     // run the function one more time to return the image
-    return resizeImage(pImage);
+    return resizeImage(inputImage);
 }
 
-Image *getBWImage(const char *imagePath, const char *outputPath, int benchmarking, ProfileInformation *profileInformation)
+Image *grayScaleImageDriver(Image *inputImage, BENCHMARK_MODE benchmarkMode, ProfileInformation *pInformation)
 {
-    if (!benchmarking) {
+    if (benchmarkMode == DO_NOT_BENCHMARK) {
+        logger("Running `grayScaleImage`");
+        return grayScaleImage(inputImage);
+    }
+
+    grayScaleImageDriverTimes(inputImage, pInformation);
+
+    if (!checkTimes(pInformation->grayScaleImage)) {
+        grayScaleImageDriverTimes(inputImage, pInformation);
+    }
+
+    logger("Image Grayscale Time \t: %.3f ms", pInformation->grayScaleImage->averageElapsedTime);
+
+    // run the function one more time to return the image
+    return grayScaleImage(inputImage);
+}
+
+
+void saveImageDriver(const char *fileName, Image *inputImage, BENCHMARK_MODE benchmarkMode, ProfileInformation *pInformation)
+{
+    if (benchmarkMode == DO_NOT_BENCHMARK) {
+        logger("Running `saveImage`");
+        saveImage(fileName, inputImage);
+    }
+
+    saveImageTimes(fileName, inputImage, pInformation);
+
+    if (!checkTimes(pInformation->saveImage)) {
+        saveImageTimes(fileName, inputImage, pInformation);
+    }
+
+    logger("Image SaveImage Time \t: %.3f ms", pInformation->saveImage->averageElapsedTime);
+
+    // run the function one more time to return the image
+    saveImage(fileName, inputImage);
+}
+
+Image *applyFilterDriver(const Image *inputImage,
+  const unsigned char *filter,
+  const float filterDenominator,
+  const int filterSize,
+  BENCHMARK_MODE benchmarkMode,
+  ProfileInformation *pInformation)
+{
+    if (benchmarkMode == DO_NOT_BENCHMARK) {
+        logger("Running `applyFilter`");
+        return applyFilter(inputImage, filter, filterDenominator, filterSize);
+    }
+
+    applyFilterDriverTimes(inputImage, filter, filterDenominator, filterSize, pInformation);
+
+    if (!checkTimes(pInformation->applyFilter)) {
+        applyFilterDriverTimes(inputImage, filter, filterDenominator, filterSize, pInformation);
+    }
+
+    logger("Image applyFilter Time : %.3f ms", pInformation->applyFilter->averageElapsedTime);
+
+    // run the function one more time to return the image
+    return applyFilter(inputImage, filter, filterDenominator, filterSize);
+}
+
+Image *znccCImpDriver(Image *pImage, Image *pImage1, int direction, BENCHMARK_MODE benchmark, ProfileInformation *pInformation)
+{
+    if (benchmark == DO_NOT_BENCHMARK) {
+        logger("Running `Get_zncc_c_imp`");
+        return Get_zncc_c_imp(pImage, pImage1, direction);
+    }
+
+    znccCImpDriverTimes(pImage, pImage1, direction, pInformation);
+
+    if (direction == 1 && !checkTimes(pInformation->zncc_left)) {
+        znccCImpDriverTimes(pImage, pImage1, direction, pInformation);
+    } else if (direction == -1 && !checkTimes(pInformation->zncc_right)) {
+        znccCImpDriverTimes(pImage, pImage1, direction, pInformation);
+    }
+
+    if (direction == 1) {
+        logger("Image ZNCC Left Disparity Time : %.3f ms", pInformation->zncc_left->averageElapsedTime);
+    } else {
+        logger("Image ZNCC Right Disparity Time : %.3f ms", pInformation->zncc_right->averageElapsedTime);
+    }
+
+    // run the function one more time to return the image
+    return Get_zncc_c_imp(pImage, pImage1, direction);
+}
+
+Image *getBWImage(const char *imagePath, const char *outputPath, BENCHMARK_MODE benchmarking, ProfileInformation *profileInformation)
+{
+    if (benchmarking == DO_NOT_BENCHMARK) {
         assert(profileInformation == NULL);
         return getBWImageSingleRuns(imagePath, outputPath);
     }
@@ -168,30 +339,13 @@ Image *getBWImage(const char *imagePath, const char *outputPath, int benchmarkin
 
     Image *smallImage = resizeImageDriver(im, benchmarking, profileInformation);
 
-
-    float elapsed_time;
-    struct timespec t0, t1;
-    unsigned long sec, nsec;
-    GET_TIME(t0)
-    Image *grayIm = grayScaleImage(smallImage);
-    GET_TIME(t1)
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Image GrayScale Time \t: %f micro seconds\n", elapsed_time);
+    Image *grayIm = grayScaleImageDriver(smallImage, benchmarking, profileInformation);
 
     unsigned char *gaussianFilter = getGaussianFilter();
-    GET_TIME(t0)
-    Image *filteredImage = applyFilter(grayIm, gaussianFilter, 273, 5);
-    GET_TIME(t1)
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Image Filter Time \t: %f micro seconds\n", elapsed_time);
+    Image *filteredImage = applyFilterDriver(grayIm, gaussianFilter, 273, 5, benchmarking, profileInformation);
 
-    saveImage(OUTPUT_FILE_0_BW_FILTERED, filteredImage);
-
-    GET_TIME(t0)
-    saveImage(outputPath, grayIm);
-    GET_TIME(t1)
-    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Image Save Time \t: %f micro seconds\n", elapsed_time);
+    saveImageDriver(OUTPUT_FILE_0_BW_FILTERED, filteredImage, benchmarking, profileInformation);
+    saveImageDriver(outputPath, grayIm, 0, profileInformation);
 
     freeImage(im);
     freeImage(smallImage);
@@ -277,7 +431,7 @@ void postProcessFlow()
 }
 
 
-void fullFlow(int benchmarking)
+void fullFlow(BENCHMARK_MODE benchmarking)
 {
     ProfileInformation *profileInformation = NULL;
     if (benchmarking) {
@@ -288,19 +442,14 @@ void fullFlow(int benchmarking)
 
     // profileing done only on first gray scale image generation
     Image *bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW, benchmarking, profileInformation);
-    Image *bwImage1 = getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, benchmarking, NULL);
+    Image *bwImage1 = getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, 0, NULL);
 
-    GET_TIME(t0)
-    Image *left_disparity_image = Get_zncc_c_imp(bwImage0, bwImage1, 1);
-    GET_TIME(t1)
-    float elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Left Disparity Time : %f micro seconds\n", elapsed_time_1);
+    Image *left_disparity_image = znccCImpDriver(bwImage0, bwImage1, 1, benchmarking, profileInformation);
 
-    GET_TIME(t0)
-    Image *right_disparity_image = Get_zncc_c_imp(bwImage1, bwImage0, -1);
-    GET_TIME(t1)
-    float elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Right Disparity Time : %f micro seconds\n", elapsed_time_2);
+    Image *right_disparity_image = znccCImpDriver(bwImage1, bwImage0, -1, benchmarking, profileInformation);
+
+    float elapsed_time_2 = profileInformation->zncc_left->averageElapsedTime;
+    float elapsed_time_1 = profileInformation->zncc_right->averageElapsedTime;
 
     // average disparity time
     float avg_disparity_time = (elapsed_time_1 + elapsed_time_2) / 2;
