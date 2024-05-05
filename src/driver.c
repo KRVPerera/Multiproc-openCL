@@ -146,7 +146,6 @@ void applyFilterDriverTimes(const Image *inputImage,
     }
 }
 
-
 void saveImageTimes(const char *name, Image *inputImage, ProfileInformation *pInformation)
 {
     struct timespec t0, t1;
@@ -163,6 +162,23 @@ void saveImageTimes(const char *name, Image *inputImage, ProfileInformation *pIn
     }
 }
 
+void CrossCheckDriverTimes(Image *pImage, Image *pImage1, int threshold, ProfileInformation *pInformation)
+{
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+
+    int sampleCount = pInformation->crossCheck->numSamples;
+    for (int i = 0; i < sampleCount; i++) {
+        float elapsed_time;
+        GET_TIME(t0)
+        Image *im = CrossCheck(pImage, pImage1, threshold);
+        GET_TIME(t1)
+        elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+        pInformation->crossCheck->elapsedTimes[i] = elapsed_time;
+        freeImage(im);
+    }
+}
+
 void znccCImpDriverTimes(Image *imageLeft, Image *imageRight, int direction, ProfileInformation *pInformation)
 {
     struct timespec t0, t1;
@@ -174,6 +190,8 @@ void znccCImpDriverTimes(Image *imageLeft, Image *imageRight, int direction, Pro
     } else {
         sampleCount = pInformation->zncc_right->numSamples;
     }
+
+    logger("Running `ZNCC algorithm` : %d times", sampleCount);
 
     for (int i = 0; i < sampleCount; i++) {
         float elapsed_time;
@@ -198,22 +216,23 @@ void znccCImpDriverTimes(Image *imageLeft, Image *imageRight, int direction, Pro
  * @param profileInformation
  * @return
  */
-Image *readImageDriver(const char *filename, BENCHMARK_MODE benchmark, ProfileInformation *profileInformation)
+Image *readImageDriver(const char *filename, BENCHMARK_MODE benchmark, ProfileInformation *pInformation)
 {
     if (!benchmark) {
         logger("Running `readImage`");
         return readImage(filename);
     }
+    assert(pInformation != NULL);
 
     // run ones with default sample size
-    readImageDriverTimes(filename, profileInformation);
+    readImageDriverTimes(filename, pInformation);
 
     // check integrity of the average elapsed time if not increase sample size
     // and keep running until the average is correct
-    if (!checkTimes(profileInformation->readImage)) {
-        readImageDriverTimes(filename, profileInformation);
+    if (!checkTimes(pInformation->readImage)) {
+        readImageDriverTimes(filename, pInformation);
     }
-    logger("Image Load Time \t: %.3f ms", profileInformation->readImage->averageElapsedTime);
+    logger("Image Load Time \t: %.3f ms", pInformation->readImage->averageElapsedTime);
 
     // read image one more time to return the image
     return readImage(filename);
@@ -225,6 +244,7 @@ Image *resizeImageDriver(Image *inputImage, BENCHMARK_MODE benchmarkMode, Profil
         logger("Running `resizeImage`");
         return resizeImage(inputImage);
     }
+    assert(pInformation != NULL);
 
     resizeImageDriverTimes(inputImage, pInformation);
 
@@ -244,6 +264,7 @@ Image *grayScaleImageDriver(Image *inputImage, BENCHMARK_MODE benchmarkMode, Pro
         logger("Running `grayScaleImage`");
         return grayScaleImage(inputImage);
     }
+    assert(pInformation != NULL);
 
     grayScaleImageDriverTimes(inputImage, pInformation);
 
@@ -264,6 +285,7 @@ void saveImageDriver(const char *fileName, Image *inputImage, BENCHMARK_MODE ben
         logger("Running `saveImage`");
         saveImage(fileName, inputImage);
     }
+    assert(pInformation != NULL);
 
     saveImageTimes(fileName, inputImage, pInformation);
 
@@ -277,6 +299,26 @@ void saveImageDriver(const char *fileName, Image *inputImage, BENCHMARK_MODE ben
     saveImage(fileName, inputImage);
 }
 
+Image *CrossCheckDriver(Image *pImage, Image *pImage1, int cross_check_threshold, BENCHMARK_MODE benchmarkMode, ProfileInformation *pInformation)
+{
+    if (benchmarkMode == DO_NOT_BENCHMARK) {
+        logger("Running `CrossCheck`");
+        return CrossCheck(pImage, pImage1, cross_check_threshold);
+    }
+    assert(pInformation != NULL);
+
+    CrossCheckDriverTimes(pImage, pImage1, cross_check_threshold, pInformation);
+
+    if (!checkTimes(pInformation->crossCheck)) {
+        CrossCheckDriverTimes(pImage, pImage1, cross_check_threshold, pInformation);
+    }
+
+    logger("Cross Check Time \t: %.3f ms\n", pInformation->crossCheck->averageElapsedTime);
+
+    // run the function one more time to return the image
+    return CrossCheck(pImage, pImage1, cross_check_threshold);
+}
+
 Image *applyFilterDriver(const Image *inputImage,
   const unsigned char *filter,
   const float filterDenominator,
@@ -288,6 +330,7 @@ Image *applyFilterDriver(const Image *inputImage,
         logger("Running `applyFilter`");
         return applyFilter(inputImage, filter, filterDenominator, filterSize);
     }
+    assert(pInformation != NULL);
 
     applyFilterDriverTimes(inputImage, filter, filterDenominator, filterSize, pInformation);
 
@@ -307,7 +350,9 @@ Image *znccCImpDriver(Image *pImage, Image *pImage1, int direction, BENCHMARK_MO
         logger("Running `Get_zncc_c_imp`");
         return Get_zncc_c_imp(pImage, pImage1, direction);
     }
-
+    assert(pInformation != NULL);
+    logger("Running `ZNCC algorithm` in benchmark mode. Please wait...");
+    reinitProcessTime(pInformation->zncc_left, 3);
     znccCImpDriverTimes(pImage, pImage1, direction, pInformation);
 
     if (direction == 1 && !checkTimes(pInformation->zncc_left)) {
@@ -317,9 +362,9 @@ Image *znccCImpDriver(Image *pImage, Image *pImage1, int direction, BENCHMARK_MO
     }
 
     if (direction == 1) {
-        logger("Image ZNCC Left Disparity Time : %.3f ms", pInformation->zncc_left->averageElapsedTime);
+        logger("Left Disparity Time \t: %.3f ms", pInformation->zncc_left->averageElapsedTime);
     } else {
-        logger("Image ZNCC Right Disparity Time : %.3f ms", pInformation->zncc_right->averageElapsedTime);
+        logger("Right Disparity Time \t: %.3f ms", pInformation->zncc_right->averageElapsedTime);
     }
 
     // run the function one more time to return the image
@@ -430,11 +475,13 @@ void postProcessFlow()
     freeImage(occlusionFilledLeft);
 }
 
-
 void fullFlow(BENCHMARK_MODE benchmarking)
 {
     ProfileInformation *profileInformation = NULL;
-    if (benchmarking) {
+    if (benchmarking == BENCHMARK) {
+        logger("Running in benchmark mode");
+        logger("Please note that each algorithm will be run atleast 10 times");
+        logger("Average time will be reported with 95 percent confidence");
         profileInformation = createProfileInformation(10);
     }
     struct timespec t0, t1;
@@ -442,39 +489,23 @@ void fullFlow(BENCHMARK_MODE benchmarking)
 
     // profileing done only on first gray scale image generation
     Image *bwImage0 = getBWImage(INPUT_FILE_0, OUTPUT_FILE_0_BW, benchmarking, profileInformation);
-    Image *bwImage1 = getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, 0, NULL);
+    Image *bwImage1 = getBWImage(INPUT_FILE_1, OUTPUT_FILE_1_BW, DO_NOT_BENCHMARK, NULL);
 
+    // profileing done only on first disparity image generation
     Image *left_disparity_image = znccCImpDriver(bwImage0, bwImage1, 1, benchmarking, profileInformation);
+    Image *right_disparity_image = znccCImpDriver(bwImage1, bwImage0, -1, DO_NOT_BENCHMARK, NULL);
 
-    Image *right_disparity_image = znccCImpDriver(bwImage1, bwImage0, -1, benchmarking, profileInformation);
+    // profileing done only on first cross check image generation
+    Image *crossCheckLeft = CrossCheckDriver(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD, benchmarking, profileInformation);
+    Image *crossCheckRight = CrossCheckDriver(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD, DO_NOT_BENCHMARK, NULL);
 
-    float elapsed_time_2 = profileInformation->zncc_left->averageElapsedTime;
-    float elapsed_time_1 = profileInformation->zncc_right->averageElapsedTime;
-
-    // average disparity time
-    float avg_disparity_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    logger("Average Disparity Time : %f micro seconds\n", avg_disparity_time);
-
-    GET_TIME(t0)
-    Image *crossCheckLeft = CrossCheck(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD);
-    GET_TIME(t1)
-    elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Cross Check Time Left : %f micro seconds\n", elapsed_time_1);
-
-    GET_TIME(t0)
-    Image *crossCheckRight = CrossCheck(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD);
-    GET_TIME(t1)
-    elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    float elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     logger("Cross Check Time Right : %f micro seconds\n", elapsed_time_2);
-
-    // average cross check time
-    float avg_cross_check_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    logger("Average Cross Check Time : %f micro seconds\n", avg_cross_check_time);
 
     GET_TIME(t0);
     Image *occlusionFilledLeft = OcclusionFill(crossCheckLeft);
     GET_TIME(t1);
-    elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    float elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
     logger("Occlusion Fill Time Left : %f micro seconds\n", elapsed_time_2);
 
     GET_TIME(t0);

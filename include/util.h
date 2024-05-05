@@ -57,8 +57,9 @@ ProcessTime *createProcessTime(int numSamples);
 /**
  * Reinitialize a ProcessTime struct
  * @param processTime
+ * @param numSamples
  */
-void reinitProcessTime(ProcessTime *processTime);
+void reinitProcessTime(ProcessTime *processTime, int numSamples);
 
 /**
  * Free the memory allocated for a ProcessTime struct

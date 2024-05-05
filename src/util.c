@@ -31,10 +31,10 @@ ProfileInformation *createProfileInformation(int initialSamples)
     return profileInformation;
 }
 
-void reinitProcessTime(ProcessTime *processTime)
+void reinitProcessTime(ProcessTime *processTime, int numSamples)
 {
     freeProcessTime(processTime);
-    processTime = createProcessTime(10);
+    processTime = createProcessTime(numSamples);
 }
 
 void freeProfileInformation(ProfileInformation *profileInformation)
