@@ -217,11 +217,14 @@ void CrossCheckDriverTimes(Image *pImage, Image *pImage1, int threshold, Profile
     struct timespec t0, t1;
     unsigned long sec, nsec;
 
+    typedef Image *(*CrossCheckFuncPtr)(const Image *pImage, const Image *pImage1, int threshold);
+    CrossCheckFuncPtr crossCheckFuncPtr = pInformation->multiThreaded ? CrossCheck_MT : CrossCheck;
+
     int sampleCount = pInformation->crossCheck->numSamples;
     for (int i = 0; i < sampleCount; i++) {
         float elapsed_time;
         GET_TIME(t0)
-        Image *im = CrossCheck(pImage, pImage1, threshold);
+        Image *im = crossCheckFuncPtr(pImage, pImage1, threshold);
         GET_TIME(t1)
         elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
         pInformation->crossCheck->elapsedTimes[i] = elapsed_time;
@@ -234,11 +237,14 @@ void OcclusionFillDriverTimes(Image *pImage, ProfileInformation *pInformation)
     struct timespec t0, t1;
     unsigned long sec, nsec;
 
+    typedef Image *(*OcclusionFillFuncPtr)(const Image *pImage);
+    OcclusionFillFuncPtr occlusionFillFuncPtr = pInformation->multiThreaded ? OcclusionFill_MT : OcclusionFill;
+
     int sampleCount = pInformation->occlusion->numSamples;
     for (int i = 0; i < sampleCount; i++) {
         float elapsed_time;
         GET_TIME(t0)
-        Image *im = OcclusionFill(pImage);
+        Image *im = occlusionFillFuncPtr(pImage);
         GET_TIME(t1)
         elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
         pInformation->occlusion->elapsedTimes[i] = elapsed_time;
@@ -260,10 +266,13 @@ void znccCImpDriverTimes(Image *imageLeft, Image *imageRight, int direction, Pro
 
     logger("Running `ZNCC algorithm` : %d times", sampleCount);
 
+    typedef Image *(*ZNCCFuncPtr)(const Image *pImage, const Image *pImage1, int direction);
+    ZNCCFuncPtr znccFuncPtr = pInformation->multiThreaded ? Get_zncc_c_imp_MT : Get_zncc_c_imp;
+
     for (int i = 0; i < sampleCount; i++) {
         float elapsed_time;
         GET_TIME(t0)
-        Image *im = Get_zncc_c_imp(imageLeft, imageRight, direction);
+        Image *im = znccFuncPtr(imageLeft, imageRight, direction);
         GET_TIME(t1)
         elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
         if (direction == 1) {
@@ -381,6 +390,9 @@ Image *CrossCheckDriver(Image *pImage, Image *pImage1, int cross_check_threshold
 {
     if (benchmarkMode == DO_NOT_BENCHMARK) {
         logger("Running `CrossCheck`");
+        if (pInformation->multiThreaded) {
+            return CrossCheck_MT(pImage, pImage1, cross_check_threshold);
+        }
         return CrossCheck(pImage, pImage1, cross_check_threshold);
     }
     assert(pInformation != NULL);
@@ -394,6 +406,9 @@ Image *CrossCheckDriver(Image *pImage, Image *pImage1, int cross_check_threshold
     logger("Cross Check Time \t: %.3f ms\n", pInformation->crossCheck->averageElapsedTime);
 
     // run the function one more time to return the image
+    if (pInformation->multiThreaded) {
+        return CrossCheck_MT(pImage, pImage1, cross_check_threshold);
+    }
     return CrossCheck(pImage, pImage1, cross_check_threshold);
 }
 
@@ -402,6 +417,9 @@ Image *OcclusionFillDriver(Image *pImage, BENCHMARK_MODE benchmarkMode, ProfileI
 
     if (benchmarkMode == DO_NOT_BENCHMARK) {
         logger("Running `OcclusionFill`");
+        if (pInformation->multiThreaded) {
+            return OcclusionFill_MT(pImage);
+        }
         return OcclusionFill(pImage);
     }
     assert(pInformation != NULL);
@@ -415,24 +433,15 @@ Image *OcclusionFillDriver(Image *pImage, BENCHMARK_MODE benchmarkMode, ProfileI
     logger("Occulsion Fill Time : %.3f ms", pInformation->occlusion->averageElapsedTime);
 
     // run the function one more time to return the image
+    if (pInformation->multiThreaded) {
+        return OcclusionFill_MT(pImage);
+    }
     return OcclusionFill(pImage);
 }
 
-Image *applyFilterDriver(const Image *inputImage,
-  const unsigned char *filter,
-  const float filterDenominator,
-  const int filterSize,
-  ProfileInformation *pInformation)
+Image *
+  applyFilterDriver(const Image *inputImage, const unsigned char *filter, const float filterDenominator, const int filterSize, ProfileInformation *pInformation)
 {
-//    assert(pInformation != NULL);
-//    if (benchmarkMode == DO_NOT_BENCHMARK) {
-//        logger("Running `applyFilter`");
-//        if (pInformation->multiThreaded) {
-//            return applyFilter_MT(inputImage, filter, filterDenominator, filterSize);
-//        }
-//        return applyFilter(inputImage, filter, filterDenominator, filterSize);
-//    }
-
     applyFilterDriverTimes(inputImage, filter, filterDenominator, filterSize, pInformation);
 
     if (!checkTimes(pInformation->applyFilter)) {
@@ -452,6 +461,9 @@ Image *znccCImpDriver(Image *pImage, Image *pImage1, int direction, BENCHMARK_MO
 {
     if (benchmark == DO_NOT_BENCHMARK) {
         logger("Running `Get_zncc_c_imp`");
+        if (pInformation->multiThreaded) {
+            return Get_zncc_c_imp_MT(pImage, pImage1, direction);
+        }
         return Get_zncc_c_imp(pImage, pImage1, direction);
     }
     assert(pInformation != NULL);
@@ -478,6 +490,9 @@ Image *znccCImpDriver(Image *pImage, Image *pImage1, int direction, BENCHMARK_MO
         logger("Right Disparity Time \t: %.3f ms", pInformation->zncc_right->averageElapsedTime);
     }
 
+    if (pInformation->multiThreaded) {
+        return Get_zncc_c_imp_MT(pImage, pImage1, direction);
+    }
     // run the function one more time to return the image
     return Get_zncc_c_imp(pImage, pImage1, direction);
 }

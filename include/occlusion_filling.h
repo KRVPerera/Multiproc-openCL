@@ -9,7 +9,7 @@
  * @param image
  * @return
  */
-Image *OcclusionFill(Image *image);
+Image *OcclusionFill(const Image *image);
 
 /**
  * Fill in occlusions in an image using OpenMP
@@ -17,6 +17,6 @@ Image *OcclusionFill(Image *image);
  * @param image
  * @return
  */
-Image *OcclusionFill_MT(Image *image);
+Image *OcclusionFill_MT(const Image *image);
 
 #endif// MULTIPROCOPENCL_OCCULSION_FILLING_H
