@@ -52,23 +52,23 @@ ProfileInformation *createProfileInformation(int initialSamples)
 void printSummary(ProfileInformation *pInformation)
 {
     logger("Summary of the benchmarking results");
-    if (pInformation->readImage->averageCalculated)
+    if (pInformation->readImage && pInformation->readImage->averageCalculated)
         logger("Image Load Time \t: %.3f ms", pInformation->readImage->averageElapsedTime);
-    if (pInformation->resizeImage->averageCalculated)
+    if (pInformation->resizeImage && pInformation->resizeImage->averageCalculated)
         logger("Image Resize Time \t: %.3f ms", pInformation->resizeImage->averageElapsedTime);
-    if (pInformation->grayScaleImage->averageCalculated)
+    if (pInformation->grayScaleImage && pInformation->grayScaleImage->averageCalculated)
         logger("Image Grayscale Time \t: %.3f ms", pInformation->grayScaleImage->averageElapsedTime);
-    if (pInformation->applyFilter->averageCalculated)
+    if (pInformation->applyFilter && pInformation->applyFilter->averageCalculated)
         logger("Image applyFilter Time : %.3f ms", pInformation->applyFilter->averageElapsedTime);
-    if (pInformation->saveImage->averageCalculated)
+    if (pInformation->saveImage && pInformation->saveImage->averageCalculated)
         logger("Image Save Time \t: %.3f ms", pInformation->saveImage->averageElapsedTime);
-    if (pInformation->zncc_left->averageCalculated)
+    if (pInformation->zncc_left && pInformation->zncc_left->averageCalculated)
         logger("Left Disparity Time \t: %.3f ms", pInformation->zncc_left->averageElapsedTime);
-    if (pInformation->zncc_right->averageCalculated)
+    if (pInformation->zncc_right && pInformation->zncc_right->averageCalculated)
         logger("Right Disparity Time \t: %.3f ms", pInformation->zncc_right->averageElapsedTime);
-    if (pInformation->crossCheck->averageCalculated)
+    if (pInformation->crossCheck && pInformation->crossCheck->averageCalculated)
         logger("Cross Check Time \t: %.3f ms", pInformation->crossCheck->averageElapsedTime);
-    if (pInformation->occlusion->averageCalculated)
+    if (pInformation->occlusion && pInformation->occlusion->averageCalculated)
         logger("Occlusion Fill Time \t: %.3f ms", pInformation->occlusion->averageElapsedTime);
 }
 
