@@ -5,7 +5,7 @@
 
 unsigned char *getGaussianFilter();
 
-Image *OcclusionFill(Image *image) {
+Image *OcclusionFill(const Image *image) {
     Image *occulsionFilledImage = createEmptyImage(image->width, image->height);
     unsigned char *gaussianFilter = getGaussianFilter();
     int height = image->height;
@@ -38,7 +38,7 @@ Image *OcclusionFill(Image *image) {
     return occulsionFilledImage;
 }
 
-Image *OcclusionFill_MT(Image *image) {
+Image *OcclusionFill_MT(const Image *image) {
     Image *occulsionFilledImage = createEmptyImage(image->width, image->height);
     const unsigned char *gaussianFilter = getGaussianFilter();
     const int height = image->height;

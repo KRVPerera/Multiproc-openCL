@@ -2,30 +2,31 @@
 // Created by ruksh on 21/02/2024.
 //
 
+#include <assert.h>
 #include <lodepng.h>
 #include <pngloader.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <util.h>
 
 // TODO: do we need to filter alpha?
-int applyFilterToNeighbours(const unsigned char *neighbours, const unsigned char *filter, const int size) {
+int applyFilterToNeighbours(const unsigned char *neighbours, const unsigned char *filter, const int size)
+{
     int convolutionValue = 0;
-    for (unsigned char index = 0; index < size * size; ++index) {
-        convolutionValue += neighbours[index] * filter[index];
-    }
+    for (unsigned char index = 0; index < size * size; ++index) { convolutionValue += neighbours[index] * filter[index]; }
     return convolutionValue;
 }
 
-float applyFilterToNeighboursFloat(const float *neighbours, const unsigned char *filter, const int size) {
+float applyFilterToNeighboursFloat(const float *neighbours, const unsigned char *filter, const int size)
+{
     float convolutionValue = 0;
-    for (unsigned char index = 0; index < size * size; ++index) {
-        convolutionValue += neighbours[index] * (float) filter[index];
-    }
+    for (unsigned char index = 0; index < size * size; ++index) { convolutionValue += neighbours[index] * (float)filter[index]; }
     return convolutionValue;
 }
 
 
-float applyFilterForNonZeroFloat(const float *neighbours, const unsigned char *filter, const int size) {
+float applyFilterForNonZeroFloat(const float *neighbours, const unsigned char *filter, const int size)
+{
     float convolutionValue = 0;
     float prevNonZeroValue = 0;
 
@@ -43,18 +44,22 @@ float applyFilterForNonZeroFloat(const float *neighbours, const unsigned char *f
         } else {
             prevNonZeroValue = pixelValue;
         }
-        convolutionValue += pixelValue * (float) filter[index];
+        convolutionValue += pixelValue * (float)filter[index];
     }
     return convolutionValue;
 }
 
-Image *readImage(const char *filename) {
+
+
+Image *readImage(const char *filename)
+{
     unsigned error;
     unsigned char *image = 0;
     unsigned width, height;
 
     error = lodepng_decode32_file(&image, &width, &height, filename);
-    if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
+    if (error)
+        printf("error %u: %s\n", error, lodepng_error_text(error));
 
     Image *img = malloc(sizeof(Image));
     img->image = image;
@@ -66,7 +71,8 @@ Image *readImage(const char *filename) {
     return img;
 }
 
-Image *createEmptyImage(const unsigned width, const unsigned height) {
+Image *createEmptyImage(const unsigned width, const unsigned height)
+{
     Image *img = malloc(sizeof(Image));
     img->image = malloc(width * height * 4);
     img->width = width;
@@ -76,11 +82,12 @@ Image *createEmptyImage(const unsigned width, const unsigned height) {
 }
 
 /**
- * Y=0.2126R + 0.7152G + 0.0722B
+ * Generate grayscale image based on equation Y= 0.2126R + 0.7152G + 0.0722B
  * @param input
  * @param output
  */
-Image *grayScaleImage(const Image *input) {
+Image *grayScaleImage(const Image *input)
+{
     Image *output = createEmptyImage(input->width, input->height);
     for (unsigned y = 0; y < input->height; y++) {
         for (unsigned x = 0; x < input->width; x++) {
@@ -89,8 +96,8 @@ Image *grayScaleImage(const Image *input) {
             unsigned char g = input->image[index + 1];
             unsigned char b = input->image[index + 2];
             unsigned char a = input->image[index + 3];
-            float gray = r * 0.2126 + g * 0.7152 + b * 0.0722;
-            unsigned char grayChar = (unsigned char) gray;
+            float gray = (float)(r * 0.2126 + g * 0.7152 + b * 0.0722);
+            unsigned char grayChar = (unsigned char)gray;
             output->image[index + 0] = grayChar;
             output->image[index + 1] = grayChar;
             output->image[index + 2] = grayChar;
@@ -105,10 +112,11 @@ Image *grayScaleImage(const Image *input) {
  * @param input
  * @param output
  */
-Image *grayScaleImage_MT(const Image *input) {
+Image *grayScaleImage_MT(const Image *input)
+{
     Image *output = createEmptyImage(input->width, input->height);
 
-    #pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
     for (unsigned y = 0; y < input->height; y++) {
         for (unsigned x = 0; x < input->width; x++) {
             size_t index = 4 * input->width * y + 4 * x;
@@ -116,8 +124,8 @@ Image *grayScaleImage_MT(const Image *input) {
             unsigned char g = input->image[index + 1];
             unsigned char b = input->image[index + 2];
             unsigned char a = input->image[index + 3];
-            float gray = r * 0.2126 + g * 0.7152 + b * 0.0722;
-            unsigned char grayChar = (unsigned char) gray;
+            float gray = (float)(r * 0.2126 + g * 0.7152 + b * 0.0722);
+            unsigned char grayChar = (unsigned char)gray;
             output->image[index + 0] = grayChar;
             output->image[index + 1] = grayChar;
             output->image[index + 2] = grayChar;
@@ -127,14 +135,8 @@ Image *grayScaleImage_MT(const Image *input) {
     return output;
 }
 
-/**
- * collect 25 neighbours of a pixel
- * @param input input image is a BW image
- * @param x
- * @param y
- * @return
- */
-unsigned char *getNeighbourWindowWithMirroringUnsigned(const Image *input, const unsigned x, const unsigned y) {
+unsigned char *getNeighbourWindowWithMirroringUnsigned(const Image *input, const unsigned x, const unsigned y)
+{
     unsigned char *neighbours = malloc(5 * 5 * sizeof(unsigned char));
     for (unsigned i = 0; i < 5; ++i) {
         int y1 = y - 2 + i;
@@ -143,13 +145,13 @@ unsigned char *getNeighbourWindowWithMirroringUnsigned(const Image *input, const
             unsigned char neighboursIndex = 5 * i + j;
             if (x1 < 0) {
                 x1 = abs(x1);
-            } else if (x1 >= (int) input->width) {
+            } else if (x1 >= (int)input->width) {
                 x1 = input->width + input->width - x1 - 2;
             }
 
             if (y1 < 0) {
                 y1 = abs(y1);
-            } else if (y1 >= (int) input->height) {
+            } else if (y1 >= (int)input->height) {
                 y1 = input->height + input->height - y1 - 2;
             }
 
@@ -160,7 +162,8 @@ unsigned char *getNeighbourWindowWithMirroringUnsigned(const Image *input, const
     return neighbours;
 }
 
-float *getNeighbourWindowWithMirroring(const Image *input, const unsigned x, const unsigned y, const int windowSize) {
+float *getNeighbourWindowWithMirroring(const Image *input, const unsigned x, const unsigned y, const int windowSize)
+{
     float *neighbours = malloc(windowSize * windowSize * sizeof(float));
     for (int i = 0; i < windowSize; ++i) {
         int y1 = y - windowSize / 2 + i;
@@ -169,13 +172,13 @@ float *getNeighbourWindowWithMirroring(const Image *input, const unsigned x, con
             unsigned char neighboursIndex = windowSize * i + j;
             if (x1 < 0) {
                 x1 = abs(x1);
-            } else if (x1 >= (int) input->width) {
+            } else if (x1 >= (int)input->width) {
                 x1 = input->width + input->width - x1 - 2;
             }
 
             if (y1 < 0) {
                 y1 = abs(y1);
-            } else if (y1 >= (int) input->height) {
+            } else if (y1 >= (int)input->height) {
                 y1 = input->height + input->height - y1 - 2;
             }
 
@@ -186,7 +189,8 @@ float *getNeighbourWindowWithMirroring(const Image *input, const unsigned x, con
     return neighbours;
 }
 
-float *getNeighboursZeroPaddingFloats(const Image *input, const unsigned x, const unsigned y) {
+float *getNeighboursZeroPaddingFloats(const Image *input, const unsigned x, const unsigned y)
+{
     float *neighbours = malloc(5 * 5 * sizeof(float));
     for (unsigned i = 0; i < 5; ++i) {
         int y1 = y - 2 + i;
@@ -195,12 +199,12 @@ float *getNeighboursZeroPaddingFloats(const Image *input, const unsigned x, cons
             unsigned char neighboursIndex = 5 * i + j;
             if (x1 < 0) {
                 x1 = abs(x1);
-            } else if (x1 >= (int) input->width) {
+            } else if (x1 >= (int)input->width) {
                 x1 = input->width + input->width - x1 - 2;
             }
             if (y1 < 0) {
                 y1 = abs(y1);
-            } else if (y1 >= (int) input->height) {
+            } else if (y1 >= (int)input->height) {
                 y1 = input->height + input->height - y1 - 2;
             }
             size_t index = 4 * input->width * y1 + 4 * x1;
@@ -218,7 +222,8 @@ float *getNeighboursZeroPaddingFloats(const Image *input, const unsigned x, cons
  * @param filterSize
  * @return
  */
-Image *applyFilter(const Image *input, const unsigned char *filter, const float filterDenominator, const int filterSize) {
+Image *applyFilter(const Image *input, const unsigned char *filter, const float filterDenominator, const int filterSize)
+{
     Image *output = createEmptyImage(input->width, input->height);
     for (unsigned y = 0; y < input->height; y++) {
         size_t yIndex = 4 * input->width * y;
@@ -246,10 +251,11 @@ Image *applyFilter(const Image *input, const unsigned char *filter, const float 
  * @param filterSize
  * @return
  */
-Image *applyFilter_MT(const Image *input,const unsigned char *filter, const float filterDenominator, const int filterSize) {
+Image *applyFilter_MT(const Image *input, const unsigned char *filter, float filterDenominator, int filterSize)
+{
     Image *output = createEmptyImage(input->width, input->height);
 
-    #pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
     for (unsigned y = 0; y < input->height; y++) {
         for (unsigned x = 0; x < input->width; x++) {
             unsigned char *neighbours = getNeighbourWindowWithMirroringUnsigned(input, x, y);
@@ -273,7 +279,8 @@ Image *applyFilter_MT(const Image *input,const unsigned char *filter, const floa
  * @param input
  * @param output
  */
-Image *resizeImage(const Image *input) {
+Image *resizeImage(const Image *input)
+{
     Image *output = createEmptyImage(input->width / IMAGE_SCALE, input->height / IMAGE_SCALE);
     for (unsigned y = 0; y < input->height; y = y + IMAGE_SCALE) {
         for (unsigned x = 0; x < input->width; x = x + IMAGE_SCALE) {
@@ -297,10 +304,11 @@ Image *resizeImage(const Image *input) {
  * @param input
  * @param output
  */
-Image *resizeImage_MT(const Image *input) {
+Image *resizeImage_MT(const Image *input)
+{
     Image *output = createEmptyImage(input->width / IMAGE_SCALE, input->height / IMAGE_SCALE);
 
-    #pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2)
     for (unsigned y = 0; y < input->height; y = y + IMAGE_SCALE) {
         for (unsigned x = 0; x < input->width; x = x + IMAGE_SCALE) {
             size_t index = 4 * input->width * y + 4 * x;
@@ -318,26 +326,29 @@ Image *resizeImage_MT(const Image *input) {
     return output;
 }
 
-void saveImage(const char *filename, Image *img) {
+void saveImage(const char *filename, Image *img)
+{
     /*Encode the image*/
     unsigned error = lodepng_encode32_file(filename, img->image, img->width, img->height);
 
     /*if there's an error, display it*/
-    if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
+    if (error)
+        printf("error %u: %s\n", error, lodepng_error_text(error));
 }
 
-void handleImageLoad(Image *imgI) {
+void handleImageLoad(Image *imgI)
+{
     if (imgI->error) {
         printf("Error loading image\n");
         freeImage(imgI);
     }
 }
 
-void freeImage(Image *img) {
-    if (img == NULL) return;
-    if (img->image != NULL) free(img->image);
+void freeImage(Image *img)
+{   assert(img != NULL);
+    if (img->image != NULL)
+        free(img->image);
     img->image = NULL;
     free(img);
     img = NULL;
 }
-
