@@ -404,7 +404,7 @@ Image *CrossCheckDriver(Image *pImage, Image *pImage1, int cross_check_threshold
         CrossCheckDriverTimes(pImage, pImage1, cross_check_threshold, pInformation);
     }
 
-    logger("Cross Check Time \t: %.3f ms\n", pInformation->crossCheck->averageElapsedTime);
+    logger("Cross Check Time \t: %.3f ms", pInformation->crossCheck->averageElapsedTime);
 
     // run the function one more time to return the image
     if (pInformation->multiThreaded) {
