@@ -466,7 +466,6 @@ Image *znccCImpDriver(Image *pImage, Image *pImage1, int direction, BENCHMARK_MO
         }
         return Get_zncc_c_imp(pImage, pImage1, direction);
     }
-    assert(pInformation != NULL);
 
     logger("Running `ZNCC algorithm` in benchmark mode. Please wait...");
     if (direction == 1) {
@@ -504,8 +503,6 @@ Image *getBWImage(const char *imagePath, const char *outputPath, BENCHMARK_MODE 
         return getBWImageSingleRuns(imagePath, outputPath, profileInformation->multiThreaded);
     }
 
-    assert(profileInformation != NULL);
-
     Image *im = readImageDriver(imagePath, benchmarking, profileInformation);
 
     Image *smallImage = resizeImageDriver(im, benchmarking, profileInformation);
@@ -525,7 +522,6 @@ Image *getBWImage(const char *imagePath, const char *outputPath, BENCHMARK_MODE 
 
     return grayIm;
 }
-
 
 Image *getBWImage_MT(const char *imagePath, const char *outputPath, BENCHMARK_MODE benchmarking, ProfileInformation *profileInformation)
 {
@@ -657,84 +653,4 @@ void fullFlow(BENCHMARK_MODE benchmarkMode, bool multiThreadedMode)
     freeImage(left_disparity_image);
     freeImage(right_disparity_image);
     freeProfileInformation(profileInformation);
-}
-
-void fullFlow_MT(BENCHMARK_MODE benchmarkMode)
-{
-    ProfileInformation *profileInformation = NULL;
-    if (benchmarkMode == BENCHMARK) {
-        logger("Running in benchmark mode");
-        logger("Please note that each algorithm will be run atleast 10 times");
-        logger("Average time will be reported with 95 percent confidence");
-        profileInformation = createProfileInformation(10);
-    }
-
-    struct timespec t0, t1;
-    unsigned long sec, nsec;
-
-    // profiling done only on first gray scale image generation
-    Image *bwImage0 = getBWImage_MT(INPUT_FILE_0, OUTPUT_FILE_0_BW, benchmarkMode, profileInformation);
-    Image *bwImage1 = getBWImage_MT(INPUT_FILE_1, OUTPUT_FILE_1_BW, benchmarkMode, profileInformation);
-
-    GET_TIME(t0);
-    Image *left_disparity_image = Get_zncc_c_imp_MT(bwImage0, bwImage1, 1);
-    GET_TIME(t1);
-    float elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Left Disparity Time MT : %f micro seconds\n", elapsed_time_1);
-    saveImage(OUTPUT_FILE_LEFT_DISPARITY_MT, left_disparity_image);
-
-    GET_TIME(t0);
-    Image *right_disparity_image = Get_zncc_c_imp_MT(bwImage1, bwImage0, -1);
-    GET_TIME(t1);
-    float elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Right Disparity Time MT : %f micro seconds\n", elapsed_time_2);
-    saveImage(OUTPUT_FILE_RIGHT_DISPARITY_MT, right_disparity_image);
-    freeImage(bwImage1);
-    freeImage(bwImage0);
-
-    // average disparity time
-    float avg_disparity_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    logger("Average Disparity Time MT : %f micro seconds\n", avg_disparity_time);
-
-    GET_TIME(t0);
-    Image *crossCheckLeft = CrossCheck_MT(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD);
-    GET_TIME(t1);
-    elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Cross Check Time Left MT : %f micro seconds\n", elapsed_time_1);
-    saveImage(OUTPUT_FILE_CROSS_CHECKING_LEFT_MT, crossCheckLeft);
-
-    GET_TIME(t0);
-    Image *crossCheckRight = CrossCheck_MT(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD);
-    GET_TIME(t1);
-    elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Cross Check Time Right MT : %f micro seconds\n", elapsed_time_2);
-    saveImage(OUTPUT_FILE_CROSS_CHECKING_RIGHT_MT, crossCheckRight);
-    freeImage(right_disparity_image);
-    freeImage(left_disparity_image);
-
-    // average cross check time
-    float avg_cross_check_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    logger("Average Cross Check Time MT : %f micro seconds\n", avg_cross_check_time);
-
-    GET_TIME(t0);
-    Image *occlusionFilledLeft = OcclusionFill_MT(crossCheckLeft);
-    GET_TIME(t1);
-    elapsed_time_1 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Occlusion Fill Time Left MT : %f micro seconds\n", elapsed_time_1);
-    saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT_MT, occlusionFilledLeft);
-    freeImage(occlusionFilledLeft);
-    freeImage(crossCheckLeft);
-
-    GET_TIME(t0);
-    Image *occlusionFilledRight = OcclusionFill_MT(crossCheckRight);
-    GET_TIME(t1);
-    elapsed_time_2 = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
-    logger("Occlusion Fill Time Right MT : %f micro seconds\n", elapsed_time_2);
-    saveImage(OUTPUT_FILE_OCCULSION_FILLED_RIGHT_MT, occlusionFilledRight);
-    freeImage(occlusionFilledRight);
-    freeImage(crossCheckRight);
-
-    // average occlusion fill time
-    float avg_occlusion_fill_time = (elapsed_time_1 + elapsed_time_2) / 2;
-    logger("Average Occlusion Fill Time MT : %f micro seconds\n", avg_occlusion_fill_time);
 }

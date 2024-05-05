@@ -14,7 +14,6 @@ void zncc_flow_driver(const char *imagePath, const char *outputPath);
 void createSampleTestPng();
 Image* getFilterdBWImage(const char * imagePath, const char * outputPath);
 void fullFlow(BENCHMARK_MODE benchmarking, bool multiThreadedMode);
-void fullFlow_MT();
 void postProcessFlow();
 
 
