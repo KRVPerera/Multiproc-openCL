@@ -389,6 +389,7 @@ void saveImageDriver(const char *fileName, Image *inputImage, BENCHMARK_MODE ben
 Image *CrossCheckDriver(Image *pImage, Image *pImage1, int cross_check_threshold, BENCHMARK_MODE benchmarkMode, ProfileInformation *pInformation)
 {
     if (benchmarkMode == DO_NOT_BENCHMARK) {
+        assert(pInformation != NULL);
         logger("Running `CrossCheck`");
         if (pInformation->multiThreaded) {
             return CrossCheck_MT(pImage, pImage1, cross_check_threshold);
@@ -414,8 +415,8 @@ Image *CrossCheckDriver(Image *pImage, Image *pImage1, int cross_check_threshold
 
 Image *OcclusionFillDriver(Image *pImage, BENCHMARK_MODE benchmarkMode, ProfileInformation *pInformation)
 {
-
     if (benchmarkMode == DO_NOT_BENCHMARK) {
+        assert(pInformation != NULL);
         logger("Running `OcclusionFill`");
         if (pInformation->multiThreaded) {
             return OcclusionFill_MT(pImage);
@@ -460,6 +461,7 @@ Image *
 Image *znccCImpDriver(Image *pImage, Image *pImage1, int direction, BENCHMARK_MODE benchmark, ProfileInformation *pInformation)
 {
     if (benchmark == DO_NOT_BENCHMARK) {
+        assert(pInformation != NULL);
         if (pInformation->multiThreaded) {
             logger("Running `Get_zncc_c_imp_MT`");
             return Get_zncc_c_imp_MT(pImage, pImage1, direction);
@@ -546,15 +548,15 @@ void fullFlow(BENCHMARK_MODE benchmarkMode, bool multiThreadedMode)
 
     // profiling done only on first disparity image generation
     Image *left_disparity_image = znccCImpDriver(bwImage0, bwImage1, 1, benchmarkMode, profileInformation);
-    Image *right_disparity_image = znccCImpDriver(bwImage1, bwImage0, -1, DO_NOT_BENCHMARK, NULL);
+    Image *right_disparity_image = znccCImpDriver(bwImage1, bwImage0, -1, DO_NOT_BENCHMARK, profileInformation);
 
     // profiling done only on first cross check image generation
     Image *crossCheckLeft = CrossCheckDriver(left_disparity_image, right_disparity_image, CROSS_CHECKING_THRESHOLD, benchmarkMode, profileInformation);
-    Image *crossCheckRight = CrossCheckDriver(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD, DO_NOT_BENCHMARK, NULL);
+    Image *crossCheckRight = CrossCheckDriver(right_disparity_image, left_disparity_image, CROSS_CHECKING_THRESHOLD, DO_NOT_BENCHMARK, profileInformation);
 
     // profiling done only on first occlusion filled image generation
     Image *occlusionFilledLeft = OcclusionFillDriver(crossCheckLeft, benchmarkMode, profileInformation);
-    Image *occlusionFilledRight = OcclusionFillDriver(crossCheckRight, DO_NOT_BENCHMARK, NULL);
+    Image *occlusionFilledRight = OcclusionFillDriver(crossCheckRight, DO_NOT_BENCHMARK, profileInformation);
 
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_LEFT, occlusionFilledLeft);
     saveImage(OUTPUT_FILE_OCCULSION_FILLED_RIGHT, occlusionFilledRight);
