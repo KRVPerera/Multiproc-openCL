@@ -2,16 +2,22 @@
 #define MULTIPROCOPENCL_UTIL_H
 
 #include <time.h>
+#include <stdbool.h>
 
 #define GET_TIME(x) if(clock_gettime(CLOCK_MONOTONIC, &(x)) < 0) {perror("clock_gettime(): "); exit(EXIT_FAILURE);}
+
+enum AVERAGE_CALCULATED { FALSE, TRUE };
+typedef enum AVERAGE_CALCULATED AVERAGE_CALCULATED;
 
 typedef struct ProcessTime {
   float *elapsedTimes;
   float averageElapsedTime;
   int numSamples;
+  bool averageCalculated;
 } ProcessTime;
 
 typedef struct ProfileInformation {
+  bool multiThreaded;
   ProcessTime * readImage;
   ProcessTime * resizeImage;
   ProcessTime * grayScaleImage;
@@ -39,6 +45,12 @@ int checkTimes(ProcessTime *processTime);
  * @return
  */
 ProfileInformation *createProfileInformation(int initialSamples);
+
+/**
+ * Create a new ProfileInformation struct without benchmarking
+ * @return
+ */
+ProfileInformation *createProfileInformationWithoutBenchmarking();
 
 /**
  * Free the memory allocated for a ProfileInformation struct
@@ -107,5 +119,11 @@ float Average(const float *times, const int numSamples);
  * @return
  */
 long requiredSampleSize(float sd, float mean);
+
+/**
+ * Print a summary of the ProfileInformation struct
+ * @param pInformation
+ */
+void printSummary(ProfileInformation *pInformation);
 
 #endif //MULTIPROCOPENCL_UTIL_H

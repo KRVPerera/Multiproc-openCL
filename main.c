@@ -54,13 +54,15 @@ void openmpTestCode(void)
 
 int main(int argc, char *argv[])
 {
+    logger("--------------------------------------------");
     logger("Starting Multiprocessor Programming project!");
+    logger("--------------------------------------------");
 
     BENCHMARK_MODE benchmark = DO_NOT_BENCHMARK;
-    int multithreadedMode = 0;
+    bool multithreadedMode = false;
     if (argc < 2) {
         logger("Incorrect number of arguments. Expected 1, got %d. Running `mp - multithreaded` mode", argc - 1);
-        multithreadedMode = 1;
+        multithreadedMode = true;
     }
 
     if (argc > 2 && strcmp(argv[2], "-benchmark") == 0) {
@@ -77,13 +79,14 @@ int main(int argc, char *argv[])
     GET_TIME(t0)
 
     if (multithreadedMode || strcmp(argv[1], "mp") == 0) {
-        fullFlow_MT();
+//        fullFlow_MT(benchmark);
+        fullFlow(benchmark, multithreadedMode);
     } else if (strcmp(argv[1], "opencl") == 0) {
         openclFlowEx5();
     } else if (strcmp(argv[1], "opencl_old") == 0) {
         openclFlowEx3();
     } else if (strcmp(argv[1], "single") == 0) {
-        fullFlow(benchmark);
+        fullFlow(benchmark, multithreadedMode);
     } else if (strcmp(argv[1], "test") == 0) {
         openmpTestCode();
     } else {
@@ -94,7 +97,8 @@ int main(int argc, char *argv[])
     // get program end time
     GET_TIME(t1)
 
-    logger("Total time of the program : %f micro seconds", elapsed_time_microsec(&t0, &t1, &sec, &nsec));
-    logger("Stopping Multiprocessor Programming project!");
+    logger("Total time of the main : %.3f ms", elapsed_time_microsec(&t0, &t1, &sec, &nsec));
+    logger("Multiprocessor Programming project : Ran successfully!");
+    logger("--------------------------------------------");
     return 0;
 }

@@ -3,6 +3,7 @@
 //
 #include "util.h"
 #include <assert.h>
+#include <logger.h>
 #include <math.h>
 #include <stdlib.h>
 
@@ -12,23 +13,63 @@ ProcessTime *createProcessTime(int numSamples)
     processTime->elapsedTimes = (float *)malloc(sizeof(float) * numSamples);
     processTime->numSamples = numSamples;
     processTime->averageElapsedTime = 0;
+    processTime->averageCalculated = 0;
     return processTime;
+}
+
+ProfileInformation *createProfileInformationWithoutBenchmarking()
+{
+    ProfileInformation *profileInformation = (ProfileInformation *)malloc(sizeof(ProfileInformation));
+    profileInformation->multiThreaded = false;
+    profileInformation->readImage = createProcessTime(1);
+    profileInformation->resizeImage = createProcessTime(1);
+    profileInformation->grayScaleImage = createProcessTime(1);
+    profileInformation->applyFilter = createProcessTime(1);
+    profileInformation->saveImage = createProcessTime(1);
+    profileInformation->zncc_left = createProcessTime(1);
+    profileInformation->zncc_right = createProcessTime(1);
+    profileInformation->crossCheck = createProcessTime(1);
+    profileInformation->occlusion = createProcessTime(1);
+    return profileInformation;
 }
 
 ProfileInformation *createProfileInformation(int initialSamples)
 {
     ProfileInformation *profileInformation = (ProfileInformation *)malloc(sizeof(ProfileInformation));
+    profileInformation->multiThreaded = false;
     profileInformation->readImage = createProcessTime(initialSamples);
     profileInformation->resizeImage = createProcessTime(initialSamples);
     profileInformation->grayScaleImage = createProcessTime(initialSamples);
     profileInformation->applyFilter = createProcessTime(initialSamples);
     profileInformation->saveImage = createProcessTime(initialSamples);
-    profileInformation->filter = createProcessTime(initialSamples);
     profileInformation->zncc_left = createProcessTime(initialSamples);
     profileInformation->zncc_right = createProcessTime(initialSamples);
     profileInformation->crossCheck = createProcessTime(initialSamples);
     profileInformation->occlusion = createProcessTime(initialSamples);
     return profileInformation;
+}
+
+void printSummary(ProfileInformation *pInformation)
+{
+    logger("Summary of the benchmarking results");
+    if (pInformation->readImage->averageCalculated)
+        logger("Image Load Time \t: %.3f ms", pInformation->readImage->averageElapsedTime);
+    if (pInformation->resizeImage->averageCalculated)
+        logger("Image Resize Time \t: %.3f ms", pInformation->resizeImage->averageElapsedTime);
+    if (pInformation->grayScaleImage->averageCalculated)
+        logger("Image Grayscale Time \t: %.3f ms", pInformation->grayScaleImage->averageElapsedTime);
+    if (pInformation->applyFilter->averageCalculated)
+        logger("Image applyFilter Time : %.3f ms", pInformation->applyFilter->averageElapsedTime);
+    if (pInformation->saveImage->averageCalculated)
+        logger("Image Save Time \t: %.3f ms", pInformation->saveImage->averageElapsedTime);
+    if (pInformation->zncc_left->averageCalculated)
+        logger("Left Disparity Time \t: %.3f ms", pInformation->zncc_left->averageElapsedTime);
+    if (pInformation->zncc_right->averageCalculated)
+        logger("Right Disparity Time \t: %.3f ms", pInformation->zncc_right->averageElapsedTime);
+    if (pInformation->crossCheck->averageCalculated)
+        logger("Cross Check Time \t: %.3f ms", pInformation->crossCheck->averageElapsedTime);
+    if (pInformation->occlusion->averageCalculated)
+        logger("Occlusion Fill Time \t: %.3f ms", pInformation->occlusion->averageElapsedTime);
 }
 
 void reinitProcessTime(ProcessTime **processTime, int numSamples)
@@ -60,15 +101,18 @@ void freeProcessTime(ProcessTime *processTime)
 
 int checkTimes(ProcessTime *processTime)
 {
+    processTime->averageCalculated = false;
     int numberOfSamples = processTime->numSamples;
     float mean = Average(processTime->elapsedTimes, numberOfSamples);
     float sd = standardDeviation(processTime->elapsedTimes, numberOfSamples);
     int req_n = requiredSampleSize(sd, mean);
     if (req_n > numberOfSamples) {
         increaseSampleSize(processTime, req_n);
+        processTime->averageCalculated = false;
         return 0;
     }
     processTime->averageElapsedTime = mean;
+    processTime->averageCalculated = true;
     return 1;
 }
 
