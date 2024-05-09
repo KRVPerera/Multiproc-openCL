@@ -46,7 +46,7 @@ void apply_occlusion_fill_6(cl_context context, cl_kernel kernel, cl_command_que
     };
 
     /* Create output image object */
-    output_image = clCreateImage2D(context, CL_MEM_READ_WRITE, &output_format, width, height, 0, NULL, &err);
+    output_image = clCreateImage2D(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, &output_format, width, height, 0, NULL, &err);
     if (err < 0) {
         perror("occlustion_fill: Couldn't create the input image object");
         exit(1);
@@ -107,7 +107,7 @@ void apply_occlusion_fill_6(cl_context context, cl_kernel kernel, cl_command_que
 
 void openclFlowEx6(void)
 {
-    printf("OpenCL Flow Example 5 STARTED\n");
+    printf("OpenCL Flow 6 STARTED\n");
     cl_device_id device;
     cl_context context;
     cl_command_queue queue;
@@ -244,7 +244,7 @@ void openclFlowEx6(void)
     clReleaseProgram(program);
     clReleaseContext(context);
 
-    printf("OpenCL Flow Example 5 ENDED\n");
+    printf("OpenCL Flow 6 ENDED\n");
 }
 
 void printDeviceInformation(cl_device_id device_id)
@@ -256,52 +256,58 @@ void printDeviceInformation(cl_device_id device_id)
     char p_name[40];
     char p_vendor[40];
     size_t time_res;
-    cl_uint work_item_dim, compute_units, char_vector_width, global_mem_size, global_mem_cache, buffer_size, local_mem_size;
+    cl_uint work_item_dim, compute_units, char_vector_width, global_mem_size, global_mem_cache, buffer_size, local_mem_size, cache_size, clock_freq;
     clGetDeviceInfo(device_id, CL_DEVICE_PLATFORM, sizeof(cl_platform_id), &platform_id, NULL);
     cl_int err = clGetPlatformInfo(platform_id, CL_PLATFORM_NAME, 40, p_name, NULL);
     if (err < 0) {
         perror("Couldn't read platform name");
     } else {
-        printf("Platform name: %s\n", p_name);
+        printf("Platform name\t: %s\n", p_name);
     }
     err = clGetPlatformInfo(platform_id, CL_PLATFORM_VENDOR, 40, p_vendor, NULL);
     if (err < 0) {
         perror("Couldn't read platform vendor");
     } else {
-        printf("Platform vendor: %s\n", p_vendor);
+        printf("Platform vendor\t: %s\n", p_vendor);
     }
     clGetDeviceInfo(device_id, CL_DEVICE_NAME, 128, buf, NULL);
-    fprintf(stdout, "Device:    %s\n", buf);
+    fprintf(stdout, "Device\t\t: %s\n", buf);
     err = clGetDeviceInfo(device_id, CL_DEVICE_VERSION, 128, buf, NULL);
     if (err < 0) {
         perror("Couldn't read device version");
     } else {
-        printf("Device OpenCL version : %s\n", buf);
+        printf("OpenCL version \t: %s\n", buf);
     }
 
     clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(cl_uint), &work_item_dim, NULL);
-    fprintf(stdout, "Maximum work dimensions device support : \t%u\n", work_item_dim);
+    fprintf(stdout, "Work dimensions \t: %u\n", work_item_dim);
 
     clGetDeviceInfo(device_id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &compute_units, NULL);
-    fprintf(stdout, "The number of parallel compute units : \t\t%u\n", compute_units);
+    fprintf(stdout, "Parallel compute units \t: %u\n", compute_units);
 
     clGetDeviceInfo(device_id, CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, sizeof(char_vector_width), &char_vector_width, NULL);
-    fprintf(stdout, "Preferred native vector width size : \t\t%u\n", char_vector_width);
+    fprintf(stdout, "Preferred vector width \t: %u\n", char_vector_width);
 
     clGetDeviceInfo(device_id, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_uint), &global_mem_size, NULL);
-    fprintf(stdout, "Max size of memory object allocation in bytes : %u\n", global_mem_size);
+    fprintf(stdout, "Max object allocation \t: %u bytes\n", global_mem_size);
 
     clGetDeviceInfo(device_id, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, sizeof(cl_uint), &global_mem_cache, NULL);
-    fprintf(stdout, "Size of global memory cache in bytes : \t\t%u\n", global_mem_cache);
+    fprintf(stdout, "Global memory cache \t: %u bytes\n", global_mem_cache);
 
     clGetDeviceInfo(device_id, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(cl_uint), &buffer_size, NULL);
-    fprintf(stdout, "Max constant buffer allocation in bytes : \t%u\n", buffer_size);
+    fprintf(stdout, "Constant buffer \t: %u bytes\n", buffer_size);
 
     clGetDeviceInfo(device_id, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_uint), &local_mem_size, NULL);
-    fprintf(stdout, "Size of local memory region in bytes :  \t%u\n", local_mem_size);
+    fprintf(stdout, "Local memory region \t: %u bytes\n", local_mem_size);
+
+    clGetDeviceInfo(device_id, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(cl_uint), &cache_size, NULL);
+    fprintf(stdout, "Cacheline size \t\t: %u \n", cache_size);
+
+    clGetDeviceInfo(device_id, CL_DEVICE_MAX_CLOCK_FREQUENCY, sizeof(cl_uint), &clock_freq, NULL);
+    fprintf(stdout, "Max clock \t\t: %u MHz\n", clock_freq);
 
     clGetDeviceInfo(device_id, CL_DEVICE_PROFILING_TIMER_RESOLUTION, sizeof(time_res), &time_res, NULL);
-    fprintf(stdout, "Resolution of device timer : \t\t\t%zu ns\n", time_res);
+    fprintf(stdout, "Time resolution \t: %zu ns\n", time_res);
     cl_bool image_support = CL_FALSE;
     clGetDeviceInfo(device_id, CL_DEVICE_IMAGE_SUPPORT, sizeof(image_support), &image_support, NULL);
     if (image_support == CL_TRUE) {
