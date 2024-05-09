@@ -255,7 +255,7 @@ void printDeviceInformation(cl_device_id device_id)
     char buf[128];
     char p_name[40];
     char p_vendor[40];
-    size_t time_res;
+    size_t time_res, local_size;
     cl_uint work_item_dim, compute_units, char_vector_width, global_mem_size, global_mem_cache, buffer_size, local_mem_size, cache_size, clock_freq;
     clGetDeviceInfo(device_id, CL_DEVICE_PLATFORM, sizeof(cl_platform_id), &platform_id, NULL);
     cl_int err = clGetPlatformInfo(platform_id, CL_PLATFORM_NAME, 40, p_name, NULL);
@@ -299,6 +299,9 @@ void printDeviceInformation(cl_device_id device_id)
 
     clGetDeviceInfo(device_id, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_uint), &local_mem_size, NULL);
     fprintf(stdout, "Local memory region \t: %u bytes\n", local_mem_size);
+
+    clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &local_size, NULL);
+    fprintf(stdout, "Maximum work group size : %zu \n", local_size);
 
     clGetDeviceInfo(device_id, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(cl_uint), &cache_size, NULL);
     fprintf(stdout, "Cacheline size \t\t: %u \n", cache_size);
