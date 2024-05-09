@@ -49,12 +49,12 @@ include_directories(include)
 include_directories(include/opencl)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+add_library(logger STATIC src/logger.c include/logger.h)
 add_library(utils STATIC src/util.c include/util.h)
-target_link_libraries(utils PUBLIC m)
+target_link_libraries(utils PUBLIC m logger)
 add_library(img_loader STATIC src/pngloader.c include/pngloader.h)
 target_link_libraries(img_loader PUBLIC lodepng)
 
-add_library(logger STATIC src/logger.c include/logger.h)
 add_library(occlusion STATIC src/occlusion_filling.c include/occlusion_filling.h)
 
 add_library(learn_openmp STATIC src/calc_pi_mt.c include/calc_pi.h)
