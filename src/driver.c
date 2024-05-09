@@ -480,10 +480,14 @@ Image *znccCImpDriver(Image *pImage, Image *pImage1, int direction, BENCHMARK_MO
     }
     znccCImpDriverTimes(pImage, pImage1, direction, pInformation);
 
-    if (direction == 1 && !checkTimes(pInformation->zncc_left)) {
-        znccCImpDriverTimes(pImage, pImage1, direction, pInformation);
-    } else if (direction == -1 && !checkTimes(pInformation->zncc_right)) {
-        znccCImpDriverTimes(pImage, pImage1, direction, pInformation);
+    if (direction == 1) {
+        while (!checkTimes(pInformation->zncc_left)) {
+            znccCImpDriverTimes(pImage, pImage1, direction, pInformation);
+        }
+    } else {
+        while (!checkTimes(pInformation->zncc_right)) {
+            znccCImpDriverTimes(pImage, pImage1, direction, pInformation);
+        }
     }
 
     if (direction == 1) {

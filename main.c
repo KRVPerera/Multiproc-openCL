@@ -5,6 +5,7 @@
 #include <driver.h>
 #include <opencl_flow_ex3.h>
 #include <opencl_flow_ex5.h>
+#include <opencl_flow_ex6.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <util.h>
@@ -83,6 +84,8 @@ int main(int argc, char *argv[])
         fullFlow(benchmark, multithreadedMode);
     } else if (strcmp(argv[1], "opencl") == 0) {
         openclFlowEx5();
+    } else if (strcmp(argv[1], "opencl_opt") == 0) {
+        openclFlowEx6();
     } else if (strcmp(argv[1], "opencl_old") == 0) {
         openclFlowEx3();
     } else if (strcmp(argv[1], "single") == 0) {

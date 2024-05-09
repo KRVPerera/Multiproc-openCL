@@ -5,49 +5,57 @@
 
 #include <opencl_include.h>
 
-int main() {
+int main()
+{
 
     cl_platform_id *platforms;
     cl_uint num_platforms, j;
     cl_int err;
 
     err = clGetPlatformIDs(1, NULL, &num_platforms);
-    if (err < 0) {
+    if (err < 0)
+    {
         perror("Error: clGetPlatformIDs");
         exit(1);
     }
 
     printf("Number of platforms: %u\n", num_platforms);
     printf("\n");
+    fflush(stdout);
 
-    platforms = (cl_platform_id*) malloc(sizeof(cl_platform_id) * num_platforms);
+    platforms = (cl_platform_id *)malloc(sizeof(cl_platform_id) * num_platforms);
 
     clGetPlatformIDs(num_platforms, platforms, NULL);
 
-    for (j = 0; j < num_platforms; j++) {
+    for (j = 0; j < num_platforms; j++)
+    {
 
         char p_name[40];
         char p_vendor[40];
         err = clGetPlatformInfo(platforms[j], CL_PLATFORM_NAME, 40, p_name, NULL);
-        if (err < 0) {
-            perror("Error: clGetPlatformInfo CL_PLATFORM_NAME");
-            exit(1);
+        if (err < 0)
+        {
+            perror("Error: clGetPlatformInfo CL_PLATFORM_NAME\n");
+            fflush(stdout);
+            // exit(1);
         }
         err = clGetPlatformInfo(platforms[j], CL_PLATFORM_VENDOR, 40, p_vendor, NULL);
-        if (err < 0) {
-            perror("Error: clGetPlatformInfo CL_PLATFORM_VENDOR");
+        if (err < 0)
+        {
+            perror("Error: clGetPlatformInfo CL_PLATFORM_VENDOR\n");
             exit(1);
         }
 
         cl_uint num_devices, i;
 
         err = clGetDeviceIDs(platforms[j], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
-        if (err < 0) {
-            perror("Error: clGetDeviceIDs");
+        if (err < 0)
+        {
+            perror("Error: clGetDeviceIDs\n");
             exit(1);
         }
 
-        cl_device_id* devices = calloc(sizeof(cl_device_id), num_devices);
+        cl_device_id *devices = calloc(sizeof(cl_device_id), num_devices);
         clGetDeviceIDs(platforms[j], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
 
         char buf[128];
@@ -56,18 +64,19 @@ int main() {
         size_t time_res;
         cl_device_fp_config flag;
 
-        if (num_devices == 0) {
-            printf("no device found!");
+        if (num_devices == 0)
+        {
+            printf("no device found!\n");
         }
 
-        printf("Number of devices: %u\n", num_devices);
-        printf("\n");
+        printf("Number of devices: %u\n\n", num_devices);
 
-        for (i = 0; i < num_devices; i++) {
+        for (i = 0; i < num_devices; i++)
+        {
             clGetDeviceInfo(devices[i], CL_DEVICE_NAME, 128, buf, NULL);
             fprintf(stdout, "Platform:  %s\n", p_name);
             fprintf(stdout, "Vendor:    %s\n", p_vendor);
-            fprintf(stdout, "Device:    %s\n",buf);
+            fprintf(stdout, "Device:    %s\n", buf);
             clGetDeviceInfo(devices[i], CL_DEVICE_VERSION, 128, buf, NULL);
             fprintf(stdout, "Device OpenCL version : %s\n", buf);
 
@@ -96,22 +105,26 @@ int main() {
             fprintf(stdout, "Resolution of device timer : \t\t\t%zu ns\n", time_res);
 
             clGetDeviceInfo(devices[i], CL_DEVICE_IMAGE_SUPPORT, sizeof(image_support), &image_support, NULL);
-            if (image_support == CL_TRUE) {
+            if (image_support == CL_TRUE)
+            {
                 printf("Device Support Image operations!\n");
-            } else {
+            } else
+            {
                 printf("Device doesn't support Image operations!\n");
             }
 
             // Query the maximum dimensions for 2D images
             size_t max_width, max_height;
             err = clGetDeviceInfo(devices[i], CL_DEVICE_IMAGE2D_MAX_WIDTH, sizeof(size_t), &max_width, NULL);
-            if (err != CL_SUCCESS) {
+            if (err != CL_SUCCESS)
+            {
                 printf("Error getting max width\n");
                 return 1;
             }
 
             err = clGetDeviceInfo(devices[i], CL_DEVICE_IMAGE2D_MAX_HEIGHT, sizeof(size_t), &max_height, NULL);
-            if (err != CL_SUCCESS) {
+            if (err != CL_SUCCESS)
+            {
                 printf("Error getting max height\n");
                 return 1;
             }
@@ -125,23 +138,25 @@ int main() {
             printf("\n");
 
             err = clGetDeviceInfo(devices[i], CL_DEVICE_SINGLE_FP_CONFIG, sizeof(flag), &flag, NULL);
-            if(err < 0) {
+            if (err < 0)
+            {
                 perror("Couldn't read device FP information");
                 exit(1);
             }
             printf("Float Processing Features:\n");
-            if(flag & CL_FP_INF_NAN)
-            printf("INF and NaN values supported.\n");
-            if(flag & CL_FP_DENORM)
-            printf("Denormalized numbers supported.\n");
-            if(flag & CL_FP_ROUND_TO_NEAREST)
-            printf("Round To Nearest Even mode supported.\n");
-            if(flag & CL_FP_ROUND_TO_INF)
-            printf("Round To Infinity mode supported.\n");
-            if(flag & CL_FP_ROUND_TO_ZERO)
-            printf("Round To Zero mode supported.\n");
-            if(flag & CL_FP_FMA)
-            printf("Floating-point multiply-and-add operation supported.\n");
+            if (flag & CL_FP_INF_NAN)
+                printf("INF and NaN values supported.\n");
+            if (flag & CL_FP_DENORM)
+                printf("Denormalized numbers supported.\n");
+            if (flag & CL_FP_ROUND_TO_NEAREST)
+                printf("Round To Nearest Even mode supported.\n");
+            if (flag & CL_FP_ROUND_TO_INF)
+                printf("Round To Infinity mode supported.\n");
+            if (flag & CL_FP_ROUND_TO_ZERO)
+                printf("Round To Zero mode supported.\n");
+            if (flag & CL_FP_FMA)
+                printf("Floating-point multiply-and-add operation supported.\n");
+            fflush(stdout);
         }
 
         free(devices);
