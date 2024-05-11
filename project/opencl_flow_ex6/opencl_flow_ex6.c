@@ -34,7 +34,6 @@
     } while (0)
 
 
-void printDeviceInformation(cl_device_id device_id);
 void apply_occlusion_fill_6(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0)
 {
 
@@ -281,9 +280,14 @@ void openclFlowEx6(void)
     printf("OpenCL Flow 6 ENDED\n");
 }
 
-void printDeviceInformation(cl_device_id device_id)
+void printDeviceInformation() {
+    cl_device_id device = create_device();
+    printDeviceInformationHelper(device);
+}
+
+void printDeviceInformationHelper(cl_device_id device_id)
 {
-    printf("############ ===== start printing device information ===== ############\n");
+    printf("############ ===== start printing device information ===== ############\n\n");
     cl_device_fp_config flag;
     cl_platform_id platform_id;
     char buf[128];
@@ -373,7 +377,7 @@ void printDeviceInformation(cl_device_id device_id)
     CHECK_DATA_SIZE(param_value_size_ret, sizeof(image_support), "Device Support Image")
     if (image_support == CL_TRUE)
     {
-        printf("Device Support Image operations!\n");
+        printf("Device Support \t\t: Image operations!\n");
     } else
     {
         printf("Device doesn't support Image operations!\n");
@@ -383,37 +387,30 @@ void printDeviceInformation(cl_device_id device_id)
     size_t max_width, max_height;
     OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_IMAGE2D_MAX_WIDTH, sizeof(max_width), &max_width, &param_value_size_ret), err, end);
     CHECK_DATA_SIZE(param_value_size_ret, sizeof(max_width), "Maximum supported 2D Image Width")
-    printf("Maximum 2D Image Width: %zu\n", max_width);
+    printf("Maximum 2D Image Width\t: %zu\n", max_width);
 
     OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_IMAGE2D_MAX_HEIGHT, sizeof(max_height), &max_height, &param_value_size_ret), err, end);
     CHECK_DATA_SIZE(param_value_size_ret, sizeof(max_height), "Maximum supported 2D Image height")
-    printf("Maximum 2D Image Height: %zu\n", max_height);
+    printf("Maximum 2D Image Height\t: %zu\n", max_height);
 
     OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_SINGLE_FP_CONFIG, sizeof(flag), &flag, &param_value_size_ret), err, end);
-    printf("Float Processing Features:\n");
+    printf(" * Float Processing Features:\n");
     if (flag & CL_FP_INF_NAN)
-        printf("INF and NaN values supported.\n");
+        printf("Supports \t: INF and NaN values\n");
     if (flag & CL_FP_DENORM)
-        printf("Denormalized numbers supported.\n");
+        printf("Supports \t: Denormalized numbers\n");
     if (flag & CL_FP_ROUND_TO_NEAREST)
-        printf("Round To Nearest Even mode supported.\n");
+        printf("Supports \t: Round To Nearest Even mode\n");
     if (flag & CL_FP_ROUND_TO_INF)
-        printf("Round To Infinity mode supported.\n");
+        printf("Supports \t: Round To Infinity mode\n");
     if (flag & CL_FP_ROUND_TO_ZERO)
-        printf("Round To Zero mode supported.\n");
+        printf("Supports \t: Round To Zero mode\n");
     if (flag & CL_FP_FMA)
-        printf("Floating-point multiply-and-add operation supported.\n");
-
-    printf(" ---- Memory Information ---- \n");
-    cl_device_local_mem_type mt;
-    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_LOCAL_MEM_TYPE, sizeof(cl_device_local_mem_type), &mt, &param_value_size_ret), err, end);
-    if (mt == CL_LOCAL)
-    {
-        printf("Local memory is a local memory storage.\n");
-    } else
-    {
-        printf("Local memory is a global memory storage.\n");
-    }
+        printf("Supports \t: Floating-point multiply-and-add operation\n");
+    if (flag & CL_FP_SOFT_FLOAT)
+        printf("Supports \t: CL_FP_SOFT_FLOAT operation\n");
+    if (flag & CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT)
+        printf("Supports \t: CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT operation\n");
 end:
-    printf("############ ===== END printing device information ===== ############\n\n");
+    printf("\n############ ===== END printing device information ===== ############\n\n");
 }
