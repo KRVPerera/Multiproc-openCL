@@ -51,7 +51,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(logger STATIC src/logger.c include/logger.h)
 add_library(utils STATIC src/util.c include/util.h)
-target_link_libraries(utils PUBLIC m logger)
+target_link_libraries(utils PUBLIC m logger learn_openmp)
 add_library(img_loader STATIC src/pngloader.c include/pngloader.h)
 target_link_libraries(img_loader PUBLIC lodepng)
 
