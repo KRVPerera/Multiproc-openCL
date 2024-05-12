@@ -41,12 +41,12 @@
     }
 
 
-void apply_occlusion_fill_6(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0)
+void apply_occlusion_fill_6(cl_device_id device, cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0)
 {
     /* Image data */
     cl_mem input_image, output_image;
     cl_image_format input_format, output_format;
-    int err;
+    cl_int err;
 
     cl_ulong read_time, time_to_occlustion_fill;
 
@@ -76,7 +76,14 @@ void apply_occlusion_fill_6(cl_context context, cl_kernel kernel, cl_command_que
 
     // Execute the OpenCL kernel
     size_t globalWorkSize[2] = { width, height };
-    OCLERROR_RET(clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &occlustion_fill_event), err, end);
+    const size_t workSize = 5;
+    size_t localWorkSize[2] = { workSize, workSize };
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, localWorkSize, 0, NULL, &occlustion_fill_event);
+    if (err != CL_SUCCESS)
+    {
+        fprintf(stderr, "Error: Failed to execute kernel %d !\n", err);
+        goto end;
+    }
 
     // Read the output image back to the host
     OCLERROR_RET(clEnqueueReadImage(queue,
@@ -93,6 +100,26 @@ void apply_occlusion_fill_6(cl_context context, cl_kernel kernel, cl_command_que
       err,
       end);
 
+    size_t wg_size, wg_multiple;
+    cl_ulong private_usage;
+    cl_ulong local_usage;
+    size_t param_value_size_ret;
+    /* Access kernel/work-group properties */
+    OCLERROR_RET(clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(wg_size), &wg_size, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(wg_size), "CL_KERNEL_WORK_GROUP_SIZE")
+    OCLERROR_RET(clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(wg_multiple), &wg_multiple,
+      &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(wg_multiple), "CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE")
+    OCLERROR_RET(clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(local_usage), &local_usage, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(local_usage), "CL_KERNEL_LOCAL_MEM_SIZE")
+    OCLERROR_RET(clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_PRIVATE_MEM_SIZE, sizeof(private_usage), &private_usage, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(private_usage), "CL_KERNEL_PRIVATE_MEM_SIZE")
+
+    printf("The maximum work-group size is %zu and the work-group multiple is %zu.\n\n", wg_size, wg_multiple);
+    printf("The kernel uses %zu bytes of local memory. It uses %zu bytes of private memory.\n",
+      local_usage, private_usage);
+
+
     clFinish(queue);
 
     output_im0->width = width;
@@ -107,6 +134,53 @@ void apply_occlusion_fill_6(cl_context context, cl_kernel kernel, cl_command_que
 end:
     printf("Time taken to do the occlustion_fill = %llu ns\n", time_to_occlustion_fill);
     printf("Time taken to read the output image (occlustion_fill) = %llu ns\n", read_time);
+}
+
+cl_program build_program_6(cl_context ctx, cl_device_id device, const char* filename) {
+
+    cl_program program;
+    FILE *program_handle;
+    char *program_buffer, *program_log;
+    size_t program_size, log_size;
+    int err;
+
+    /* Read program file and place content into buffer */
+    program_handle = fopen(filename, "r");
+    if(program_handle == NULL) {
+        perror("Couldn't find the program file");
+        exit(1);
+    }
+    fseek(program_handle, 0, SEEK_END);
+    program_size = ftell(program_handle);
+    rewind(program_handle);
+    program_buffer = (char*)malloc(program_size + 1);
+    program_buffer[program_size] = '\0';
+    fread(program_buffer, sizeof(char), program_size, program_handle);
+    fclose(program_handle);
+
+    program = clCreateProgramWithSource(ctx, 1,
+      (const char**)&program_buffer, &program_size, &err);
+    if(err < 0) {
+        perror("Couldn't create the program");
+        exit(1);
+    }
+    free(program_buffer);
+
+    err = clBuildProgram(program, 0, NULL, "-cl-denorms-are-zero", NULL, NULL);
+    if(err < 0) {
+
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
+          0, NULL, &log_size);
+        program_log = (char*) malloc(log_size + 1);
+        program_log[log_size] = '\0';
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
+          log_size + 1, program_log, NULL);
+        printf("%s\n", program_log);
+        free(program_log);
+        exit(1);
+    }
+
+    return program;
 }
 
 void openclFlowEx6(void)
@@ -150,7 +224,7 @@ void openclFlowEx6(void)
         exit(1);
     }
 
-    program = build_program(context, device, PROGRAM_FILE);
+    program = build_program_6(context, device, PROGRAM_FILE);
 
     /* Find out how many kernels are in the source file */
     err = clCreateKernelsInProgram(program, 0, NULL, &num_kernels);
@@ -225,7 +299,7 @@ void openclFlowEx6(void)
     apply_crosscheck(context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0);
 
     /* Apply left occlustion fill kernel */
-    apply_occlusion_fill_6(context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0);
+    apply_occlusion_fill_6(device, context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0);
 
     saveImage(OUTPUT_1_RESIZE_OPENCL_FILE, output_1_resized_im0);
     saveImage(OUTPUT_1_BW_OPENCL_FILE, output_1_bw_im0);
