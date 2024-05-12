@@ -257,8 +257,7 @@ void convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_queu
 
 void apply_zncc(cl_device_id device, cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, const Image *im1, Image *output_im0) {
 
-    size_t wg_size, wg_multiple;
-    cl_ulong private_usage, local_usage;
+
 
     /* Image data */
     cl_mem input_image, input_image1, output_image;
@@ -321,12 +320,19 @@ void apply_zncc(cl_device_id device, cl_context context, cl_kernel kernel, cl_co
     }
 
     // clSetKernelArg(kernel, 3, sizeof(float), NULL);
-
+    size_t wg_size, wg_multiple;
+    cl_ulong private_usage;
+    cl_ulong local_usage;
+    size_t returned_size;
     /* Access kernel/work-group properties */
-    err = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(wg_size), &wg_size, NULL);
-    err |= clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(wg_multiple), &wg_multiple, NULL);
-    err |= clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(local_usage), &local_usage, NULL);
-    err |= clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_PRIVATE_MEM_SIZE, sizeof(private_usage), &private_usage, NULL);
+    err = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(wg_size), &wg_size, &returned_size);
+    err |= clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(wg_multiple), &wg_multiple, &returned_size);
+    err |= clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(local_usage), &local_usage, &returned_size);
+    if (returned_size > sizeof(local_usage)) {
+        perror("Couldn't obtain CL_KERNEL_LOCAL_MEM_SIZE size information");
+        exit(1);
+    }
+    err |= clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_PRIVATE_MEM_SIZE, sizeof(private_usage), &private_usage, &returned_size);
     if(err < 0) {
         perror("Couldn't obtain kernel work-group size information");
         exit(1);
