@@ -76,9 +76,9 @@ void apply_occlusion_fill_6(cl_device_id device, cl_context context, cl_kernel k
 
     // Execute the OpenCL kernel
     size_t globalWorkSize[2] = { width, height };
-    const size_t workSize = 5;
-    size_t localWorkSize[2] = { workSize, workSize };
-    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, localWorkSize, 0, NULL, &occlustion_fill_event);
+//    const size_t workSize = 5;
+//    size_t localWorkSize[2] = { workSize, workSize };
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &occlustion_fill_event);
     if (err != CL_SUCCESS)
     {
         fprintf(stderr, "Error: Failed to execute kernel %d !\n", err);
