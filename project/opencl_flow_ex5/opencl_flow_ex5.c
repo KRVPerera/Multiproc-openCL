@@ -17,24 +17,29 @@
 cl_device_id create_device(void) {
 
    cl_platform_id platform;
+   cl_platform_id* platforms = malloc(sizeof(cl_platform_id) * 1);
    cl_device_id device;
+   cl_device_id* devices = malloc(sizeof(cl_device_id) * 1);
    int err;
 
-   err = clGetPlatformIDs(1, &platform, NULL);
-   if(err < 0) {
+   err = clGetPlatformIDs(1, platforms, NULL);
+   if(err != CL_SUCCESS) {
       perror("Couldn't identify a platform");
       exit(1);
    }
-
-   err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, &device, NULL);
+   platform = platforms[0];
+   err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 1, devices, NULL);
    if(err == CL_DEVICE_NOT_FOUND) {
-      err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, &device, NULL);
+      err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_CPU, 1, devices, NULL);
    }
-   if(err < 0) {
+   if(err != CL_SUCCESS) {
       perror("Couldn't access any devices");
       exit(1);
    }
 
+   device = devices[0];
+   free(platforms);
+   free(devices);
    return device;
 }
 

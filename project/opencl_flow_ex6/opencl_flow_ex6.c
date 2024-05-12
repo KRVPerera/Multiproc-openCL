@@ -15,7 +15,24 @@
 #include <stdlib.h>
 #include <string.h>
 
-void printDeviceInformation(cl_device_id device_id);
+#define CHECK_DATA_SIZE(ret, i, name)                                                      \
+    if (ret > i)                                                                           \
+    {                                                                                      \
+        fprintf(stderr, "%s is too long for buffer on %s:%d\n", name, __FILE__, __LINE__); \
+    }
+
+// This is taken from OpenCL SDK
+#define OCLERROR_RET(func, err, label)                                                  \
+    do                                                                                  \
+    {                                                                                   \
+        err = func;                                                                     \
+        if (err != CL_SUCCESS)                                                          \
+        {                                                                               \
+            fprintf(stderr, "on line %d, in file %s\n%s\n", __LINE__, __FILE__, #func); \
+            goto label;                                                                 \
+        }                                                                               \
+    } while (0)
+
 
 void apply_occlusion_fill_6(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0)
 {
@@ -40,27 +57,31 @@ void apply_occlusion_fill_6(cl_context context, cl_kernel kernel, cl_command_que
 
     /* Create input image object */
     input_image = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format, width, height, 0, (void *)im0->image, &err);
-    if (err < 0) {
+    if (err < 0)
+    {
         printf("occlustion_fill: Couldn't create the input image 0 object");
         exit(1);
     };
 
     /* Create output image object */
     output_image = clCreateImage2D(context, CL_MEM_READ_WRITE | CL_MEM_ALLOC_HOST_PTR, &output_format, width, height, 0, NULL, &err);
-    if (err < 0) {
+    if (err < 0)
+    {
         perror("occlustion_fill: Couldn't create the input image object");
         exit(1);
     };
 
     // Set kernel arguments
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_image);
-    if (err < 0) {
+    if (err < 0)
+    {
         perror("occlustion_fill, Error: clSetKernelArg, inputImage");
         exit(1);
     }
 
     err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &output_image);
-    if (err < 0) {
+    if (err < 0)
+    {
         perror("occlustion_fill, Error: clSetKernelArg, outputImage");
         exit(1);
     }
@@ -68,7 +89,8 @@ void apply_occlusion_fill_6(cl_context context, cl_kernel kernel, cl_command_que
     // Execute the OpenCL kernel
     size_t globalWorkSize[2] = { width, height };
     err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &occlustion_fill_event);
-    if (err < 0) {
+    if (err < 0)
+    {
         perror("occlustion_fill, Error: clEnqueueNDRangeKernel");
         exit(1);
     }
@@ -85,7 +107,8 @@ void apply_occlusion_fill_6(cl_context context, cl_kernel kernel, cl_command_que
       0,
       NULL,
       &occlustion_fill_read_event);
-    if (err < 0) {
+    if (err < 0)
+    {
         perror("occlustion_fill, Error: clEnqueueReadImage");
         exit(1);
     }
@@ -140,7 +163,8 @@ void openclFlowEx6(void)
     printDeviceInformation(device);
 
     context = clCreateContext(NULL, 1, &device, NULL, NULL, &err);
-    if (err < 0) {
+    if (err < 0)
+    {
         perror("Error: clCreateContext");
         exit(1);
     }
@@ -149,7 +173,8 @@ void openclFlowEx6(void)
 
     /* Find out how many kernels are in the source file */
     err = clCreateKernelsInProgram(program, 0, NULL, &num_kernels);
-    if (err < 0) {
+    if (err < 0)
+    {
         perror("Couldn't find any kernels");
         exit(1);
     }
@@ -161,24 +186,31 @@ void openclFlowEx6(void)
     clCreateKernelsInProgram(program, num_kernels, kernels, NULL);
 
     // /* Search for the named kernel */
-    for (i = 0; i < num_kernels; i++) {
+    for (i = 0; i < num_kernels; i++)
+    {
         clGetKernelInfo(kernels[i], CL_KERNEL_FUNCTION_NAME, sizeof(kernel_name), kernel_name, NULL);
-        if (strcmp(kernel_name, KERNEL_RESIZE_IMAGE) == 0) {
+        if (strcmp(kernel_name, KERNEL_RESIZE_IMAGE) == 0)
+        {
             kernel_resize_image = kernels[i];
             printf("Found resize_image kernel at index %u.\n", i);
-        } else if (strcmp(kernel_name, KERNEL_COLOR_TO_GRAY) == 0) {
+        } else if (strcmp(kernel_name, KERNEL_COLOR_TO_GRAY) == 0)
+        {
             kernel_color_to_gray = kernels[i];
             printf("Found color_to_gray kernel at index %u.\n", i);
-        } else if (strcmp(kernel_name, KERNEL_ZNCC_LEFT) == 0) {
+        } else if (strcmp(kernel_name, KERNEL_ZNCC_LEFT) == 0)
+        {
             kernel_zncc_left = kernels[i];
             printf("Found zncc_left kernel at index %u.\n", i);
-        } else if (strcmp(kernel_name, KERNEL_ZNCC_RIGHT) == 0) {
+        } else if (strcmp(kernel_name, KERNEL_ZNCC_RIGHT) == 0)
+        {
             kernel_zncc_right = kernels[i];
             printf("Found zncc_right kernel at index %u.\n", i);
-        } else if (strcmp(kernel_name, KERNEL_CROSS_CHECK) == 0) {
+        } else if (strcmp(kernel_name, KERNEL_CROSS_CHECK) == 0)
+        {
             kernel_cross_check = kernels[i];
             printf("Found cross_check kernel at index %u.\n", i);
-        } else if (strcmp(kernel_name, KERNEL_OCCLUSION_FILL) == 0) {
+        } else if (strcmp(kernel_name, KERNEL_OCCLUSION_FILL) == 0)
+        {
             kernel_occlusion_fill = kernels[i];
             printf("Found occlustion kernel at index %u.\n", i);
         }
@@ -186,7 +218,8 @@ void openclFlowEx6(void)
     // cl_command_queue_properties props[3] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
     // queue = clCreateCommandQueueWithProperties(context, device, props, &err);
     queue = clCreateCommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, &err);
-    if (err < 0) {
+    if (err < 0)
+    {
         perror("Error: clCreateCommandQueue");
         exit(1);
     }
@@ -247,124 +280,137 @@ void openclFlowEx6(void)
     printf("OpenCL Flow 6 ENDED\n");
 }
 
-void printDeviceInformation(cl_device_id device_id)
+void printDeviceInformation() {
+    cl_device_id device = create_device();
+    printDeviceInformationHelper(device);
+}
+
+void printDeviceInformationHelper(cl_device_id device_id)
 {
-    printf("===== start printing device information =====\n");
+    printf("############ ===== start printing device information ===== ############\n\n");
     cl_device_fp_config flag;
     cl_platform_id platform_id;
     char buf[128];
     char p_name[40];
     char p_vendor[40];
-    size_t time_res, local_size;
-    cl_uint work_item_dim, compute_units, char_vector_width, global_mem_size, global_mem_cache, buffer_size, local_mem_size, cache_size, clock_freq;
-    clGetDeviceInfo(device_id, CL_DEVICE_PLATFORM, sizeof(cl_platform_id), &platform_id, NULL);
-    cl_int err = clGetPlatformInfo(platform_id, CL_PLATFORM_NAME, 40, p_name, NULL);
-    if (err < 0) {
-        perror("Couldn't read platform name");
-    } else {
-        printf("Platform name\t: %s\n", p_name);
-    }
-    err = clGetPlatformInfo(platform_id, CL_PLATFORM_VENDOR, 40, p_vendor, NULL);
-    if (err < 0) {
-        perror("Couldn't read platform vendor");
-    } else {
-        printf("Platform vendor\t: %s\n", p_vendor);
-    }
-    clGetDeviceInfo(device_id, CL_DEVICE_NAME, 128, buf, NULL);
-    fprintf(stdout, "Device\t\t: %s\n", buf);
-    err = clGetDeviceInfo(device_id, CL_DEVICE_VERSION, 128, buf, NULL);
-    if (err < 0) {
-        perror("Couldn't read device version");
-    } else {
-        printf("OpenCL version \t: %s\n", buf);
-    }
+    cl_long time_res, local_size;
+    cl_int err;
+    cl_uint work_item_dim, compute_units, char_vector_width, cache_size, clock_freq;
+    size_t param_value_size_ret;
 
-    clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(cl_uint), &work_item_dim, NULL);
-    fprintf(stdout, "Work dimensions \t: %u\n", work_item_dim);
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_PLATFORM, sizeof(cl_platform_id), &platform_id, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(cl_platform_id), "Platform ID")
 
-    clGetDeviceInfo(device_id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &compute_units, NULL);
-    fprintf(stdout, "Parallel compute units \t: %u\n", compute_units);
+    OCLERROR_RET(clGetPlatformInfo(platform_id, CL_PLATFORM_NAME, 40, p_name, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, 40, "Platform name")
+    printf("Platform name\t\t: %s\n", p_name);
 
-    clGetDeviceInfo(device_id, CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, sizeof(char_vector_width), &char_vector_width, NULL);
-    fprintf(stdout, "Preferred vector width \t: %u\n", char_vector_width);
+    OCLERROR_RET(clGetPlatformInfo(platform_id, CL_PLATFORM_VENDOR, 40, p_vendor, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, 40, "Platform vendor")
+    printf("Platform vendor\t\t: %s\n", p_vendor);
 
-    clGetDeviceInfo(device_id, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_uint), &global_mem_size, NULL);
-    fprintf(stdout, "Max object allocation \t: %u bytes\n", global_mem_size);
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_NAME, 128, buf, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, 128, "Device name")
+    printf("Device \t\t\t: %s\n", buf);
 
-    clGetDeviceInfo(device_id, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, sizeof(cl_uint), &global_mem_cache, NULL);
-    fprintf(stdout, "Global memory cache \t: %u bytes\n", global_mem_cache);
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_VERSION, 128, buf, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, 128, "Device version")
+    printf("OpenCL version \t\t: %s\n", buf);
 
-    clGetDeviceInfo(device_id, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(cl_uint), &buffer_size, NULL);
-    fprintf(stdout, "Constant buffer \t: %u bytes\n", buffer_size);
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(cl_uint), &work_item_dim, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(cl_uint), "Device version")
+    printf("Work dimensions \t: %u\n", work_item_dim);
 
-    clGetDeviceInfo(device_id, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_uint), &local_mem_size, NULL);
-    fprintf(stdout, "Local memory region \t: %u bytes\n", local_mem_size);
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &compute_units, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(cl_uint), "Device Parallel compute units")
+    printf("Parallel compute units \t: %u\n", compute_units);
 
-    clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &local_size, NULL);
-    fprintf(stdout, "Maximum work group size : %zu \n", local_size);
+    OCLERROR_RET(
+      clGetDeviceInfo(device_id, CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, sizeof(char_vector_width), &char_vector_width, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(char_vector_width), "Preferred vector width")
+    printf("Preferred vector width \t: %u\n", char_vector_width);
 
-    clGetDeviceInfo(device_id, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(cl_uint), &cache_size, NULL);
-    fprintf(stdout, "Cacheline size \t\t: %u \n", cache_size);
+    cl_long global_mem_alloc_size;
+    OCLERROR_RET(
+      clGetDeviceInfo(device_id, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(global_mem_alloc_size), &global_mem_alloc_size, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(global_mem_alloc_size), "Max memory allocation")
+    printf("Max memory allocation \t: %lld bytes\n", global_mem_alloc_size);
 
-    clGetDeviceInfo(device_id, CL_DEVICE_MAX_CLOCK_FREQUENCY, sizeof(cl_uint), &clock_freq, NULL);
-    fprintf(stdout, "Max clock \t\t: %u MHz\n", clock_freq);
+    cl_long global_mem_size;
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(cl_long), &global_mem_size, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(cl_long), "Global memory siz")
+    printf("Global memory size \t: %lld bytes\n", global_mem_size);
 
-    clGetDeviceInfo(device_id, CL_DEVICE_PROFILING_TIMER_RESOLUTION, sizeof(time_res), &time_res, NULL);
-    fprintf(stdout, "Time resolution \t: %zu ns\n", time_res);
+    cl_long global_mem_cache;
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, sizeof(cl_long), &global_mem_cache, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(cl_long), "Global memory cache")
+    printf("Global memory cache \t: %lld bytes\n", global_mem_cache);
+
+    cl_long buffer_size;
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(cl_long), &buffer_size, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(cl_long), "Constant buffer")
+    printf("Constant buffer \t: %lld bytes\n", buffer_size);
+
+    cl_long local_mem_size_16;
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_long), &local_mem_size_16, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(cl_long), "Local memory size")
+    printf("Local memory size \t: %lld bytes\n", local_mem_size_16);
+
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(local_size), &local_size, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(local_size), "Maximum work group size")
+    printf("Maximum work group size : %zu \n", local_size);
+
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(cl_uint), &cache_size, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(cl_uint), "Cache line size")
+    printf("Cache line size \t: %u \n", cache_size);
+
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_MAX_CLOCK_FREQUENCY, sizeof(cl_uint), &clock_freq, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(cl_uint), "Max clock")
+    printf("Max clock \t\t: %u MHz\n", clock_freq);
+
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_PROFILING_TIMER_RESOLUTION, sizeof(time_res), &time_res, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(time_res), "Time resolution")
+    printf("Time resolution \t: %zu ns\n", time_res);
+
     cl_bool image_support = CL_FALSE;
-    clGetDeviceInfo(device_id, CL_DEVICE_IMAGE_SUPPORT, sizeof(image_support), &image_support, NULL);
-    if (image_support == CL_TRUE) {
-        printf("Device Support Image operations!\n");
-    } else {
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_IMAGE_SUPPORT, sizeof(image_support), &image_support, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(image_support), "Device Support Image")
+    if (image_support == CL_TRUE)
+    {
+        printf("Device Support \t\t: Image operations!\n");
+    } else
+    {
         printf("Device doesn't support Image operations!\n");
     }
 
     // Query the maximum dimensions for 2D images
     size_t max_width, max_height;
-    err = clGetDeviceInfo(device_id, CL_DEVICE_IMAGE2D_MAX_WIDTH, sizeof(size_t), &max_width, NULL);
-    if (err != CL_SUCCESS) {
-        printf("Error getting max width\n");
-    }
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_IMAGE2D_MAX_WIDTH, sizeof(max_width), &max_width, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(max_width), "Maximum supported 2D Image Width")
+    printf("Maximum 2D Image Width\t: %zu\n", max_width);
 
-    err = clGetDeviceInfo(device_id, CL_DEVICE_IMAGE2D_MAX_HEIGHT, sizeof(size_t), &max_height, NULL);
-    if (err != CL_SUCCESS) {
-        printf("Error getting max height\n");
-    }
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_IMAGE2D_MAX_HEIGHT, sizeof(max_height), &max_height, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(max_height), "Maximum supported 2D Image height")
+    printf("Maximum 2D Image Height\t: %zu\n", max_height);
 
-    printf("Maximum supported 2D Image Width: %zu\n", max_width);
-    printf("Maximum supported 2D Image Height: %zu\n", max_height);
-
-    printf(" --------------- \n");
-
-    err = clGetDeviceInfo(device_id, CL_DEVICE_SINGLE_FP_CONFIG, sizeof(flag), &flag, NULL);
-    if (err < 0) {
-        perror("Couldn't read device FP information");
-    }
-    printf("Float Processing Features:\n");
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_SINGLE_FP_CONFIG, sizeof(flag), &flag, &param_value_size_ret), err, end);
+    printf(" * Float Processing Features:\n");
     if (flag & CL_FP_INF_NAN)
-        printf("INF and NaN values supported.\n");
+        printf("Supports \t: INF and NaN values\n");
     if (flag & CL_FP_DENORM)
-        printf("Denormalized numbers supported.\n");
+        printf("Supports \t: Denormalized numbers\n");
     if (flag & CL_FP_ROUND_TO_NEAREST)
-        printf("Round To Nearest Even mode supported.\n");
+        printf("Supports \t: Round To Nearest Even mode\n");
     if (flag & CL_FP_ROUND_TO_INF)
-        printf("Round To Infinity mode supported.\n");
+        printf("Supports \t: Round To Infinity mode\n");
     if (flag & CL_FP_ROUND_TO_ZERO)
-        printf("Round To Zero mode supported.\n");
+        printf("Supports \t: Round To Zero mode\n");
     if (flag & CL_FP_FMA)
-        printf("Floating-point multiply-and-add operation supported.\n");
-
-    printf(" ---- Memory Information ---- \n");
-    cl_device_local_mem_type mt;
-    err = clGetDeviceInfo(device_id, CL_DEVICE_LOCAL_MEM_TYPE, sizeof(cl_device_local_mem_type), &mt, NULL);
-    if (err < 0) {
-        perror("Couldn't read local memory information");
-    } else {
-        if (mt == CL_LOCAL) {
-            printf("Local memory is a local memory storage.\n");
-        } else {
-            printf("Local memory is a global memory storage.\n");
-        }
-    }
-    printf("===== end printing device information =====\n\n");
+        printf("Supports \t: Floating-point multiply-and-add operation\n");
+    if (flag & CL_FP_SOFT_FLOAT)
+        printf("Supports \t: CL_FP_SOFT_FLOAT operation\n");
+    if (flag & CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT)
+        printf("Supports \t: CL_FP_CORRECTLY_ROUNDED_DIVIDE_SQRT operation\n");
+end:
+    printf("\n############ ===== END printing device information ===== ############\n\n");
 }

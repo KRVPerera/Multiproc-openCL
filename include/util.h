@@ -1,32 +1,39 @@
 #ifndef MULTIPROCOPENCL_UTIL_H
 #define MULTIPROCOPENCL_UTIL_H
 
-#include <time.h>
 #include <stdbool.h>
+#include <time.h>
 
-#define GET_TIME(x) if(clock_gettime(CLOCK_MONOTONIC, &(x)) < 0) {perror("clock_gettime(): "); exit(EXIT_FAILURE);}
+#define GET_TIME(x)                               \
+    if (clock_gettime(CLOCK_MONOTONIC, &(x)) < 0) \
+    {                                             \
+        perror("clock_gettime(): ");              \
+        exit(EXIT_FAILURE);                       \
+    }
 
 enum AVERAGE_CALCULATED { FALSE, TRUE };
 typedef enum AVERAGE_CALCULATED AVERAGE_CALCULATED;
 
-typedef struct ProcessTime {
-  float *elapsedTimes;
-  float averageElapsedTime;
-  int numSamples;
-  bool averageCalculated;
+typedef struct ProcessTime
+{
+    float *elapsedTimes;
+    float averageElapsedTime;
+    int numSamples;
+    bool averageCalculated;
 } ProcessTime;
 
-typedef struct ProfileInformation {
-  bool multiThreaded;
-  ProcessTime * readImage;
-  ProcessTime * resizeImage;
-  ProcessTime * grayScaleImage;
-  ProcessTime * applyFilter;
-  ProcessTime * saveImage;
-  ProcessTime * zncc_left;
-  ProcessTime * zncc_right;
-  ProcessTime * crossCheck;
-  ProcessTime * occlusion;
+typedef struct ProfileInformation
+{
+    bool multiThreaded;
+    ProcessTime *readImage;
+    ProcessTime *resizeImage;
+    ProcessTime *grayScaleImage;
+    ProcessTime *applyFilter;
+    ProcessTime *saveImage;
+    ProcessTime *zncc_left;
+    ProcessTime *zncc_right;
+    ProcessTime *crossCheck;
+    ProcessTime *occlusion;
 } ProfileInformation;
 
 /**
@@ -92,8 +99,7 @@ void increaseSampleSize(ProcessTime *processTime, int numSamples);
  * @param nsec
  * @return
  */
-float elapsed_time_microsec(struct timespec *begin, struct timespec *end,
-                            unsigned long *sec, unsigned long *nsec);
+float elapsed_time_microsec(struct timespec *begin, struct timespec *end, unsigned long *sec, unsigned long *nsec);
 
 /**
  * Calculate the standard deviation of a set of samples
@@ -125,4 +131,19 @@ long requiredSampleSize(float sd, float mean);
  */
 void printSummary(ProfileInformation *pInformation);
 
-#endif //MULTIPROCOPENCL_UTIL_H
+/**
+ * Print the header of the program
+ */
+void printHelp();
+
+/**
+ * Print the header of the program
+ */
+void printHeader();
+
+/**
+ * Run openmp test code
+ */
+void openmpTestCode(void);
+
+#endif// MULTIPROCOPENCL_UTIL_H

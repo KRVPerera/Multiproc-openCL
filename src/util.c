@@ -6,6 +6,11 @@
 #include <logger.h>
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <omp.h>
+#include <unistd.h>
+#include <time.h>
+#include <calc_pi.h>
 
 ProcessTime *createProcessTime(int numSamples)
 {
@@ -160,4 +165,56 @@ float elapsed_time_microsec(struct timespec *begin, struct timespec *end, unsign
         *sec = end->tv_sec - begin->tv_sec;
     }
     return (float)(*sec) * 1000000 + ((float)(*nsec)) * 1E-3;
+}
+
+void printHelp(void) {
+    printf("\nHow to use the program\n");
+    printf("Usage \t\t: <opencl|mp|single|test|opencl_platform|opencl_opt|opencl>\n");
+    printf("opencl \t\t: Run the occlusion filling using OpenCL\n");
+    printf("opencl_opt \t: Run the optimized opencl version\n");
+    printf("mp [-benchmark] : Run all using multithreading mode. Use -benchmark for benchmarking\n");
+    printf("single [-benchmark] : Run all using a single thread. Use -benchmark for benchmarking\n");
+    printf("test \t\t: Run the test code for OpenMP\n");
+    printf("opencl_platform : Print the OpenCL platform information\n\n");
+}
+
+void printHeader(void) {
+    printf("#################################################\n");
+    printf("###### Multiprocessor Programming project! ######\n");
+    printf("###### by Dilan Fernando & Rukshan Perera  ######\n");
+    printf("#################################################\n");
+}
+
+void openmpTestCode(void)
+{
+    logger("Running multithreaded mode.");
+    int maxthreads = omp_get_max_threads();
+
+    printf("Max threads: %d\n", maxthreads);
+
+//    #pragma omp parallel num_threads(5)
+#pragma omp parallel
+    {
+        int id = omp_get_thread_num();
+        printf("Hello %d\n", id);
+        sleep(1);
+        printf("World %d\n", id);
+    }
+
+    int num_steps = 1000000000;
+    struct timespec t0, t1;
+    unsigned long sec, nsec;
+    GET_TIME(t0)
+    double pi = calc_pi(num_steps);
+    GET_TIME(t1)
+    logger("Pi: %f", pi);
+    float elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    logger("calc_pi(%d) time : %f micro seconds", num_steps, elapsed_time);
+
+    GET_TIME(t0)
+    pi = calc_pi_mt(num_steps);
+    GET_TIME(t1)
+    logger("MT Pi: %f", pi);
+    elapsed_time = elapsed_time_microsec(&t0, &t1, &sec, &nsec);
+    logger("calc_pi_mt(%d) time : %f micro seconds", num_steps, elapsed_time);
 }
