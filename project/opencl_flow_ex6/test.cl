@@ -1,5 +1,13 @@
 __constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
 
+__constant float gassian_kernel[5][5] = {
+{0.0030, 0.0133, 0.0219, 0.0133, 0.0030},
+{0.0133, 0.0596, 0.0983, 0.0596, 0.0133},
+{0.0219, 0.0983, 0.1621, 0.0983, 0.0219},
+{0.0133, 0.0596, 0.0983, 0.0596, 0.0133},
+{0.0030, 0.0133, 0.0219, 0.0133, 0.0030}
+};
+
 __kernel void resize_image(__read_only image2d_t inputImage, __write_only image2d_t outputImage) {
     const int2 output_cord = (int2)(get_global_id(0), get_global_id(1));
 
@@ -190,19 +198,22 @@ __kernel void crosscheck(__read_only image2d_t inputImage1, __read_only image2d_
     write_imagef(outputImage, pos, crosscheck_output);
 }
 
+
+
+
+
 __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
+
+  __local float4 neighbor_pixels[5][5];
+  // Load kernel weights into shared memory
+
+  barrier(CLK_LOCAL_MEM_FENCE);
     const float4 imagePixel = read_imagef(inputImage, sampler, pos);
     float4 occlusion_output = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
 
-    const float gassian_kernel[5][5] = {
-        {0.0030, 0.0133, 0.0219, 0.0133, 0.0030},
-        {0.0133, 0.0596, 0.0983, 0.0596, 0.0133},
-        {0.0219, 0.0983, 0.1621, 0.0983, 0.0219},
-        {0.0133, 0.0596, 0.0983, 0.0596, 0.0133},
-        {0.0030, 0.0133, 0.0219, 0.0133, 0.0030}
-    };
+
 
     if (imagePixel.x == 0 && imagePixel.y == 0 && imagePixel.z == 0) {
 
