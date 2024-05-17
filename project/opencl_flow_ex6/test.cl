@@ -211,8 +211,7 @@ __kernel void crosscheck(__read_only image2d_t inputImage1, __read_only image2d_
 __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
-
-  float neighbor_pixels[5][5];
+    float neighbor_pixels[5][5];
 
     const float4 imagePixel = read_imagef(inputImage, sampler, pos);
     float4 occlusion_output = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
