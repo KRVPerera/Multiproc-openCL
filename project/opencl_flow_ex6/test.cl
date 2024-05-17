@@ -199,31 +199,34 @@ __kernel void crosscheck(__read_only image2d_t inputImage1, __read_only image2d_
 }
 
 
-
-
-
 __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
 
   __local float4 neighbor_pixels[5][5];
-  // Load kernel weights into shared memory
 
-  barrier(CLK_LOCAL_MEM_FENCE);
     const float4 imagePixel = read_imagef(inputImage, sampler, pos);
     float4 occlusion_output = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
 
-
-
-    if (imagePixel.x == 0 && imagePixel.y == 0 && imagePixel.z == 0) {
-
-        float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+        int2 offsetPos;
         float prevNonZeroValue = 0.0f;
+        int localXIndex;
+        int localYIndex;
+        float4 sum;
+        float4 color;
+
+    if (imagePixel.x < 10E-6 && imagePixel.y < 10E-6 && imagePixel.z < 10E-6 ) {
+
+        sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
 
         for (int i = -2; i <= 2; ++i) {
+            localYIndex = (i + 2) * 5;
             for (int j = -2; j <= 2; ++j) {
-                const int2 offsetPos = pos + (int2)(i, j);
-                float4 color = read_imagef(inputImage, sampler, offsetPos);
+                localXIndex = (j + 2);
+
+                offsetPos = pos + (int2)(i, j);
+                color = read_imagef(inputImage, sampler, offsetPos);
+                neighbor_pixels[localYIndex][localXIndex] = color;
                 if (color.x != 0) {
                     prevNonZeroValue = color.x;
                     break;
@@ -231,11 +234,13 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
             }
         }
 
+        float weight;
         for (int i = -2; i <= 2; ++i) {
+            localYIndex = (i + 2) * 5;
             for (int j = -2; j <= 2; ++j) {
+                localXIndex = (j + 2);
 
-                const int2 offsetPos = pos + (int2)(i, j);
-                float4 color = read_imagef(inputImage, sampler, offsetPos);
+                color = neighbor_pixels[localYIndex][localXIndex];
                 if (color.x != 0) {
                     prevNonZeroValue = color.x;
                 } else {
@@ -244,7 +249,7 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
                     color.z = prevNonZeroValue;
                 }
 
-                const float weight = gassian_kernel[i + 2][j + 2];
+                float weight = gassian_kernel[i + 2][j + 2];
                 sum += weight * color;
             }
         }
