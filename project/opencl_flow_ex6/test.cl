@@ -212,7 +212,7 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
 
-  __local float4 neighbor_pixels[5][5];
+  float neighbor_pixels[5][5];
 
     const float4 imagePixel = read_imagef(inputImage, sampler, pos);
     float4 occlusion_output = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
@@ -221,12 +221,12 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
         float prevNonZeroValue = 0.0f;
         int localXIndex;
         int localYIndex;
-        float4 sum;
+        float sum;
         float4 color;
 
     if (imagePixel.x < 10E-3 && imagePixel.y < 10E-3 && imagePixel.z < 10E-3 ) {
 
-        sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+        sum = 0.0f;
 
         for (int i = -2; i <= 2; ++i) {
             localYIndex = (i + 2) * 5;
@@ -235,7 +235,7 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
 
                 offsetPos = pos + (int2)(i, j);
                 color = read_imagef(inputImage, sampler, offsetPos);
-                neighbor_pixels[localYIndex][localXIndex] = color;
+                neighbor_pixels[localYIndex][localXIndex] = color.x;
                 if (color.x != 0) {
                     prevNonZeroValue = color.x;
                     break;
@@ -244,27 +244,26 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
         }
 
         float weight;
+        float fColor;
         for (int i = -2; i <= 2; ++i) {
             localYIndex = (i + 2) * 5;
             for (int j = -2; j <= 2; ++j) {
                 localXIndex = (j + 2);
 
-                color = neighbor_pixels[localYIndex][localXIndex];
-                if (color.x != 0) {
-                    prevNonZeroValue = color.x;
+                fColor = neighbor_pixels[localYIndex][localXIndex];
+                if (fColor != 0) {
+                    prevNonZeroValue = fColor;
                 } else {
-                    color.x = prevNonZeroValue;
-                    color.y = prevNonZeroValue;
-                    color.z = prevNonZeroValue;
+                    fColor = prevNonZeroValue;
                 }
 
                 float weight = gassian_kernel[i + 2][j + 2];
-                sum += weight * color;
+                sum += weight * fColor;
             }
         }
-        occlusion_output.x = sum.x;
-        occlusion_output.y = sum.y;
-        occlusion_output.z = sum.z;
+        occlusion_output.x = sum;
+        occlusion_output.y = sum;
+        occlusion_output.z = sum;
 
     } else {
         occlusion_output.x = imagePixel.x;
