@@ -58,10 +58,16 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
     const int MAX_DISP = 65;
 
     float bestDisp = 0.0f;
-    float4 max_zncc = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+    float max_zncc_x = 0.0f;
+    float4 sum2;
+    float zncc;
+    float normalizedDisp;
+    float4 result;
+    float4 firstDiff;
+    float4 secondDiff;
     for (int d = 0; d < MAX_DISP; ++d) {
 
-        float4 sum2 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+        sum2 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
         float4 image2Window[WINDOW_SIZE * WINDOW_SIZE];
 
         for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
@@ -76,31 +82,34 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
         }
         const float4 image2Mean = sum2 / (WINDOW_SIZE * WINDOW_SIZE);
 
-        float4 diffMultiSum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-        float4 squaredSum2 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-        float4 squaredSum1 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+        float diffMultiSum = 0.0f;
+        float squaredSum2 = 0.0f;
+        float squaredSum1 = 0.0f;
 
+        // TODO: check if loop unrolling helps
         for (int i = 0; i < WINDOW_SIZE * WINDOW_SIZE; ++i) {
-            float4 firstDiff = image1Window[i] - image1Mean;
-            float4 secondDiff = image2Window[i] - image2Mean;
-            diffMultiSum += firstDiff * secondDiff;
+            firstDiff = image1Window[i] - image1Mean;
+            secondDiff = image2Window[i] - image2Mean;
+            diffMultiSum += firstDiff.x * secondDiff.x;
+
             firstDiff = firstDiff * firstDiff;
             secondDiff = secondDiff * secondDiff;
-            squaredSum1 += firstDiff;
-            squaredSum2 += secondDiff;
+
+            squaredSum1 += firstDiff.x;
+            squaredSum2 += secondDiff.x;
         }
 
-        float4 zncc = diffMultiSum / (sqrt(squaredSum1) * sqrt(squaredSum2));
-        if (zncc.x > max_zncc.x) {
+        zncc = diffMultiSum / (sqrt(squaredSum1) * sqrt(squaredSum2));
+        if (zncc > max_zncc_x) {
             bestDisp = abs(d);
-            max_zncc = zncc;
+            max_zncc_x = zncc;
         }
     }
 
-    float normalizedDisp = (bestDisp / MAX_DISP);
+    normalizedDisp = (bestDisp / MAX_DISP);
    // printf("normalizedDisp: %f\n", normalizedDisp);
 
-    float4 result = (float4){normalizedDisp, normalizedDisp, normalizedDisp, 1.0f};
+    result = (float4){normalizedDisp, normalizedDisp, normalizedDisp, 1.0f};
     write_imagef(outputImage, pos, result);
 }
 
@@ -127,10 +136,16 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
     const int MAX_DISP = 65;
 
     float bestDisp = 0.0f;
-    float4 max_zncc = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+    float max_zncc_x = 0.0f;
+    float zncc;
+    float4 sum2;
+    float normalizedDisp;
+    float4 result;
+    float4 firstDiff;
+    float4 secondDiff;
     for (int d = 0; d < MAX_DISP; ++d) {
 
-        float4 sum2 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+        sum2 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
         float4 image2Window[WINDOW_SIZE * WINDOW_SIZE];
 
         for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
@@ -145,31 +160,33 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
         }
         const float4 image2Mean = sum2 / (WINDOW_SIZE * WINDOW_SIZE);
 
-        float4 diffMultiSum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-        float4 squaredSum2 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-        float4 squaredSum1 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+        float diffMultiSum = 0.0f;
+        float squaredSum2 = 0.0f;
+        float squaredSum1 = 0.0f;
 
+        // TODO: check if loop unrolling helps
         for (int i = 0; i < WINDOW_SIZE * WINDOW_SIZE; ++i) {
-            float4 firstDiff = image1Window[i] - image1Mean;
-            float4 secondDiff = image2Window[i] - image2Mean;
-            diffMultiSum += firstDiff * secondDiff;
+
+            firstDiff = image1Window[i] - image1Mean;
+            secondDiff = image2Window[i] - image2Mean;
+            diffMultiSum += firstDiff.x * secondDiff.x;
+
             firstDiff = firstDiff * firstDiff;
             secondDiff = secondDiff * secondDiff;
-            squaredSum1 += firstDiff;
-            squaredSum2 += secondDiff;
+            squaredSum1 += firstDiff.x;
+            squaredSum2 += secondDiff.x;
         }
 
-        float4 zncc = diffMultiSum / (sqrt(squaredSum1) * sqrt(squaredSum2));
-        if (zncc.x > max_zncc.x) {
+        zncc = diffMultiSum / (sqrt(squaredSum1) * sqrt(squaredSum2));
+        if (zncc > max_zncc_x) {
             bestDisp = abs(d);
-            max_zncc = zncc;
+            max_zncc_x = zncc;
         }
     }
 
-    float normalizedDisp = (bestDisp / MAX_DISP);
-   // printf("normalizedDisp: %f\n", normalizedDisp);
+    normalizedDisp = (bestDisp / MAX_DISP);
 
-    float4 result = (float4){normalizedDisp, normalizedDisp, normalizedDisp, 1.0f};
+    result = (float4){normalizedDisp, normalizedDisp, normalizedDisp, 1.0f};
     write_imagef(outputImage, pos, result);
 }
 
