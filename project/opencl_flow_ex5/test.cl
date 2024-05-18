@@ -204,7 +204,7 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
         {0.0030, 0.0133, 0.0219, 0.0133, 0.0030}
     };
 
-    if (imagePixel.x == 0 && imagePixel.y == 0 && imagePixel.z == 0) {
+    if (imagePixel.x < 10E-6 && imagePixel.y < 10E-6 && imagePixel.z < 10E-6 ) {
 
         float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
         float prevNonZeroValue = 0.0f;

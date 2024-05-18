@@ -75,10 +75,11 @@ void apply_occlusion_fill_6(cl_device_id device, cl_context context, cl_kernel k
     OCLERROR_RET(clSetKernelArg(kernel, 1, sizeof(cl_mem), &output_image), err, end);
 
     // Execute the OpenCL kernel
+    //const size_t workSize = 5;
     size_t globalWorkSize[2] = { width, height };
-//    const size_t workSize = 5;
-//    size_t localWorkSize[2] = { workSize, workSize };
-    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &occlustion_fill_event);
+    //size_t localWorkSize[2] = { workSize, workSize };
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize,
+        NULL, 0, NULL, &occlustion_fill_event);
     if (err != CL_SUCCESS)
     {
         fprintf(stderr, "Error: Failed to execute kernel %d !\n", err);
@@ -411,6 +412,11 @@ void printDeviceInformationHelper(cl_device_id device_id)
     OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_long), &local_mem_size_16, &param_value_size_ret), err, end);
     CHECK_DATA_SIZE(param_value_size_ret, sizeof(cl_long), "Local memory size")
     printf("Local memory size \t: %lld bytes\n", local_mem_size_16);
+
+    cl_uint const_args;
+    OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_MAX_CONSTANT_ARGS, sizeof(const_args), &const_args, &param_value_size_ret), err, end);
+    CHECK_DATA_SIZE(param_value_size_ret, sizeof(const_args), "Const args")
+    printf("MAX_CONSTANT_ARGS \t: %u \n", const_args);
 
     OCLERROR_RET(clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(local_size), &local_size, &param_value_size_ret), err, end);
     CHECK_DATA_SIZE(param_value_size_ret, sizeof(local_size), "Maximum work group size")
