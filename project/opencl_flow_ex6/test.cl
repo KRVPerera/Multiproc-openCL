@@ -38,9 +38,9 @@ __kernel void color_to_gray(__read_only image2d_t inputImage, __write_only image
 __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
-    float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+    float sum = 0.0f;
 
-    float4 image1Window[WINDOW_SIZE * WINDOW_SIZE];
+    float image1Window[WINDOW_SIZE * WINDOW_SIZE];
     int2 offsetPos;
     float4 color;
     int flatIndex;
@@ -49,26 +49,26 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
             flatIndex = (i + WINDOW_HALF_SIZE) * WINDOW_SIZE + (j + WINDOW_HALF_SIZE);
             offsetPos = pos + (int2)(i, j);
             color = read_imagef(inputImage1, sampler, offsetPos);
-            image1Window[flatIndex] = color;
-            sum += color;
+            image1Window[flatIndex] = color.x;
+            sum += color.x;
         }
     }
-    const float4 image1Mean = sum / (WINDOW_SIZE * WINDOW_SIZE);
+    const float image1Mean = sum / (WINDOW_SIZE * WINDOW_SIZE);
 
     const int MAX_DISP = 65;
 
     float bestDisp = 0.0f;
     float max_zncc_x = 0.0f;
-    float4 sum2;
+    float sum2;
     float zncc;
     float normalizedDisp;
     float4 result;
-    float4 firstDiff;
-    float4 secondDiff;
+    float firstDiff;
+    float secondDiff;
     for (int d = 0; d < MAX_DISP; ++d) {
 
-        sum2 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-        float4 image2Window[WINDOW_SIZE * WINDOW_SIZE];
+        sum2 = 0.0f;
+        float image2Window[WINDOW_SIZE * WINDOW_SIZE];
 
         for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
             for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
@@ -76,11 +76,11 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
                 flatIndex = (i + WINDOW_HALF_SIZE) * WINDOW_SIZE + (j + WINDOW_HALF_SIZE);
                 offsetPos = pos + (int2)(i - d, j);
                 color = read_imagef(inputImage2, sampler, offsetPos);
-                image2Window[flatIndex] = color;
-                sum2 += color;
+                image2Window[flatIndex] = color.x;
+                sum2 += color.x;
             }
         }
-        const float4 image2Mean = sum2 / (WINDOW_SIZE * WINDOW_SIZE);
+        const float image2Mean = sum2 / (WINDOW_SIZE * WINDOW_SIZE);
 
         float diffMultiSum = 0.0f;
         float squaredSum2 = 0.0f;
@@ -90,13 +90,13 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
         for (int i = 0; i < WINDOW_SIZE * WINDOW_SIZE; ++i) {
             firstDiff = image1Window[i] - image1Mean;
             secondDiff = image2Window[i] - image2Mean;
-            diffMultiSum += firstDiff.x * secondDiff.x;
+            diffMultiSum += firstDiff * secondDiff;
 
             firstDiff = firstDiff * firstDiff;
             secondDiff = secondDiff * secondDiff;
 
-            squaredSum1 += firstDiff.x;
-            squaredSum2 += secondDiff.x;
+            squaredSum1 += firstDiff;
+            squaredSum2 += secondDiff;
         }
 
         zncc = diffMultiSum / (sqrt(squaredSum1) * sqrt(squaredSum2));
@@ -116,9 +116,9 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
 __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
-    float4 sum = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+    float sum = 0.0f;
 
-    float4 image1Window[WINDOW_SIZE * WINDOW_SIZE];
+    float image1Window[WINDOW_SIZE * WINDOW_SIZE];
     int2 offsetPos;
     float4 color;
 
@@ -127,26 +127,26 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
             int flatIndex = (i + WINDOW_HALF_SIZE) * WINDOW_SIZE + (j + WINDOW_HALF_SIZE);    
             offsetPos = pos + (int2)(i, j);
             color = read_imagef(inputImage1, sampler, offsetPos);
-            image1Window[flatIndex] = color;
-            sum += color;
+            image1Window[flatIndex] = color.x;
+            sum += color.x;
         }
     }
-    const float4 image1Mean = sum / (WINDOW_SIZE * WINDOW_SIZE);
+    const float image1Mean = sum / (WINDOW_SIZE * WINDOW_SIZE);
 
     const int MAX_DISP = 65;
 
     float bestDisp = 0.0f;
     float max_zncc_x = 0.0f;
     float zncc;
-    float4 sum2;
+    float sum2;
     float normalizedDisp;
     float4 result;
-    float4 firstDiff;
-    float4 secondDiff;
+    float firstDiff;
+    float secondDiff;
     for (int d = 0; d < MAX_DISP; ++d) {
 
-        sum2 = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-        float4 image2Window[WINDOW_SIZE * WINDOW_SIZE];
+        sum2 = 0.0f;
+        float image2Window[WINDOW_SIZE * WINDOW_SIZE];
 
         for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
             for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
@@ -154,11 +154,11 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
                 int flatIndex2 = (i + WINDOW_HALF_SIZE) * WINDOW_SIZE + (j + WINDOW_HALF_SIZE);   
                 offsetPos = pos + (int2)(i + d, j);
                 color = read_imagef(inputImage2, sampler, offsetPos);
-                image2Window[flatIndex2] = color;
-                sum2 += color;
+                image2Window[flatIndex2] = color.x;
+                sum2 += color.x;
             }
         }
-        const float4 image2Mean = sum2 / (WINDOW_SIZE * WINDOW_SIZE);
+        const float image2Mean = sum2 / (WINDOW_SIZE * WINDOW_SIZE);
 
         float diffMultiSum = 0.0f;
         float squaredSum2 = 0.0f;
@@ -169,12 +169,12 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
 
             firstDiff = image1Window[i] - image1Mean;
             secondDiff = image2Window[i] - image2Mean;
-            diffMultiSum += firstDiff.x * secondDiff.x;
+            diffMultiSum += firstDiff * secondDiff;
 
             firstDiff = firstDiff * firstDiff;
             secondDiff = secondDiff * secondDiff;
-            squaredSum1 += firstDiff.x;
-            squaredSum2 += secondDiff.x;
+            squaredSum1 += firstDiff;
+            squaredSum2 += secondDiff;
         }
 
         zncc = diffMultiSum / (sqrt(squaredSum1) * sqrt(squaredSum2));
