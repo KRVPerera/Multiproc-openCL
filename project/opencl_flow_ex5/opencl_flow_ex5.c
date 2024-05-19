@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 cl_device_id create_device(void)
 {
 
@@ -650,6 +651,52 @@ cl_ulong apply_occlusion_fill(cl_context context, cl_kernel kernel, cl_command_q
     return time_to_occlustion_fill;
 }
 
+void benchmarkResizeImageEx5(int sampleCount, cl_context context, cl_kernel kernel, cl_command_queue queue, Image *im0, Image *output_1_resized_im0,
+  BENCHMARK_MODE benchmark) {
+
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time = resize_image(context, kernel, queue, im0, output_1_resized_im0, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkResizeImageEx5(req_n, context, kernel, queue, im0, output_1_resized_im0, benchmark);
+    } else
+    {
+        logger("Image Resize kernal ran \t: %d times", sampleCount);
+        logger("Image Resize Time \t\t: %.f  micro seconds", mean / 1000);
+    }
+}
+
+void benchmarkConvertImageToGrayEx5(int sampleCount, cl_context context, cl_kernel kernel, cl_command_queue queue, Image * im0, Image * output_1_bw_im0, BENCHMARK_MODE benchmark)
+{
+
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time = convert_image_to_gray(context, kernel, queue, im0, output_1_bw_im0, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkConvertImageToGrayEx5(req_n, context, kernel, queue, im0, output_1_bw_im0, benchmark);
+    } else
+    {
+        logger("Image Grayscale kernal ran \t: %d times", sampleCount);
+        logger("Image Grayscale Time \t\t: %.f  micro seconds", mean / 1000);
+    }
+}
+
 void openclFlowEx5(BENCHMARK_MODE benchmark)
 {
     logger("OpenCL Flow Example 5 STARTED\n");
@@ -764,8 +811,8 @@ void openclFlowEx5(BENCHMARK_MODE benchmark)
         benchmarkResizeImageEx5(sampleSize, context, kernel_resize_image, queue, im1, output_2_resized_im0, benchmark);
 
         // Convert Images to Gray
-//        benchmarkConvertImageToGray(sampleSize, context, kernel_color_to_gray, queue, output_1_resized_im0, output_1_bw_im0, benchmark);
-//        benchmarkConvertImageToGray(sampleSize, context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0, benchmark);
+        benchmarkConvertImageToGrayEx5(sampleSize, context, kernel_color_to_gray, queue, output_1_resized_im0, output_1_bw_im0, benchmark);
+        benchmarkConvertImageToGrayEx5(sampleSize, context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0, benchmark);
 //
 //        logger("Calculating Left Disparity");
 //        benchmarkZncc(sampleSize, device, context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0, benchmark);
@@ -833,27 +880,4 @@ void openclFlowEx5(BENCHMARK_MODE benchmark)
     clReleaseContext(context);
 
     logger("OpenCL Flow Example 5 ENDED\n");
-}
-
-void benchmarkResizeImageEx5(int sampleCount, cl_context context, cl_kernel kernel, cl_command_queue queue, Image *im0, Image *output_1_resized_im0,
-  BENCHMARK_MODE benchmark) {
-
-    float elapsed_times[sampleCount];
-    for (int i = 0; i < sampleCount; i++)
-    {
-        cl_ulong time = resize_image(context, kernel, queue, im0, output_1_resized_im0, benchmark);
-        elapsed_times[i] = (float)time;
-    }
-    
-    float mean = Average(elapsed_times, sampleCount);
-    float sd = standardDeviation(elapsed_times, sampleCount);
-    int req_n = requiredSampleSize(sd, mean);
-    if (req_n > sampleCount)
-    {
-        benchmarkResizeImageEx5(req_n, context, kernel, queue, im0, output_1_resized_im0, benchmark);
-    } else
-    {
-        logger("Image Resize kernal ran \t: %d times", sampleCount);
-        logger("Image Resize Time \t\t: %.f  micro seconds", mean / 1000);
-    }
 }
