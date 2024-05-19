@@ -42,7 +42,6 @@
         goto label;                                                               \
     }
 
-
 void benchmarkResizeImage(int sampleCount,
   cl_context pContext,
   cl_kernel kernel_resize_image,
@@ -77,6 +76,7 @@ void benchmarkCrossCheck(int sampleSize,
   Image *im1,
   Image *im2,
   BENCHMARK_MODE benchmark);
+
 void benchmarkOcclusionFill6(int size,
   cl_device_id pId,
   cl_context pContext,
@@ -85,6 +85,7 @@ void benchmarkOcclusionFill6(int size,
   Image *pImage,
   Image *pImage1,
   BENCHMARK_MODE benchmark);
+
 void apply_occlusion_fill_6(cl_device_id device,
   cl_context context,
   cl_kernel kernel,
@@ -237,108 +238,6 @@ cl_program build_program_6(cl_context ctx, cl_device_id device, const char *file
     return program;
 }
 
-void apply_crosscheck_6(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, const Image *im1, Image *output_im0)
-{
-
-    /* Image data */
-    cl_mem input_image, input_image1, output_image;
-    cl_image_format input_format, input_format1, output_format;
-    int err;
-
-    cl_ulong read_time, time_to_crosscheck;
-
-    cl_event crosscheck_read_event, crosscheck_event;
-
-    const size_t width = im0->width;
-    const size_t height = im0->height;
-
-    input_format.image_channel_order = CL_RGBA;
-    input_format.image_channel_data_type = CL_UNORM_INT8;
-
-    input_format1.image_channel_order = CL_RGBA;
-    input_format1.image_channel_data_type = CL_UNORM_INT8;
-
-    output_format.image_channel_order = CL_RGBA;
-    output_format.image_channel_data_type = CL_UNORM_INT8;
-
-    /* Create input image object */
-    input_image = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format, width, height, 0, (void *)im0->image, &err);
-    if (err < 0)
-    {
-        printf("crosscheck: Couldn't create the input image 0 object");
-        exit(1);
-    };
-
-    input_image1 = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format1, width, height, 0, (void *)im1->image, &err);
-    if (err < 0)
-    {
-        printf("crosscheck: Couldn't create the input image 1 object");
-        exit(1);
-    };
-
-    /* Create output image object */
-    output_image = clCreateImage2D(context, CL_MEM_READ_WRITE, &output_format, width, height, 0, NULL, &err);
-    if (err < 0)
-    {
-        perror("crosscheck: Couldn't create the input image object");
-        exit(1);
-    };
-
-    // Set kernel arguments
-    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_image);
-    if (err < 0)
-    {
-        perror("crosscheck, Error: clSetKernelArg, inputImage");
-        exit(1);
-    }
-
-    err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &input_image1);
-    if (err < 0)
-    {
-        perror("crosscheck, Error: clSetKernelArg, inputImage");
-        exit(1);
-    }
-
-    err = clSetKernelArg(kernel, 2, sizeof(cl_mem), &output_image);
-    if (err < 0)
-    {
-        perror("crosscheck, Error: clSetKernelArg, outputImage");
-        exit(1);
-    }
-
-    // Execute the OpenCL kernel
-    size_t globalWorkSize[2] = { width, height };
-    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &crosscheck_event);
-    if (err < 0)
-    {
-        perror("crosscheck, Error: clEnqueueNDRangeKernel");
-        exit(1);
-    }
-
-    // Read the output image back to the host
-    err = clEnqueueReadImage(
-      queue, output_image, CL_TRUE, (size_t[3]){ 0, 0, 0 }, (size_t[3]){ width, height, 1 }, 0, 0, (void *)output_im0->image, 0, NULL, &crosscheck_read_event);
-    if (err < 0)
-    {
-        perror("crosscheck, Error: clEnqueueReadImage");
-        exit(1);
-    }
-
-    clFinish(queue);
-
-    output_im0->width = width;
-    output_im0->height = height;
-
-    time_to_crosscheck = getExecutionTime(crosscheck_event);
-    read_time = getExecutionTime(crosscheck_read_event);
-
-    clReleaseEvent(crosscheck_read_event);
-    clReleaseEvent(crosscheck_event);
-
-    printf("Time taken to do the crosscheck = %llu ns\n", time_to_crosscheck);
-    printf("Time taken to read the output image (crosscheck) = %llu ns\n", read_time);
-}
-
 void openclFlowEx6(BENCHMARK_MODE benchmark)
 {
     logger("OpenCL Flow 6 STARTED\n");
@@ -438,7 +337,7 @@ void openclFlowEx6(BENCHMARK_MODE benchmark)
         exit(1);
     }
 
-    logger("Starti running opencl kernels");
+    logger("Starting running opencl kernels");
     if (benchmark == BENCHMARK)
     {
         logger("Benchmark mode: ON");

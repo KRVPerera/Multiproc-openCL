@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="flow5 b" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="opencl -benchmark" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="MultiprocOpenCL" TARGET_NAME="MultiprocOpenCL" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="MultiprocOpenCL" RUN_TARGET_NAME="MultiprocOpenCL">
+    <envs>
+      <env name="GPU_MAX_ALLOC_PERCENT" value="100" />
+    </envs>
+    <method v="2">
+      <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>

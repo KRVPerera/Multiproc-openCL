@@ -7,14 +7,13 @@
 
 #include <config.h>
 #include <pngloader.h>
-
 #include "config_im_to_g.h"
+
 #include "logger.h"
 #include <opencl_flow_ex5.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 cl_device_id create_device(void)
 {
 
@@ -47,6 +46,9 @@ cl_device_id create_device(void)
     free(devices);
     return device;
 }
+
+void benchmarkResizeImageEx5(int size, cl_context pContext, cl_kernel pKernel, cl_command_queue pQueue, Image *pImage, Image *pImage1, BENCHMARK_MODE
+                                                                                                                                         benchmark);
 
 cl_program build_program(cl_context ctx, cl_device_id device, const char *filename)
 {
@@ -745,32 +747,60 @@ void openclFlowEx5(BENCHMARK_MODE benchmark)
         exit(1);
     }
 
+    logger("Starting running opencl kernels");
     if (benchmark == BENCHMARK)
     {
-        logger("Benchmark mode is ON");
+        logger("Benchmark mode: ON");
+    } else
+    {
+        logger("Benchmark mode: OFF");
     }
 
-    /* Resize image size */
-    resize_image(context, kernel_resize_image, queue, im0, output_1_resized_im0, benchmark);
-    /* Convert color image to gray scale image */
-    convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_resized_im0, output_1_bw_im0, benchmark);
+    int sampleSize = 10;
+    if (benchmark == BENCHMARK)
+    {
+        // Resize Images
+        benchmarkResizeImageEx5(sampleSize, context, kernel_resize_image, queue, im0, output_1_resized_im0, benchmark);
+        benchmarkResizeImageEx5(sampleSize, context, kernel_resize_image, queue, im1, output_2_resized_im0, benchmark);
 
-    /* Resize image size */
-    resize_image(context, kernel_resize_image, queue, im1, output_2_resized_im0, benchmark);
-    /* Convert color image to gray scale image */
-    convert_image_to_gray(context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0, benchmark);
+        // Convert Images to Gray
+//        benchmarkConvertImageToGray(sampleSize, context, kernel_color_to_gray, queue, output_1_resized_im0, output_1_bw_im0, benchmark);
+//        benchmarkConvertImageToGray(sampleSize, context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0, benchmark);
+//
+//        logger("Calculating Left Disparity");
+//        benchmarkZncc(sampleSize, device, context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0, benchmark);
+//
+//        logger("Calculating Right Disparity");
+//        benchmarkZncc(sampleSize, device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
+//
+//        benchmarkCrossCheck(sampleSize, context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0, benchmark);
+//
+//        benchmarkOcclusionFill(sampleSize, device, context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0, benchmark);
+    } else
+    {
 
-    /* Apply zncc kernel */
-    apply_zncc(device, context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0, benchmark);
+        /* Resize image size */
+        resize_image(context, kernel_resize_image, queue, im0, output_1_resized_im0, benchmark);
+        /* Convert color image to gray scale image */
+        convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_resized_im0, output_1_bw_im0, benchmark);
 
-    /* Apply zncc kernel */
-    apply_zncc(device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
+        /* Resize image size */
+        resize_image(context, kernel_resize_image, queue, im1, output_2_resized_im0, benchmark);
+        /* Convert color image to gray scale image */
+        convert_image_to_gray(context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0, benchmark);
 
-    /* Apply left crosscheck kernel */
-    apply_crosscheck(context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0, benchmark);
+        /* Apply zncc kernel */
+        apply_zncc(device, context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0, benchmark);
 
-    /* Apply left occlustion fill kernel */
-    apply_occlusion_fill(context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0, benchmark);
+        /* Apply zncc kernel */
+        apply_zncc(device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
+
+        /* Apply left crosscheck kernel */
+        apply_crosscheck(context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0, benchmark);
+
+        /* Apply left occlustion fill kernel */
+        apply_occlusion_fill(context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0, benchmark);
+    }
 
     saveImage(OUTPUT_1_RESIZE_OPENCL_FILE, output_1_resized_im0);
     saveImage(OUTPUT_1_BW_OPENCL_FILE, output_1_bw_im0);
@@ -781,7 +811,6 @@ void openclFlowEx5(BENCHMARK_MODE benchmark)
     saveImage(OUTPUT_2_LEFT_DISPARITY_OPENCL_FILE, output_right_disparity_im0);
 
     saveImage(OUTPUT_3_CROSSCHECK_LEFT_OPENCL_FILE, left_crosscheck_im0);
-
     saveImage(OUTPUT_4_OCCLUSTION_LEFT_OPENCL_FILE, output_left_occlusion_im0);
 
     /* Deallocate resources */
@@ -804,4 +833,27 @@ void openclFlowEx5(BENCHMARK_MODE benchmark)
     clReleaseContext(context);
 
     logger("OpenCL Flow Example 5 ENDED\n");
+}
+
+void benchmarkResizeImageEx5(int sampleCount, cl_context context, cl_kernel kernel, cl_command_queue queue, Image *im0, Image *output_1_resized_im0,
+  BENCHMARK_MODE benchmark) {
+
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time = resize_image(context, kernel, queue, im0, output_1_resized_im0, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+    
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkResizeImageEx5(req_n, context, kernel, queue, im0, output_1_resized_im0, benchmark);
+    } else
+    {
+        logger("Image Resize kernal ran \t: %d times", sampleCount);
+        logger("Image Resize Time \t\t: %.f  micro seconds", mean / 1000);
+    }
 }
