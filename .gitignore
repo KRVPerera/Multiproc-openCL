@@ -22,6 +22,7 @@ CMakeLists.txt.user
 data/out/image_*.png
 data/out/output_*.png
 data/out/*_OPENCL.png
+data/out/opencl_*.png
 
 profile_data_0.txt
 profile_data_1.txt
