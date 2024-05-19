@@ -12,7 +12,7 @@
 #include <string.h>
 #include "config_im_to_g.h"
 
-void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0) {
+void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, BENCHMARK_MODE benchmark) {
 
     /* Image data */
     cl_mem input_image, output_image;
@@ -86,11 +86,13 @@ void apply_gaussian_blur(cl_context context, cl_kernel kernel, cl_command_queue 
     clReleaseEvent(gaussian_read_event);
     clReleaseEvent(gaussian_event);
 
-    printf("Time taken to do the gaussian blur = %llu ns\n", time_to_gaussian_blur);
-    printf("Time taken to read the output image (gaussian blur) = %llu ns\n", read_time);
+    if (benchmark == DO_NOT_BENCHMARK) {
+        printf("Time taken to do the gaussian blur = %llu ns\n", time_to_gaussian_blur);
+        printf("Time taken to read the output image (gaussian blur) = %llu ns\n", read_time);
+    }
 }
 
-void openclFlowEx3(void) {
+void openclFlowEx3(BENCHMARK_MODE benchmark) {
     printf("OpenCL Flow Example 3 STARTED\n");
     cl_device_id device;
     cl_context context;
@@ -162,13 +164,13 @@ void openclFlowEx3(void) {
     }
 
     /* Resize image size */
-    resize_image(context, kernel_resize_image, queue, im0, output_1_im0);
+    resize_image(context, kernel_resize_image, queue, im0, output_1_im0, benchmark);
 
     /* Convert color image to gray scale image */
-    convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_im0, output_2_im0);
+    convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_im0, output_2_im0, benchmark);
 
     /* Apply gaussian blur with 5 x 5 kernel */
-    apply_gaussian_blur(context, kernel_gaussian_blur, queue, output_2_im0, output_3_im0);
+    apply_gaussian_blur(context, kernel_gaussian_blur, queue, output_2_im0, output_3_im0, benchmark);
 
     saveImage(OUTPUT_1_RESIZE_OPENCL_FILE, output_1_im0);
     saveImage(OUTPUT_1_BW_OPENCL_FILE, output_2_im0);

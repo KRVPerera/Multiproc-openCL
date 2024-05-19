@@ -48,6 +48,7 @@ configure_file(config.h.in config.h)
 include_directories(include)
 include_directories(include/opencl)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${OpenCL_INCLUDE_DIRS})
 
 add_library(logger STATIC src/logger.c include/logger.h)
 add_library(utils STATIC src/util.c include/util.h)

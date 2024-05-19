@@ -115,7 +115,7 @@ float standardDeviation(float times[], int numSamples);
  * @param numSamples
  * @return
  */
-float Average(const float *times, const int numSamples);
+float Average(const float *times, int numSamples);
 
 /**
  * Calculate the required sample size for a given standard deviation and mean

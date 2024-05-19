@@ -50,13 +50,13 @@ int main(int argc, char *argv[])
     }
     else if (strcmp(argv[1], "opencl") == 0)
     {
-        openclFlowEx5();
+        openclFlowEx5(benchmark);
     } else if (strcmp(argv[1], "opencl_opt") == 0)
     {
-        openclFlowEx6();
+        openclFlowEx6(benchmark);
     } else if (strcmp(argv[1], "opencl_old") == 0)
     {
-        openclFlowEx3();
+        openclFlowEx3(benchmark);
     } else if (strcmp(argv[1], "single") == 0)
     {
         fullFlow(benchmark, multithreadedMode);

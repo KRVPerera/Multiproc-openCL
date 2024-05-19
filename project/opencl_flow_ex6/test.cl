@@ -33,7 +33,10 @@ __kernel void color_to_gray(__read_only image2d_t inputImage, __write_only image
 }
 
 #define WINDOW_SIZE 15
+#define WINDOW_SIZE_SQRD 225
 #define WINDOW_HALF_SIZE 7
+#define WINDOW_SIZE_M_WINDOW_HALF_SIZE 105
+#define WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS 112
 
 __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
@@ -42,13 +45,13 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
 
     float image1Window[WINDOW_SIZE * WINDOW_SIZE];
     int2 offsetPos;
-    float4 color;
+    uint4 color;
     int flatIndex;
     for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
         for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
-            flatIndex = (i + WINDOW_HALF_SIZE) * WINDOW_SIZE + (j + WINDOW_HALF_SIZE);
+            flatIndex = i * WINDOW_SIZE + j + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
             offsetPos = pos + (int2)(i, j);
-            color = read_imagef(inputImage1, sampler, offsetPos);
+            color = read_imageui(inputImage1, sampler, offsetPos);
             image1Window[flatIndex] = color.x;
             sum += color.x;
         }
@@ -62,20 +65,19 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
     float sum2;
     float zncc;
     float normalizedDisp;
-    float4 result;
     float firstDiff;
     float secondDiff;
+    float image2Window[WINDOW_SIZE * WINDOW_SIZE];
     for (int d = 0; d < MAX_DISP; ++d) {
 
         sum2 = 0.0f;
-        float image2Window[WINDOW_SIZE * WINDOW_SIZE];
 
         for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
             for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
 
-                flatIndex = (i + WINDOW_HALF_SIZE) * WINDOW_SIZE + (j + WINDOW_HALF_SIZE);
+                flatIndex = i * WINDOW_SIZE + j + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
                 offsetPos = pos + (int2)(i - d, j);
-                color = read_imagef(inputImage2, sampler, offsetPos);
+                color = read_imageui                                                                                                                                                                                                                                                                                                                                                                                                                                                        (inputImage2, sampler, offsetPos);
                 image2Window[flatIndex] = color.x;
                 sum2 += color.x;
             }
@@ -87,7 +89,7 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
         float squaredSum1 = 0.0f;
 
         // TODO: check if loop unrolling helps
-        for (int i = 0; i < WINDOW_SIZE * WINDOW_SIZE; ++i) {
+        for (int i = 0; i < WINDOW_SIZE_SQRD; ++i) {
             firstDiff = image1Window[i] - image1Mean;
             secondDiff = image2Window[i] - image2Mean;
             diffMultiSum += firstDiff * secondDiff;
@@ -107,10 +109,8 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
     }
 
     normalizedDisp = (bestDisp / MAX_DISP);
-   // printf("normalizedDisp: %f\n", normalizedDisp);
 
-    result = (float4){normalizedDisp, normalizedDisp, normalizedDisp, 1.0f};
-    write_imagef(outputImage, pos, result);
+    write_imagef(outputImage, pos, (float4){normalizedDisp, normalizedDisp, normalizedDisp, 1.0f});
 }
 
 __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
@@ -120,13 +120,13 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
 
     float image1Window[WINDOW_SIZE * WINDOW_SIZE];
     int2 offsetPos;
-    float4 color;
-
+    uint4 color;
+    int flatIndex;
     for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
         for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
-            int flatIndex = (i + WINDOW_HALF_SIZE) * WINDOW_SIZE + (j + WINDOW_HALF_SIZE);    
+            flatIndex = i * WINDOW_SIZE + j + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
             offsetPos = pos + (int2)(i, j);
-            color = read_imagef(inputImage1, sampler, offsetPos);
+            color = read_imageui(inputImage1, sampler, offsetPos);
             image1Window[flatIndex] = color.x;
             sum += color.x;
         }
@@ -137,24 +137,23 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
 
     float bestDisp = 0.0f;
     float max_zncc_x = 0.0f;
-    float zncc;
     float sum2;
+    float zncc;
     float normalizedDisp;
-    float4 result;
     float firstDiff;
     float secondDiff;
+    float image2Window[WINDOW_SIZE * WINDOW_SIZE];
     for (int d = 0; d < MAX_DISP; ++d) {
 
         sum2 = 0.0f;
-        float image2Window[WINDOW_SIZE * WINDOW_SIZE];
 
         for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
             for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
 
-                int flatIndex2 = (i + WINDOW_HALF_SIZE) * WINDOW_SIZE + (j + WINDOW_HALF_SIZE);   
+                flatIndex = i * WINDOW_SIZE + j + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
                 offsetPos = pos + (int2)(i + d, j);
-                color = read_imagef(inputImage2, sampler, offsetPos);
-                image2Window[flatIndex2] = color.x;
+                color = read_imageui(inputImage2, sampler, offsetPos);
+                image2Window[flatIndex] = color.x;
                 sum2 += color.x;
             }
         }
@@ -165,14 +164,14 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
         float squaredSum1 = 0.0f;
 
         // TODO: check if loop unrolling helps
-        for (int i = 0; i < WINDOW_SIZE * WINDOW_SIZE; ++i) {
-
+        for (int i = 0; i < WINDOW_SIZE_SQRD; ++i) {
             firstDiff = image1Window[i] - image1Mean;
             secondDiff = image2Window[i] - image2Mean;
             diffMultiSum += firstDiff * secondDiff;
 
             firstDiff = firstDiff * firstDiff;
             secondDiff = secondDiff * secondDiff;
+
             squaredSum1 += firstDiff;
             squaredSum2 += secondDiff;
         }
@@ -186,8 +185,7 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
 
     normalizedDisp = (bestDisp / MAX_DISP);
 
-    result = (float4){normalizedDisp, normalizedDisp, normalizedDisp, 1.0f};
-    write_imagef(outputImage, pos, result);
+    write_imagef(outputImage, pos, (float4){normalizedDisp, normalizedDisp, normalizedDisp, 1.0f});
 }
 
 __kernel void crosscheck(__read_only image2d_t inputImage1, __read_only image2d_t inputImage2, __write_only image2d_t outputImage) {
@@ -196,34 +194,33 @@ __kernel void crosscheck(__read_only image2d_t inputImage1, __read_only image2d_
     const float4 image1Pixel = read_imagef(inputImage1, sampler, pos);
     const float4 image2Pixel = read_imagef(inputImage2, sampler, pos);
 
-    float4 crosscheck_output = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
+    float crosscheck_output;
+    float diff = fabs(image1Pixel.x - image2Pixel.x);
 
-    if (fabs(image1Pixel.x - image2Pixel.x) <= 0.588f) {
-        crosscheck_output.x = image1Pixel.x;
-        crosscheck_output.y = image1Pixel.y;
-        crosscheck_output.z = image1Pixel.z;
+    if (diff <= 0.588f) {
+        crosscheck_output = image1Pixel.x;
     }
 
-    write_imagef(outputImage, pos, crosscheck_output);
+    write_imagef(outputImage, pos, (float4){crosscheck_output, crosscheck_output, crosscheck_output, 1.0f});
 }
 
 
 __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only image2d_t outputImage) {
     const int2 pos = (int2)(get_global_id(0), get_global_id(1));
 
-    float neighbor_pixels[5][5];
+    uint neighbor_pixels[5][5];
 
-    const float4 imagePixel = read_imagef(inputImage, sampler, pos);
-    float4 occlusion_output = (float4)(0.0f, 0.0f, 0.0f, 1.0f);
+    const uint4 imagePixel = read_imageui(inputImage, sampler, pos);
+    uint4 occlusion_output;
 
         int2 offsetPos;
-        float prevNonZeroValue = 0.0f;
+        uint prevNonZeroValue = 0;
         int localXIndex;
         int localYIndex;
-        float sum;
-        float4 color;
+        uint sum;
+        uint4 color;
 
-    if (imagePixel.x < 10E-3 && imagePixel.y < 10E-3 && imagePixel.z < 10E-3 ) {
+    if (imagePixel.x == 0) {
 
         sum = 0.0f;
 
@@ -233,7 +230,7 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
                 localXIndex = (j + 2);
 
                 offsetPos = pos + (int2)(i, j);
-                color = read_imagef(inputImage, sampler, offsetPos);
+                color = read_imageui(inputImage, sampler, offsetPos);
                 neighbor_pixels[localYIndex][localXIndex] = color.x;
                 if (color.x != 0) {
                     prevNonZeroValue = color.x;
@@ -243,7 +240,7 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
         }
 
         float weight;
-        float fColor;
+        uint fColor;
         for (int i = -2; i <= 2; ++i) {
             localYIndex = (i + 2) * 5;
             for (int j = -2; j <= 2; ++j) {
@@ -260,15 +257,11 @@ __kernel void occlusion_fill(__read_only image2d_t inputImage, __write_only imag
                 sum += weight * fColor;
             }
         }
-        occlusion_output.x = sum;
-        occlusion_output.y = sum;
-        occlusion_output.z = sum;
+        occlusion_output = (uint4){sum, sum, sum, 1};
 
     } else {
-        occlusion_output.x = imagePixel.x;
-        occlusion_output.y = imagePixel.y;
-        occlusion_output.z = imagePixel.z;
+        occlusion_output = imagePixel;
     }
 
-    write_imagef(outputImage, pos, occlusion_output);
+    write_imageui(outputImage, pos, occlusion_output);
 }

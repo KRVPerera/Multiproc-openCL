@@ -135,19 +135,19 @@ long requiredSampleSize(float sd, float mean)
     return N;
 }
 
-float Average(const float *times, const int numSamples)
+float Average(const float *times, int numSamples)
 {
-    float sum = 0;
+    float sum = 0.0f;
     for (int i = 0; i < numSamples; ++i) { sum += times[i]; }
-    return (double)sum / numSamples;
+    return sum / (float) numSamples;
 }
 
 float standardDeviation(float times[], int numSamples)
 {
     float u = Average(times, numSamples);
     float variance = 0;
-    for (int i = 0; i < numSamples; ++i) { variance += pow(times[i] - u, 2); }
-    variance = variance / numSamples;
+    for (int i = 0; i < numSamples; ++i) { variance += (float) pow(times[i] - u, 2); }
+    variance = variance / (float) numSamples;
     return sqrt(variance);
 }
 
