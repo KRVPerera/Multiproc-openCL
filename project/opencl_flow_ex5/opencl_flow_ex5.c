@@ -297,7 +297,7 @@ cl_ulong convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_
     return time_to_grayscale;
 }
 
-void apply_zncc(cl_device_id device,
+unsigned long long int apply_zncc(cl_device_id device,
   cl_context context,
   cl_kernel kernel,
   cl_command_queue queue,
@@ -428,11 +428,14 @@ void apply_zncc(cl_device_id device,
     clReleaseEvent(zncc_read_event);
     clReleaseEvent(zncc_event);
 
-    if (benchmark == DO_NOT_BENCHMARK)
+    if (benchmark == BENCHMARK)
     {
-        printf("Time taken to do the zncc = %llu ns\n", time_to_gaussian_blur);
-        printf("Time taken to read the output image (zncc) = %llu ns\n\n", read_time);
+        return time_to_gaussian_blur;
     }
+
+    logger("Time taken to do the zncc = %llu ns\n", time_to_gaussian_blur);
+    logger("Time taken to read the output image (zncc) = %llu ns\n", read_time);
+    return time_to_gaussian_blur;
 }
 
 void apply_crosscheck(cl_context context,

@@ -35,19 +35,47 @@
         }                                                                               \
     } while (0)
 
-#define CHECK_ERR(err, label, msg)                                                       \
-    if (err != CL_SUCCESS)                                                          \
-    {                                                                               \
+#define CHECK_ERR(err, label, msg)                                                \
+    if (err != CL_SUCCESS)                                                        \
+    {                                                                             \
         fprintf(stderr, "%s, on line %d, in file %s\n", msg, __LINE__, __FILE__); \
-        goto label;                                                                 \
+        goto label;                                                               \
     }
 
 
-void benchmarkResizeImage(int sampleCount, cl_context pContext, cl_kernel kernel_resize_image, cl_command_queue pQueue, Image *im0, Image *output_1_resized_im0, BENCHMARK_MODE benchmark);
+void benchmarkResizeImage(int sampleCount,
+  cl_context pContext,
+  cl_kernel kernel_resize_image,
+  cl_command_queue pQueue,
+  Image *im0,
+  Image *output_1_resized_im0,
+  BENCHMARK_MODE benchmark);
 
-void benchmarkConvertImageToGray(int sampleCount, cl_context pContext, cl_kernel pKernel, cl_command_queue pQueue, Image *im0, Image *output_1_resized_im0, BENCHMARK_MODE benchmark);
+void benchmarkConvertImageToGray(int sampleCount,
+  cl_context pContext,
+  cl_kernel pKernel,
+  cl_command_queue pQueue,
+  Image *im0,
+  Image *output_1_resized_im0,
+  BENCHMARK_MODE benchmark);
 
-void apply_occlusion_fill_6(cl_device_id device, cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, BENCHMARK_MODE benchmark)
+void benchmarkZncc(int sampleCount,
+  cl_device_id device,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  const Image *im0,
+  const Image *im1,
+  Image *output_im0,
+  BENCHMARK_MODE benchmark);
+
+void apply_occlusion_fill_6(cl_device_id device,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  const Image *im0,
+  Image *output_im0,
+  BENCHMARK_MODE benchmark)
 {
     /* Image data */
     cl_mem input_image, output_image;
@@ -81,11 +109,10 @@ void apply_occlusion_fill_6(cl_device_id device, cl_context context, cl_kernel k
     OCLERROR_RET(clSetKernelArg(kernel, 1, sizeof(cl_mem), &output_image), err, end);
 
     // Execute the OpenCL kernel
-    //const size_t workSize = 5;
+    // const size_t workSize = 5;
     size_t globalWorkSize[2] = { width, height };
-    //size_t localWorkSize[2] = { workSize, workSize };
-    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize,
-        NULL, 0, NULL, &occlustion_fill_event);
+    // size_t localWorkSize[2] = { workSize, workSize };
+    err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &occlustion_fill_event);
     if (err != CL_SUCCESS)
     {
         fprintf(stderr, "Error: Failed to execute kernel %d !\n", err);
@@ -114,8 +141,10 @@ void apply_occlusion_fill_6(cl_device_id device, cl_context context, cl_kernel k
     /* Access kernel/work-group properties */
     OCLERROR_RET(clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(wg_size), &wg_size, &param_value_size_ret), err, end);
     CHECK_DATA_SIZE(param_value_size_ret, sizeof(wg_size), "CL_KERNEL_WORK_GROUP_SIZE")
-    OCLERROR_RET(clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(wg_multiple), &wg_multiple,
-      &param_value_size_ret), err, end);
+    OCLERROR_RET(
+      clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(wg_multiple), &wg_multiple, &param_value_size_ret),
+      err,
+      end);
     CHECK_DATA_SIZE(param_value_size_ret, sizeof(wg_multiple), "CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE")
     OCLERROR_RET(clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_LOCAL_MEM_SIZE, sizeof(local_usage), &local_usage, &param_value_size_ret), err, end);
     CHECK_DATA_SIZE(param_value_size_ret, sizeof(local_usage), "CL_KERNEL_LOCAL_MEM_SIZE")
@@ -123,8 +152,7 @@ void apply_occlusion_fill_6(cl_device_id device, cl_context context, cl_kernel k
     CHECK_DATA_SIZE(param_value_size_ret, sizeof(private_usage), "CL_KERNEL_PRIVATE_MEM_SIZE")
 
     printf("The maximum work-group size is %zu and the work-group multiple is %zu.\n\n", wg_size, wg_multiple);
-    printf("The kernel uses %zu bytes of local memory. It uses %zu bytes of private memory.\n",
-      local_usage, private_usage);
+    printf("The kernel uses %zu bytes of local memory. It uses %zu bytes of private memory.\n", local_usage, private_usage);
 
     clFinish(queue);
 
@@ -145,7 +173,8 @@ end:
     }
 }
 
-cl_program build_program_6(cl_context ctx, cl_device_id device, const char* filename) {
+cl_program build_program_6(cl_context ctx, cl_device_id device, const char *filename)
+{
 
     cl_program program;
     FILE *program_handle;
@@ -155,35 +184,35 @@ cl_program build_program_6(cl_context ctx, cl_device_id device, const char* file
 
     /* Read program file and place content into buffer */
     program_handle = fopen(filename, "r");
-    if(program_handle == NULL) {
+    if (program_handle == NULL)
+    {
         perror("Couldn't find the program file");
         exit(1);
     }
     fseek(program_handle, 0, SEEK_END);
     program_size = ftell(program_handle);
     rewind(program_handle);
-    program_buffer = (char*)malloc(program_size + 1);
+    program_buffer = (char *)malloc(program_size + 1);
     program_buffer[program_size] = '\0';
     fread(program_buffer, sizeof(char), program_size, program_handle);
     fclose(program_handle);
 
-    program = clCreateProgramWithSource(ctx, 1,
-      (const char**)&program_buffer, &program_size, &err);
-    if(err < 0) {
+    program = clCreateProgramWithSource(ctx, 1, (const char **)&program_buffer, &program_size, &err);
+    if (err < 0)
+    {
         perror("Couldn't create the program");
         exit(1);
     }
     free(program_buffer);
 
     err = clBuildProgram(program, 0, NULL, "-cl-denorms-are-zero", NULL, NULL);
-    if(err < 0) {
+    if (err < 0)
+    {
 
-        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
-          0, NULL, &log_size);
-        program_log = (char*) malloc(log_size + 1);
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
+        program_log = (char *)malloc(log_size + 1);
         program_log[log_size] = '\0';
-        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG,
-          log_size + 1, program_log, NULL);
+        clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, log_size + 1, program_log, NULL);
         printf("%s\n", program_log);
         free(program_log);
         exit(1);
@@ -192,7 +221,8 @@ cl_program build_program_6(cl_context ctx, cl_device_id device, const char* file
     return program;
 }
 
-void apply_crosscheck_6(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, const Image *im1, Image *output_im0) {
+void apply_crosscheck_6(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, const Image *im1, Image *output_im0)
+{
 
     /* Image data */
     cl_mem input_image, input_image1, output_image;
@@ -203,8 +233,8 @@ void apply_crosscheck_6(cl_context context, cl_kernel kernel, cl_command_queue q
 
     cl_event crosscheck_read_event, crosscheck_event;
 
-    const size_t width = im0 -> width;
-    const size_t height = im0 -> height;
+    const size_t width = im0->width;
+    const size_t height = im0->height;
 
     input_format.image_channel_order = CL_RGBA;
     input_format.image_channel_data_type = CL_UNORM_INT8;
@@ -216,64 +246,72 @@ void apply_crosscheck_6(cl_context context, cl_kernel kernel, cl_command_queue q
     output_format.image_channel_data_type = CL_UNORM_INT8;
 
     /* Create input image object */
-    input_image = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format, width, height, 0, (void*)im0 -> image, &err);
-    if(err < 0) {
+    input_image = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format, width, height, 0, (void *)im0->image, &err);
+    if (err < 0)
+    {
         printf("crosscheck: Couldn't create the input image 0 object");
         exit(1);
     };
 
-    input_image1 = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format1, width, height, 0, (void*)im1 -> image, &err);
-    if(err < 0) {
+    input_image1 = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &input_format1, width, height, 0, (void *)im1->image, &err);
+    if (err < 0)
+    {
         printf("crosscheck: Couldn't create the input image 1 object");
         exit(1);
     };
 
     /* Create output image object */
     output_image = clCreateImage2D(context, CL_MEM_READ_WRITE, &output_format, width, height, 0, NULL, &err);
-    if(err < 0) {
+    if (err < 0)
+    {
         perror("crosscheck: Couldn't create the input image object");
         exit(1);
     };
 
     // Set kernel arguments
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &input_image);
-    if(err < 0) {
+    if (err < 0)
+    {
         perror("crosscheck, Error: clSetKernelArg, inputImage");
         exit(1);
     }
 
     err = clSetKernelArg(kernel, 1, sizeof(cl_mem), &input_image1);
-    if(err < 0) {
+    if (err < 0)
+    {
         perror("crosscheck, Error: clSetKernelArg, inputImage");
         exit(1);
     }
 
     err = clSetKernelArg(kernel, 2, sizeof(cl_mem), &output_image);
-    if(err < 0) {
+    if (err < 0)
+    {
         perror("crosscheck, Error: clSetKernelArg, outputImage");
         exit(1);
     }
 
     // Execute the OpenCL kernel
-    size_t globalWorkSize[2] = { width , height};
+    size_t globalWorkSize[2] = { width, height };
     err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, &crosscheck_event);
-    if(err < 0) {
+    if (err < 0)
+    {
         perror("crosscheck, Error: clEnqueueNDRangeKernel");
         exit(1);
     }
 
     // Read the output image back to the host
-    err = clEnqueueReadImage(queue, output_image, CL_TRUE, (size_t[3]){0, 0, 0}, (size_t[3]){width, height, 1},
-      0, 0, (void*)output_im0 -> image, 0, NULL, &crosscheck_read_event);
-    if(err < 0) {
+    err = clEnqueueReadImage(
+      queue, output_image, CL_TRUE, (size_t[3]){ 0, 0, 0 }, (size_t[3]){ width, height, 1 }, 0, 0, (void *)output_im0->image, 0, NULL, &crosscheck_read_event);
+    if (err < 0)
+    {
         perror("crosscheck, Error: clEnqueueReadImage");
         exit(1);
     }
 
     clFinish(queue);
 
-    output_im0 -> width = width;
-    output_im0 -> height = height;
+    output_im0->width = width;
+    output_im0->height = height;
 
     time_to_crosscheck = getExecutionTime(crosscheck_event);
     read_time = getExecutionTime(crosscheck_read_event);
@@ -370,7 +408,8 @@ void openclFlowEx6(BENCHMARK_MODE benchmark)
         {
             kernel_occlusion_fill = kernels[i];
             logger("Found `occlustion` kernel at index %u.", i);
-        } else {
+        } else
+        {
             logger("Kernel not found");
         }
     }
@@ -387,7 +426,8 @@ void openclFlowEx6(BENCHMARK_MODE benchmark)
     if (benchmark == BENCHMARK)
     {
         logger("Benchmark mode: ON");
-    } else {
+    } else
+    {
         logger("Benchmark mode: OFF");
     }
 
@@ -401,6 +441,12 @@ void openclFlowEx6(BENCHMARK_MODE benchmark)
         // Convert Images to Gray
         benchmarkConvertImageToGray(sampleSize, context, kernel_color_to_gray, queue, output_1_resized_im0, output_1_bw_im0, benchmark);
         benchmarkConvertImageToGray(sampleSize, context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0, benchmark);
+
+        logger("Calculating Left Disparity");
+        benchmarkZncc(sampleSize, device, context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0, benchmark);
+
+        logger("Calculating Right Disparity");
+        benchmarkZncc(sampleSize, device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
     } else
     {
         resize_image(context, kernel_resize_image, queue, im0, output_1_resized_im0, benchmark);
@@ -454,39 +500,86 @@ void openclFlowEx6(BENCHMARK_MODE benchmark)
     logger("OpenCL Flow 6 ENDED\n");
 }
 
-void benchmarkResizeImage(int sampleCount, cl_context context, cl_kernel kernel_resize_image, cl_command_queue queue, Image *im0, Image *output_1_resized_im0,
-    BENCHMARK_MODE benchmark) {
+void benchmarkResizeImage(int sampleCount,
+  cl_context context,
+  cl_kernel kernel_resize_image,
+  cl_command_queue queue,
+  Image *im0,
+  Image *output_1_resized_im0,
+  BENCHMARK_MODE benchmark)
+{
     float elapsed_times[sampleCount];
-    for (int i = 0; i < sampleCount; i++) {
+    for (int i = 0; i < sampleCount; i++)
+    {
         cl_ulong time = resize_image(context, kernel_resize_image, queue, im0, output_1_resized_im0, benchmark);
-        elapsed_times[i] = (float) time;
+        elapsed_times[i] = (float)time;
     }
     float mean = Average(elapsed_times, sampleCount);
     float sd = standardDeviation(elapsed_times, sampleCount);
     int req_n = requiredSampleSize(sd, mean);
-    if (req_n > sampleCount) {
+    if (req_n > sampleCount)
+    {
         benchmarkResizeImage(req_n, context, kernel_resize_image, queue, im0, output_1_resized_im0, benchmark);
-    } else {
+    } else
+    {
         logger("Image Resize kernal ran \t: %d times", sampleCount);
-        logger("Image Resize Time \t\t: %.f  micro seconds", mean/1000);
+        logger("Image Resize Time \t\t: %.f  micro seconds", mean / 1000);
     }
 }
 
-void benchmarkConvertImageToGray(int sampleCount, cl_context context, cl_kernel kernel, cl_command_queue queue, Image *im0, Image *output_1_resized_im0,
-  BENCHMARK_MODE benchmark) {
+void benchmarkConvertImageToGray(int sampleCount,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  Image *im0,
+  Image *output_1_resized_im0,
+  BENCHMARK_MODE benchmark)
+{
     float elapsed_times[sampleCount];
-    for (int i = 0; i < sampleCount; i++) {
+    for (int i = 0; i < sampleCount; i++)
+    {
         cl_ulong time = convert_image_to_gray(context, kernel, queue, im0, output_1_resized_im0, benchmark);
-        elapsed_times[i] = (float) time;
+        elapsed_times[i] = (float)time;
     }
     float mean = Average(elapsed_times, sampleCount);
     float sd = standardDeviation(elapsed_times, sampleCount);
     int req_n = requiredSampleSize(sd, mean);
-    if (req_n > sampleCount) {
+    if (req_n > sampleCount)
+    {
         benchmarkConvertImageToGray(req_n, context, kernel, queue, im0, output_1_resized_im0, benchmark);
-    } else {
+    } else
+    {
         logger("Image Grayscale kernal ran \t: %d times", sampleCount);
-        logger("Image Grayscale Time \t\t: %.f  micro seconds", mean/1000);
+        logger("Image Grayscale Time \t\t: %.f  micro seconds", mean / 1000);
+    }
+}
+
+void benchmarkZncc(int sampleCount,
+  cl_device_id device,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  const Image *im0,
+  const Image *im1,
+  Image *output_im0,
+  BENCHMARK_MODE benchmark)
+{
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time = apply_zncc(device, context, kernel, queue, im0, im1, output_im0, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkZncc(req_n, device, context, kernel, queue, im0, im1, output_im0, benchmark);
+    } else
+    {
+        logger("ZNCC kernal ran \t\t: %d times", sampleCount);
+        logger("Disparity Time \t\t: %.f  micro seconds", mean / 1000);
     }
 }
 
