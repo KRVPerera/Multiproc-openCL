@@ -69,6 +69,14 @@ void benchmarkZncc(int sampleCount,
   Image *output_im0,
   BENCHMARK_MODE benchmark);
 
+void benchmarkCrossCheck(int sampleSize,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  Image *im0,
+  Image *im1,
+  Image *im2,
+  BENCHMARK_MODE benchmark);
 void apply_occlusion_fill_6(cl_device_id device,
   cl_context context,
   cl_kernel kernel,
@@ -447,6 +455,8 @@ void openclFlowEx6(BENCHMARK_MODE benchmark)
 
         logger("Calculating Right Disparity");
         benchmarkZncc(sampleSize, device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
+
+        benchmarkCrossCheck(sampleSize, context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0, benchmark);
     } else
     {
         resize_image(context, kernel_resize_image, queue, im0, output_1_resized_im0, benchmark);
@@ -498,6 +508,33 @@ void openclFlowEx6(BENCHMARK_MODE benchmark)
     clReleaseContext(context);
 
     logger("OpenCL Flow 6 ENDED\n");
+}
+void benchmarkCrossCheck(int sampleSize,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  Image *im0,
+  Image *im1,
+  Image *im2,
+  BENCHMARK_MODE benchmark)
+{
+    float elapsed_times[sampleSize];
+    for (int i = 0; i < sampleSize; i++)
+    {
+        cl_ulong time = apply_crosscheck(context, kernel, queue, im0, im1, im2, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+    float mean = Average(elapsed_times, sampleSize);
+    float sd = standardDeviation(elapsed_times, sampleSize);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleSize)
+    {
+        benchmarkCrossCheck(req_n, context, kernel, queue, im0, im1, im2, benchmark);
+    } else
+    {
+        logger("Cross Check kernal ran \t: %d times", sampleSize);
+        logger("Cross Check Time \t\t: %.f  micro seconds", mean / 1000);
+    }
 }
 
 void benchmarkResizeImage(int sampleCount,

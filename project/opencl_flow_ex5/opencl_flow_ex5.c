@@ -438,7 +438,7 @@ unsigned long long int apply_zncc(cl_device_id device,
     return time_to_gaussian_blur;
 }
 
-void apply_crosscheck(cl_context context,
+cl_ulong apply_crosscheck(cl_context context,
   cl_kernel kernel,
   cl_command_queue queue,
   const Image *im0,
@@ -547,9 +547,10 @@ void apply_crosscheck(cl_context context,
         printf("Time taken to do the crosscheck = %llu ns\n", time_to_crosscheck);
         printf("Time taken to read the output image (crosscheck) = %llu ns\n", read_time);
     }
+    return time_to_crosscheck;
 }
 
-void apply_occlusion_fill(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, BENCHMARK_MODE benchmark)
+cl_ulong apply_occlusion_fill(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, BENCHMARK_MODE benchmark)
 {
 
     /* Image data */
@@ -644,6 +645,7 @@ void apply_occlusion_fill(cl_context context, cl_kernel kernel, cl_command_queue
         printf("Time taken to do the occlusion_fill = %llu ns\n", time_to_occlustion_fill);
         printf("Time taken to read the output image (occlusion_fill) = %llu ns\n", read_time);
     }
+    return time_to_occlustion_fill;
 }
 
 void openclFlowEx5(BENCHMARK_MODE benchmark)
