@@ -47,9 +47,11 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
     int2 offsetPos;
     uint4 color;
     int flatIndex;
+    int flatIndexDim1;
     for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
+        flatIndexDim1 = i * WINDOW_SIZE + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
         for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
-            flatIndex = i * WINDOW_SIZE + j + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
+            flatIndex = flatIndexDim1 + j;
             offsetPos = pos + (int2)(i, j);
             color = read_imageui(inputImage1, sampler, offsetPos);
             image1Window[flatIndex] = color.x;
@@ -73,9 +75,9 @@ __kernel void left_disparity(__read_only image2d_t inputImage1, __read_only imag
         sum2 = 0.0f;
 
         for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
+            flatIndexDim1 = i * WINDOW_SIZE + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
             for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
-
-                flatIndex = i * WINDOW_SIZE + j + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
+                flatIndex = flatIndexDim1 + j;
                 offsetPos = pos + (int2)(i - d, j);
                 color = read_imageui                                                                                                                                                                                                                                                                                                                                                                                                                                                        (inputImage2, sampler, offsetPos);
                 image2Window[flatIndex] = color.x;
@@ -122,9 +124,11 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
     int2 offsetPos;
     uint4 color;
     int flatIndex;
+    int flatIndexDim1;
     for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
+        flatIndexDim1 = i * WINDOW_SIZE + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
         for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
-            flatIndex = i * WINDOW_SIZE + j + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
+            flatIndex = flatIndexDim1 + j;
             offsetPos = pos + (int2)(i, j);
             color = read_imageui(inputImage1, sampler, offsetPos);
             image1Window[flatIndex] = color.x;
@@ -148,9 +152,9 @@ __kernel void right_disparity(__read_only image2d_t inputImage1, __read_only ima
         sum2 = 0.0f;
 
         for (int i = -WINDOW_HALF_SIZE; i <= WINDOW_HALF_SIZE; ++i) {
+            flatIndexDim1 = i * WINDOW_SIZE + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
             for (int j = -WINDOW_HALF_SIZE; j <= WINDOW_HALF_SIZE; ++j) {
-
-                flatIndex = i * WINDOW_SIZE + j + WINDOW_SIZE_M_WINDOW_HALF_SIZE_PLUS;
+                flatIndex = flatIndexDim1 + j;
                 offsetPos = pos + (int2)(i + d, j);
                 color = read_imageui(inputImage2, sampler, offsetPos);
                 image2Window[flatIndex] = color.x;
