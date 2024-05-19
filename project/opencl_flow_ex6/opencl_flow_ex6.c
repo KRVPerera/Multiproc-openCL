@@ -77,6 +77,14 @@ void benchmarkCrossCheck(int sampleSize,
   Image *im1,
   Image *im2,
   BENCHMARK_MODE benchmark);
+void benchmarkOcclusionFill6(int size,
+  cl_device_id pId,
+  cl_context pContext,
+  cl_kernel pKernel,
+  cl_command_queue pQueue,
+  Image *pImage,
+  Image *pImage1,
+  BENCHMARK_MODE benchmark);
 void apply_occlusion_fill_6(cl_device_id device,
   cl_context context,
   cl_kernel kernel,
@@ -457,6 +465,8 @@ void openclFlowEx6(BENCHMARK_MODE benchmark)
         benchmarkZncc(sampleSize, device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
 
         benchmarkCrossCheck(sampleSize, context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0, benchmark);
+
+        benchmarkOcclusionFill6(sampleSize, device, context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0, benchmark);
     } else
     {
         resize_image(context, kernel_resize_image, queue, im0, output_1_resized_im0, benchmark);
@@ -509,6 +519,35 @@ void openclFlowEx6(BENCHMARK_MODE benchmark)
 
     logger("OpenCL Flow 6 ENDED\n");
 }
+
+void benchmarkOcclusionFill6(int size,
+  cl_device_id pId,
+  cl_context pContext,
+  cl_kernel pKernel,
+  cl_command_queue pQueue,
+  Image *pImage,
+  Image *pImage1,
+  BENCHMARK_MODE benchmark)
+{
+    float elapsed_times[size];
+    for (int i = 0; i < size; i++)
+    {
+        cl_ulong time = apply_occlusion_fill(pContext, pKernel, pQueue, pImage, pImage1, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+    float mean = Average(elapsed_times, size);
+    float sd = standardDeviation(elapsed_times, size);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > size)
+    {
+        benchmarkOcclusionFill6(req_n, pId, pContext, pKernel, pQueue, pImage, pImage1, benchmark);
+    } else
+    {
+        logger("Occlusion Fill kernal ran \t: %d times", size);
+        logger("Occlusion Fill Time \t\t: %.f  micro seconds", mean / 1000);
+    }
+}
+
 void benchmarkCrossCheck(int sampleSize,
   cl_context context,
   cl_kernel kernel,
