@@ -108,3 +108,10 @@ pre operations times are populated in `data/out/profile_data_X_MT.txt` or `data/
 ## Reference
 
 -   OpenCL in Action by Matthew Scarpino
+
+
+## Work Diary helper commands
+
+```bash
+git log --since="last month" --pretty=format:"%ad -- %an -- %h %s"
+```
