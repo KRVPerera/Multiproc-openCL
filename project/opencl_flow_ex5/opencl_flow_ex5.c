@@ -50,7 +50,6 @@ cl_device_id create_device(void)
 
 void benchmarkResizeImageEx5(int size, cl_context pContext, cl_kernel pKernel, cl_command_queue pQueue, Image *pImage, Image *pImage1, BENCHMARK_MODE
                                                                                                                                          benchmark);
-
 cl_program build_program(cl_context ctx, cl_device_id device, const char *filename)
 {
 
@@ -300,7 +299,7 @@ cl_ulong convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_
     return time_to_grayscale;
 }
 
-unsigned long long int apply_zncc(cl_device_id device,
+cl_ulong apply_zncc(cl_device_id device,
   cl_context context,
   cl_kernel kernel,
   cl_command_queue queue,
@@ -697,6 +696,37 @@ void benchmarkConvertImageToGrayEx5(int sampleCount, cl_context context, cl_kern
     }
 }
 
+void benchmarkZnccEx5(int sampleCount,
+  cl_device_id device,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  Image *im0,
+  Image *im1,
+  Image *outImage,
+  BENCHMARK_MODE benchmark)
+{
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time = apply_zncc(device, context, kernel, queue, im0, im1, outImage, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkZnccEx5(req_n, device, context, kernel, queue, im0, im1, outImage, benchmark);
+    } else
+    {
+        logger("ZNCC kernal ran \t: %d times", sampleCount);
+        logger("Disparity Time \t\t: %.f  micro seconds", mean / 1000);
+    }
+}
+
+
 void openclFlowEx5(BENCHMARK_MODE benchmark)
 {
     logger("OpenCL Flow Example 5 STARTED\n");
@@ -813,12 +843,12 @@ void openclFlowEx5(BENCHMARK_MODE benchmark)
         // Convert Images to Gray
         benchmarkConvertImageToGrayEx5(sampleSize, context, kernel_color_to_gray, queue, output_1_resized_im0, output_1_bw_im0, benchmark);
         benchmarkConvertImageToGrayEx5(sampleSize, context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0, benchmark);
-//
-//        logger("Calculating Left Disparity");
-//        benchmarkZncc(sampleSize, device, context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0, benchmark);
-//
-//        logger("Calculating Right Disparity");
-//        benchmarkZncc(sampleSize, device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
+
+        logger("Calculating Left Disparity");
+        benchmarkZnccEx5(sampleSize, device, context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0, benchmark);
+
+        logger("Calculating Right Disparity");
+        benchmarkZnccEx5(sampleSize, device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
 //
 //        benchmarkCrossCheck(sampleSize, context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0, benchmark);
 //
@@ -881,3 +911,4 @@ void openclFlowEx5(BENCHMARK_MODE benchmark)
 
     logger("OpenCL Flow Example 5 ENDED\n");
 }
+
