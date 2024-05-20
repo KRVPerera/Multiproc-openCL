@@ -721,7 +721,7 @@ void benchmarkZnccEx5(int sampleCount,
         benchmarkZnccEx5(req_n, device, context, kernel, queue, im0, im1, outImage, benchmark);
     } else
     {
-        logger("ZNCC kernal ran \t: %d times", sampleCount);
+        logger("ZNCC kernal ran \t\t: %d times", sampleCount);
         logger("Disparity Time \t\t: %.f  micro seconds", mean / 1000);
     }
 }
