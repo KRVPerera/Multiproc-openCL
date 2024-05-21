@@ -15,8 +15,16 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-deprecated-declarations -Wno-newline-eof -Wno-strict-prototypes -Wno-format -Wno-sometimes-uninitialized")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-deprecated-declarations -Wno-newline-eof -Wno-strict-prototypes -Wno-format -Wno-sometimes-uninitialized -Wno-maybe-uninitialized")
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+endif()
 
 # set(OpenMP_C_FLAGS "-fopenmp")
 # set(OpenMP_C_LIB_NAMES "lomp")
