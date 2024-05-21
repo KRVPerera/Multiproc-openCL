@@ -7,8 +7,8 @@
 
 #include <config.h>
 #include <pngloader.h>
-
 #include "config_im_to_g.h"
+
 #include "logger.h"
 #include <opencl_flow_ex5.h>
 #include <stdio.h>
@@ -297,7 +297,7 @@ cl_ulong convert_image_to_gray(cl_context context, cl_kernel kernel, cl_command_
     return time_to_grayscale;
 }
 
-unsigned long long int apply_zncc(cl_device_id device,
+cl_ulong apply_zncc(cl_device_id device,
   cl_context context,
   cl_kernel kernel,
   cl_command_queue queue,
@@ -438,7 +438,7 @@ unsigned long long int apply_zncc(cl_device_id device,
     return time_to_gaussian_blur;
 }
 
-void apply_crosscheck(cl_context context,
+cl_ulong apply_crosscheck(cl_context context,
   cl_kernel kernel,
   cl_command_queue queue,
   const Image *im0,
@@ -547,9 +547,10 @@ void apply_crosscheck(cl_context context,
         printf("Time taken to do the crosscheck = %llu ns\n", time_to_crosscheck);
         printf("Time taken to read the output image (crosscheck) = %llu ns\n", read_time);
     }
+    return time_to_crosscheck;
 }
 
-void apply_occlusion_fill(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, BENCHMARK_MODE benchmark)
+cl_ulong apply_occlusion_fill(cl_context context, cl_kernel kernel, cl_command_queue queue, const Image *im0, Image *output_im0, BENCHMARK_MODE benchmark)
 {
 
     /* Image data */
@@ -643,6 +644,140 @@ void apply_occlusion_fill(cl_context context, cl_kernel kernel, cl_command_queue
     {
         printf("Time taken to do the occlusion_fill = %llu ns\n", time_to_occlustion_fill);
         printf("Time taken to read the output image (occlusion_fill) = %llu ns\n", read_time);
+    }
+    return time_to_occlustion_fill;
+}
+
+void benchmarkResizeImageEx5(int sampleCount, cl_context context, cl_kernel kernel, cl_command_queue queue, Image *im0, Image *output_1_resized_im0,
+  BENCHMARK_MODE benchmark) {
+
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time = resize_image(context, kernel, queue, im0, output_1_resized_im0, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkResizeImageEx5(req_n, context, kernel, queue, im0, output_1_resized_im0, benchmark);
+    } else
+    {
+        logger("Image Resize kernal ran \t: %d times", sampleCount);
+        logger("Image Resize Time \t\t: %.f  micro seconds", mean / 1000);
+    }
+}
+
+void benchmarkConvertImageToGrayEx5(int sampleCount, cl_context context, cl_kernel kernel, cl_command_queue queue, Image * im0, Image * output_1_bw_im0, BENCHMARK_MODE benchmark)
+{
+
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time = convert_image_to_gray(context, kernel, queue, im0, output_1_bw_im0, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkConvertImageToGrayEx5(req_n, context, kernel, queue, im0, output_1_bw_im0, benchmark);
+    } else
+    {
+        logger("Image Grayscale kernal ran \t: %d times", sampleCount);
+        logger("Image Grayscale Time \t\t: %.f  micro seconds", mean / 1000);
+    }
+}
+
+void benchmarkZnccEx5(int sampleCount,
+  cl_device_id device,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  Image *im0,
+  Image *im1,
+  Image *outImage,
+  BENCHMARK_MODE benchmark)
+{
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time = apply_zncc(device, context, kernel, queue, im0, im1, outImage, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkZnccEx5(req_n, device, context, kernel, queue, im0, im1, outImage, benchmark);
+    } else
+    {
+        logger("ZNCC kernal ran \t\t: %d times", sampleCount);
+        logger("Disparity Time \t\t: %.f  micro seconds", mean / 1000);
+    }
+}
+
+void benchmarkOcclusionFillEx5(int sampleCount,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  Image *im0,
+  Image *outImage,
+  BENCHMARK_MODE benchmark)
+{
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time = apply_occlusion_fill(context, kernel, queue, im0, outImage, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkOcclusionFillEx5(req_n, context, kernel, queue, im0, outImage, benchmark);
+    } else
+    {
+        logger("Occlusion Fill kernal ran \t: %d times", sampleCount);
+        logger("Occlusion Fill Time \t\t: %.f  micro seconds", mean / 1000);
+    }
+}
+
+void benchmarkCrossCheckEx5(int sampleCount,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  Image *im0,
+  Image *im1,
+  Image *outImage,
+  BENCHMARK_MODE benchmark)
+{
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time =  apply_crosscheck(context, kernel, queue, im0, im1, outImage, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkCrossCheckEx5(req_n, context, kernel, queue, im0, im1, outImage, benchmark);
+    } else
+    {
+        logger("Cross Check kernal ran \t: %d times", sampleCount);
+        logger("Cross Check Time \t\t: %.f  micro seconds", mean / 1000);
     }
 }
 
@@ -743,32 +878,61 @@ void openclFlowEx5(BENCHMARK_MODE benchmark)
         exit(1);
     }
 
+    logger("Starting running opencl kernels");
     if (benchmark == BENCHMARK)
     {
-        logger("Benchmark mode is ON");
+        logger("Benchmark mode: ON");
+    } else
+    {
+        logger("Benchmark mode: OFF");
     }
 
-    /* Resize image size */
-    resize_image(context, kernel_resize_image, queue, im0, output_1_resized_im0, benchmark);
-    /* Convert color image to gray scale image */
-    convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_resized_im0, output_1_bw_im0, benchmark);
+    int sampleSize = 10;
+    if (benchmark == BENCHMARK)
+    {
+        // Resize Images
+        benchmarkResizeImageEx5(sampleSize, context, kernel_resize_image, queue, im0, output_1_resized_im0, benchmark);
+        benchmarkResizeImageEx5(sampleSize, context, kernel_resize_image, queue, im1, output_2_resized_im0, benchmark);
 
-    /* Resize image size */
-    resize_image(context, kernel_resize_image, queue, im1, output_2_resized_im0, benchmark);
-    /* Convert color image to gray scale image */
-    convert_image_to_gray(context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0, benchmark);
+        // Convert Images to Gray
+        benchmarkConvertImageToGrayEx5(sampleSize, context, kernel_color_to_gray, queue, output_1_resized_im0, output_1_bw_im0, benchmark);
+        benchmarkConvertImageToGrayEx5(sampleSize, context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0, benchmark);
 
-    /* Apply zncc kernel */
-    apply_zncc(device, context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0, benchmark);
+        logger("Calculating Left Disparity");
+        benchmarkZnccEx5(sampleSize, device, context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0, benchmark);
 
-    /* Apply zncc kernel */
-    apply_zncc(device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
+        logger("Calculating Right Disparity");
+        benchmarkZnccEx5(sampleSize, device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
 
-    /* Apply left crosscheck kernel */
-    apply_crosscheck(context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0, benchmark);
+        benchmarkCrossCheckEx5(sampleSize, context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0,
+          benchmark);
 
-    /* Apply left occlustion fill kernel */
-    apply_occlusion_fill(context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0, benchmark);
+        benchmarkOcclusionFillEx5(sampleSize, context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0, benchmark);
+    } else
+    {
+
+        /* Resize image size */
+        resize_image(context, kernel_resize_image, queue, im0, output_1_resized_im0, benchmark);
+        /* Convert color image to gray scale image */
+        convert_image_to_gray(context, kernel_color_to_gray, queue, output_1_resized_im0, output_1_bw_im0, benchmark);
+
+        /* Resize image size */
+        resize_image(context, kernel_resize_image, queue, im1, output_2_resized_im0, benchmark);
+        /* Convert color image to gray scale image */
+        convert_image_to_gray(context, kernel_color_to_gray, queue, output_2_resized_im0, output_2_bw_im0, benchmark);
+
+        /* Apply zncc kernel */
+        apply_zncc(device, context, kernel_zncc_left, queue, output_1_bw_im0, output_2_bw_im0, output_left_disparity_im0, benchmark);
+
+        /* Apply zncc kernel */
+        apply_zncc(device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
+
+        /* Apply left crosscheck kernel */
+        apply_crosscheck(context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0, benchmark);
+
+        /* Apply left occlustion fill kernel */
+        apply_occlusion_fill(context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0, benchmark);
+    }
 
     saveImage(OUTPUT_1_RESIZE_OPENCL_FILE, output_1_resized_im0);
     saveImage(OUTPUT_1_BW_OPENCL_FILE, output_1_bw_im0);
@@ -779,7 +943,6 @@ void openclFlowEx5(BENCHMARK_MODE benchmark)
     saveImage(OUTPUT_2_LEFT_DISPARITY_OPENCL_FILE, output_right_disparity_im0);
 
     saveImage(OUTPUT_3_CROSSCHECK_LEFT_OPENCL_FILE, left_crosscheck_im0);
-
     saveImage(OUTPUT_4_OCCLUSTION_LEFT_OPENCL_FILE, output_left_occlusion_im0);
 
     /* Deallocate resources */

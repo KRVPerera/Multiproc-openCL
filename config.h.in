@@ -58,20 +58,18 @@
 #define OUTPUT_3_FILE "@PROJECT_SOURCE_DIR@/data/out/output_3.png"
 
 
-#define OUTPUT_1_RESIZE_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/output_RESIZE_1_OPENCL.png"
-#define OUTPUT_1_BW_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/output_BW_1_OPENCL.png"
+#define OUTPUT_1_RESIZE_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/opencl_1_resized_im0.png"
+#define OUTPUT_2_RESIZE_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/opencl_2_resized_im1.png"
+#define OUTPUT_1_BW_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/opencl_3_bw_im0.png"
+#define OUTPUT_2_BW_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/opencl_4_bw_im0.png"
+#define OUTPUT_1_LEFT_DISPARITY_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/opencl_5_left_disparity_im.png"
+#define OUTPUT_2_LEFT_DISPARITY_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/opencl_6_right_disparity_im.png"
+#define OUTPUT_3_CROSSCHECK_LEFT_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/opencl_7_left_crosscheck_im.png"
+#define OUTPUT_3_CROSSCHECK_RIGHT_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/opencl_8_right_crosscheck_im.png"
+#define OUTPUT_4_OCCLUSTION_LEFT_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/opencl_9_left_occlusion_im.png"
+#define OUTPUT_4_OCCLUSTION_RIGHT_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/opencl_9_right_occlusion_im.png"
+
 #define OUTPUT_1_BLUR_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/output_BW_BLUR_OPENCL.png"
-#define OUTPUT_1_LEFT_DISPARITY_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/output_LEFT_DISPARITY_OPENCL.png"
-
-#define OUTPUT_2_RESIZE_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/output_RESIZE_2_OPENCL.png"
-#define OUTPUT_2_BW_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/output_BW_2_OPENCL.png"
-#define OUTPUT_2_LEFT_DISPARITY_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/output_RIGHT_DISPARITY_OPENCL.png"
-
-#define OUTPUT_3_CROSSCHECK_LEFT_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/CROSSCHECK_LEFT_OPENCL.png"
-#define OUTPUT_3_CROSSCHECK_RIGHT_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/CROSSCHECK_RIGHT_OPENCL.png"
-
-#define OUTPUT_4_OCCLUSTION_LEFT_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/OCCLUSTION_LEFT_OPENCL.png"
-#define OUTPUT_4_OCCLUSTION_RIGHT_OPENCL_FILE "@PROJECT_SOURCE_DIR@/data/out/OCCLUSTION_RIGHT_OPENCL.png"
 
 #define OUTPUT_1_FILE "@PROJECT_SOURCE_DIR@/data/out/output_1.png"
 #define OUTPUT_2_FILE "@PROJECT_SOURCE_DIR@/data/out/output_2.png"

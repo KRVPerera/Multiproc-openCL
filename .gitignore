@@ -19,9 +19,7 @@ CMakeLists.txt.user
 
 .cache
 
-data/out/image_*.png
-data/out/output_*.png
-data/out/*_OPENCL.png
+data/out/*.png
 
 profile_data_0.txt
 profile_data_1.txt
