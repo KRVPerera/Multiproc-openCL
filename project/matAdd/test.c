@@ -10,7 +10,9 @@
 
 #define SIZE 100
 
-int main() {
+// add_Matrix written in main
+
+void add_Matrix() {
     cl_platform_id platform;
     cl_device_id device;
     cl_int err;
@@ -56,7 +58,7 @@ int main() {
     program_handle = fopen(PROGRAM_FILE, "r");
     if(program_handle == NULL) {
         perror("Couldn't find the program file");
-        exit(1);   
+        exit(1);
     }
     fseek(program_handle, 0, SEEK_END);
     program_size = ftell(program_handle);
@@ -69,7 +71,7 @@ int main() {
     program = clCreateProgramWithSource(context, 1, (const char**)&program_buffer, &program_size, &err);
     if(err < 0) {
         perror("Error: clCreateProgramWithSource");
-        exit(1);   
+        exit(1);
     }
 
     free(program_buffer);
@@ -88,7 +90,7 @@ int main() {
     kernel = clCreateKernel(program, KERNEL_NAME, &err);
     if(err < 0) {
         perror("Error: clCreateKernel");
-        exit(1);   
+        exit(1);
     }
     // cl_command_queue_properties props[3] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
     // queue = clCreateCommandQueueWithProperties(context, device, props, &err);
@@ -137,7 +139,7 @@ int main() {
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &mat1_buffer);
     if(err < 0) {
         perror("Error: clSetKernelArg");
-        exit(1);   
+        exit(1);
     }
     clSetKernelArg(kernel, 1, sizeof(cl_mem), &mat2_buffer);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), &result_buffer);
@@ -147,7 +149,7 @@ int main() {
     err = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, globalSize, NULL, 0, NULL, &prof_event);
     if(err < 0) {
         perror("Error: clEnqueueNDRangeKernel");
-        exit(1);   
+        exit(1);
     }
 
     clFinish(queue);
@@ -189,7 +191,7 @@ int main() {
         printf("The result is correct\n");
     } else {
         printf("The result is incorrect\n");
-    }  
+    }
 
     clReleaseMemObject(mat1_buffer);
     clReleaseMemObject(mat2_buffer);
@@ -204,5 +206,8 @@ int main() {
     free(C);
     free(correct);
 
+}
+int main() {
+    add_Matrix();
     return 0;
 }
