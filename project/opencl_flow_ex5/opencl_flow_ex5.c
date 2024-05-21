@@ -48,8 +48,6 @@ cl_device_id create_device(void)
     return device;
 }
 
-void benchmarkResizeImageEx5(int size, cl_context pContext, cl_kernel pKernel, cl_command_queue pQueue, Image *pImage, Image *pImage1, BENCHMARK_MODE
-                                                                                                                                         benchmark);
 cl_program build_program(cl_context ctx, cl_device_id device, const char *filename)
 {
 
@@ -726,6 +724,62 @@ void benchmarkZnccEx5(int sampleCount,
     }
 }
 
+void benchmarkOcclusionFillEx5(int sampleCount,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  Image *im0,
+  Image *outImage,
+  BENCHMARK_MODE benchmark)
+{
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time = apply_occlusion_fill(context, kernel, queue, im0, outImage, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkOcclusionFillEx5(req_n, context, kernel, queue, im0, outImage, benchmark);
+    } else
+    {
+        logger("Occlusion Fill kernal ran \t: %d times", sampleCount);
+        logger("Occlusion Fill Time \t\t: %.f  micro seconds", mean / 1000);
+    }
+}
+
+void benchmarkCrossCheckEx5(int sampleCount,
+  cl_context context,
+  cl_kernel kernel,
+  cl_command_queue queue,
+  Image *im0,
+  Image *im1,
+  Image *outImage,
+  BENCHMARK_MODE benchmark)
+{
+    float elapsed_times[sampleCount];
+    for (int i = 0; i < sampleCount; i++)
+    {
+        cl_ulong time =  apply_crosscheck(context, kernel, queue, im0, im1, outImage, benchmark);
+        elapsed_times[i] = (float)time;
+    }
+
+    float mean = Average(elapsed_times, sampleCount);
+    float sd = standardDeviation(elapsed_times, sampleCount);
+    int req_n = requiredSampleSize(sd, mean);
+    if (req_n > sampleCount)
+    {
+        benchmarkCrossCheckEx5(req_n, context, kernel, queue, im0, im1, outImage, benchmark);
+    } else
+    {
+        logger("Cross Check kernal ran \t: %d times", sampleCount);
+        logger("Cross Check Time \t\t: %.f  micro seconds", mean / 1000);
+    }
+}
 
 void openclFlowEx5(BENCHMARK_MODE benchmark)
 {
@@ -849,10 +903,11 @@ void openclFlowEx5(BENCHMARK_MODE benchmark)
 
         logger("Calculating Right Disparity");
         benchmarkZnccEx5(sampleSize, device, context, kernel_zncc_right, queue, output_2_bw_im0, output_1_bw_im0, output_right_disparity_im0, benchmark);
-//
-//        benchmarkCrossCheck(sampleSize, context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0, benchmark);
-//
-//        benchmarkOcclusionFill(sampleSize, device, context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0, benchmark);
+
+        benchmarkCrossCheckEx5(sampleSize, context, kernel_cross_check, queue, output_left_disparity_im0, output_right_disparity_im0, left_crosscheck_im0,
+          benchmark);
+
+        benchmarkOcclusionFillEx5(sampleSize, context, kernel_occlusion_fill, queue, left_crosscheck_im0, output_left_occlusion_im0, benchmark);
     } else
     {
 
@@ -911,4 +966,3 @@ void openclFlowEx5(BENCHMARK_MODE benchmark)
 
     logger("OpenCL Flow Example 5 ENDED\n");
 }
-
