@@ -61,7 +61,7 @@ pre operations times are populated in `data/out/profile_data_X_MT.txt` or `data/
 ```bash
   mkdir build
   cd build
-  cmake ..
+  cmake -DCMAKE_BUILD_TYPE=Release ..
   make -j
 ```
 
