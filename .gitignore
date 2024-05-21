@@ -4,6 +4,7 @@ test
 # Ignore build folder
 build
 cmake-build-debug
+cmake-build-*
 
 # Ignore CMakeLists.txt.user
 CMakeLists.txt.user
