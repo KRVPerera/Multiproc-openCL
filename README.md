@@ -67,12 +67,33 @@ pre operations times are populated in `data/out/profile_data_X_MT.txt` or `data/
 
 -   Output images will be saved in `data/out` folder
 
-### Run C single thread implementation
+### Running
 
--   After building the project run.
+- Run single threaded implementation
+  ```
+  ./Multiproc-openCL single
+  ./Multiproc-openCL single -benchmark
+  ```
+  
+- Run multithreaded implementation. Also support benchmarking
 
-`./Multiproc-openCL single`
+   ```
+  ./Multiproc-openCL mp
+   ./Multiproc-openCL mp -benchmark
+  ```
 
+- Run opencl implementation
+   ```
+  ./Multiproc-openCL opencl
+   ./Multiproc-openCL opencl -benchmark
+  ```
+
+- Run opencl optimized implementation
+   ```
+  ./Multiproc-openCL opencl_opt
+   ./Multiproc-openCL opencl_opt -benchmark
+  ```
+  
 ### Run C multithreaded implementation
 
 -   After building the project run.

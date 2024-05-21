@@ -18,11 +18,11 @@ int main(int argc, char *argv[])
     printHeader();
 
     BENCHMARK_MODE benchmark = DO_NOT_BENCHMARK;
-    bool multithreadedMode = false;
     if (argc < 2)
     {
-        logger("Incorrect number of arguments. Expected 1, got %d. Running `mp - multithreaded` mode", argc - 1);
-        multithreadedMode = true;
+        logger("Incorrect number of arguments. Expected atleast 1, got %d. Running `mp - multithreaded` mode", argc - 1);
+        printHelp();
+        return 1;
     }
 
     if (argc > 2 && strcmp(argv[2], "-benchmark") == 0)
@@ -39,10 +39,9 @@ int main(int argc, char *argv[])
     // get starting time
     GET_TIME(t0)
 
-    if (multithreadedMode || (strcmp(argv[1], "mp") == 0))
+    if (strcmp(argv[1], "mp") == 0)
     {
-        multithreadedMode = true;
-        fullFlow(benchmark, multithreadedMode);
+        fullFlow(benchmark, true);
 
     } else if ((strcmp(argv[1], "help") == 0) || (strcmp(argv[1], "help") == 0) || (strcmp(argv[1], "-h") == 0))
     {
@@ -59,7 +58,7 @@ int main(int argc, char *argv[])
         openclFlowEx3(benchmark);
     } else if (strcmp(argv[1], "single") == 0)
     {
-        fullFlow(benchmark, multithreadedMode);
+        fullFlow(benchmark, false);
     } else if (strcmp(argv[1], "test") == 0)
     {
         openmpTestCode();
